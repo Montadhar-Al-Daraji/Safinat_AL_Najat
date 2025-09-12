@@ -14,6 +14,9 @@ let siteData = {
 
 // تحميل البيانات من Supabase
 async function loadData() {
+        showLoader(); // عرض مؤشر التحميل
+
+    
     try {
         // جلب البيانات من كل جدول
         const { data: books, error: booksError } = await supabaseClient.from('books').select('*');
@@ -41,6 +44,8 @@ async function loadData() {
         document.querySelectorAll('.items-container').forEach(container => {
             container.innerHTML = '<p class="no-items">لا توجد عناصر لعرضها حالياً</p>';
         });
+    } finally {
+        setTimeout(hideLoader, 500); // إخفاء مؤشر التحميل بعد نصف ثانية
     }
 }
 
@@ -105,7 +110,19 @@ function renderNovelItem(novel) {
     `;
     return div;
 }
+// عرض مؤشر تحميل
+function showLoader() {
+    document.querySelectorAll('.items-container').forEach(container => {
+        container.innerHTML = '<div class="loader">جاري تحميل المحتوى...</div>';
+    });
+}
 
+// إخفاء مؤشر تحميل
+function hideLoader() {
+    document.querySelectorAll('.loader').forEach(loader => {
+        loader.remove();
+    });
+}
 // عرض عنصر ملف
 function renderFileItem(file) {
     const div = document.createElement('div');
