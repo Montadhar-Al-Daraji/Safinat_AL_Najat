@@ -1,7 +1,7 @@
 // تهيئة Supabase
 const SUPABASE_URL = 'https://xzltdsmmolyvcmkfzedf.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bHRkc21tb2x5dmNta2Z6ZWRmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc2Nzg1NzEsImV4cCI6MjA3MzI1NDU3MX0.3TJ49ctEhOT1KDIFtZXFw2jwTq57ujaWbqNNJ2Eeb1U';
-const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 // بيانات الموقع
 let siteData = {
@@ -16,11 +16,11 @@ let siteData = {
 async function loadAdminData() {
     try {
         // جلب البيانات من كل جدول
-        const { data: books, error: booksError } = await supabaseClient.from('books').select('*');
-        const { data: novels, error: novelsError } = await supabaseClient.from('novels').select('*');
-        const { data: files, error: filesError } = await supabaseClient.from('files').select('*');
-        const { data: platforms, error: platformsError } = await supabaseClient.from('platforms').select('*');
-        const { data: apps, error: appsError } = await supabaseClient.from('apps').select('*');
+        const { data: books, error: booksError } = await supabase.from('books').select('*');
+        const { data: novels, error: novelsError } = await supabase.from('novels').select('*');
+        const { data: files, error: filesError } = await supabase.from('files').select('*');
+        const { data: platforms, error: platformsError } = await supabase.from('platforms').select('*');
+        const { data: apps, error: appsError } = await supabase.from('apps').select('*');
 
         if (booksError) throw booksError;
         if (novelsError) throw novelsError;
@@ -37,6 +37,7 @@ async function loadAdminData() {
         renderAllAdminLists();
     } catch (error) {
         console.error('Error loading data:', error);
+        alert('حدث خطأ في تحميل البيانات: ' + error.message);
     }
 }
 
@@ -89,7 +90,7 @@ function renderAdminList(section, items) {
         return;
     }
     
-    items.forEach((item, index) => {
+    items.forEach((item) => {
         const itemElement = document.createElement('div');
         itemElement.className = 'item-card';
         
@@ -123,7 +124,7 @@ async function deleteItem(section, id) {
             await loadAdminData();
         } catch (error) {
             console.error('Error deleting item:', error);
-            alert('حدث خطأ أثناء حذف العنصر');
+            alert('حدث خطأ أثناء حذف العنصر: ' + error.message);
         }
     }
 }
@@ -136,7 +137,7 @@ document.getElementById('book-form').addEventListener('submit', async function(e
         title: document.getElementById('book-title').value,
         description: document.getElementById('book-description').value,
         image: document.getElementById('book-image').value,
-        driveLink: document.getElementById('book-drive-link').value
+        drive_link: document.getElementById('book-drive-link').value // استخدام drive_link بدلاً من driveLink
     };
     
     try {
@@ -145,7 +146,8 @@ document.getElementById('book-form').addEventListener('submit', async function(e
         renderAdminList('books', siteData.books);
         this.reset();
     } catch (error) {
-        alert('حدث خطأ أثناء إضافة الكتاب');
+        console.error('Error adding book:', error);
+        alert('حدث خطأ أثناء إضافة الكتاب: ' + error.message);
     }
 });
 
@@ -178,7 +180,8 @@ document.getElementById('novel-form').addEventListener('submit', async function(
         const imagesContainer = document.getElementById('novel-images-container');
         imagesContainer.innerHTML = '<input type="url" class="novel-image-input" placeholder="رابط الصورة">';
     } catch (error) {
-        alert('حدث خطأ أثناء إضافة الرواية');
+        console.error('Error adding novel:', error);
+        alert('حدث خطأ أثناء إضافة الرواية: ' + error.message);
     }
 });
 
@@ -200,7 +203,7 @@ document.getElementById('file-form').addEventListener('submit', async function(e
         title: document.getElementById('file-title').value,
         description: document.getElementById('file-description').value,
         image: document.getElementById('file-image').value,
-        driveLink: document.getElementById('file-drive-link').value
+        drive_link: document.getElementById('file-drive-link').value // استخدام drive_link بدلاً من driveLink
     };
     
     try {
@@ -209,7 +212,8 @@ document.getElementById('file-form').addEventListener('submit', async function(e
         renderAdminList('files', siteData.files);
         this.reset();
     } catch (error) {
-        alert('حدث خطأ أثناء إضافة الملف');
+        console.error('Error adding file:', error);
+        alert('حدث خطأ أثناء إضافة الملف: ' + error.message);
     }
 });
 
@@ -229,7 +233,8 @@ document.getElementById('platform-form').addEventListener('submit', async functi
         renderAdminList('platforms', siteData.platforms);
         this.reset();
     } catch (error) {
-        alert('حدث خطأ أثناء إضافة المنصة');
+        console.error('Error adding platform:', error);
+        alert('حدث خطأ أثناء إضافة المنصة: ' + error.message);
     }
 });
 
@@ -241,7 +246,7 @@ document.getElementById('app-form').addEventListener('submit', async function(e)
         title: document.getElementById('app-title').value,
         description: document.getElementById('app-description').value,
         image: document.getElementById('app-image').value,
-        downloadLink: document.getElementById('app-download-link').value
+        download_link: document.getElementById('app-download-link').value // استخدام download_link بدلاً من downloadLink
     };
     
     try {
@@ -250,7 +255,8 @@ document.getElementById('app-form').addEventListener('submit', async function(e)
         renderAdminList('apps', siteData.apps);
         this.reset();
     } catch (error) {
-        alert('حدث خطأ أثناء إضافة التطبيق');
+        console.error('Error adding app:', error);
+        alert('حدث خطأ أثناء إضافة التطبيق: ' + error.message);
     }
 });
 
