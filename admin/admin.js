@@ -145,6 +145,7 @@ document.getElementById('book-form').addEventListener('submit', async function(e
         siteData.books.push(savedBook);
         renderAdminList('books', siteData.books);
         this.reset();
+        alert('تم إضافة الكتاب بنجاح!');
     } catch (error) {
         console.error('Error adding book:', error);
         alert('حدث خطأ أثناء إضافة الكتاب: ' + error.message);
@@ -179,6 +180,7 @@ document.getElementById('novel-form').addEventListener('submit', async function(
         // إعادة تعيين حقل الصور
         const imagesContainer = document.getElementById('novel-images-container');
         imagesContainer.innerHTML = '<input type="url" class="novel-image-input" placeholder="رابط الصورة">';
+        alert('تم إضافة الرواية بنجاح!');
     } catch (error) {
         console.error('Error adding novel:', error);
         alert('حدث خطأ أثناء إضافة الرواية: ' + error.message);
@@ -211,6 +213,7 @@ document.getElementById('file-form').addEventListener('submit', async function(e
         siteData.files.push(savedFile);
         renderAdminList('files', siteData.files);
         this.reset();
+        alert('تم إضافة الملف بنجاح!');
     } catch (error) {
         console.error('Error adding file:', error);
         alert('حدث خطأ أثناء إضافة الملف: ' + error.message);
@@ -232,6 +235,7 @@ document.getElementById('platform-form').addEventListener('submit', async functi
         siteData.platforms.push(savedPlatform);
         renderAdminList('platforms', siteData.platforms);
         this.reset();
+        alert('تم إضافة المنصة بنجاح!');
     } catch (error) {
         console.error('Error adding platform:', error);
         alert('حدث خطأ أثناء إضافة المنصة: ' + error.message);
@@ -254,6 +258,7 @@ document.getElementById('app-form').addEventListener('submit', async function(e)
         siteData.apps.push(savedApp);
         renderAdminList('apps', siteData.apps);
         this.reset();
+        alert('تم إضافة التطبيق بنجاح!');
     } catch (error) {
         console.error('Error adding app:', error);
         alert('حدث خطأ أثناء إضافة التطبيق: ' + error.message);
