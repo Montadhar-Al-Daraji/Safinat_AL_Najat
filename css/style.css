@@ -6,7 +6,7 @@
 }
 
 body {
-    color: #D4AF37; /* ذهبي */
+    color: #FFFFFF; /* تغيير الذهبي إلى الأبيض */
     overflow-x: hidden;
     position: relative;
 }
@@ -60,7 +60,7 @@ header {
     width: 120px;
     height: 120px;
     margin-bottom: 1rem;
-    border: 3px solid #D4AF37;
+    border: 3px solid #FFFFFF; /* تغيير الذهبي إلى الأبيض */
     border-radius: 50%;
     padding: 5px;
     background: rgba(139, 0, 0, 0.7);
@@ -68,7 +68,7 @@ header {
 
 h1 {
     font-size: 2.5rem;
-    color: #D4AF37;
+    color: #FFFFFF; /* تغيير الذهبي إلى الأبيض */
     text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
 }
 
@@ -92,7 +92,7 @@ h1 {
 }
 
 .main-nav a {
-    color: #D4AF37;
+    color: #FFFFFF; /* تغيير الذهبي إلى الأبيض */
     text-decoration: none;
     font-weight: 600;
     font-size: 1.1rem;
@@ -102,13 +102,13 @@ h1 {
 }
 
 .main-nav a:hover {
-    background: #D4AF37;
+    background: #FFFFFF; /* تغيير الذهبي إلى الأبيض */
     color: #8B0000;
 }
 
 .admin-link {
-    background: rgba(212, 175, 55, 0.3);
-    border: 1px solid #D4AF37;
+    background: rgba(255, 255, 255, 0.3); /* تغيير الذهبي إلى الأبيض */
+    border: 1px solid #FFFFFF; /* تغيير الذهبي إلى الأبيض */
 }
 
 main {
@@ -128,9 +128,9 @@ main {
 .section h2 {
     text-align: center;
     margin-bottom: 2rem;
-    color: #D4AF37;
+    color: #FFFFFF; /* تغيير الذهبي إلى الأبيض */
     font-size: 2rem;
-    border-bottom: 2px solid #D4AF37;
+    border-bottom: 2px solid #FFFFFF; /* تغيير الذهبي إلى الأبيض */
     padding-bottom: 0.5rem;
 }
 
@@ -142,10 +142,12 @@ main {
 
 .item {
     background: rgba(0, 0, 0, 0.6);
-    border: 1px solid #D4AF37;
+    border: 1px solid #FFFFFF; /* تغيير الذهبي إلى الأبيض */
     border-radius: 10px;
     padding: 1rem;
     transition: transform 0.3s ease, box-shadow 0.3s ease;
+    display: flex;
+    flex-direction: column;
 }
 
 .item:hover {
@@ -153,8 +155,16 @@ main {
     box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
 }
 
+.item-image {
+    width: 100%;
+    height: 150px;
+    object-fit: cover;
+    border-radius: 8px;
+    margin-bottom: 1rem;
+}
+
 .item h3 {
-    color: #D4AF37;
+    color: #FFFFFF; /* تغيير الذهبي إلى الأبيض */
     margin-bottom: 0.5rem;
     text-align: center;
 }
@@ -163,12 +173,13 @@ main {
     color: #fff;
     margin-bottom: 1rem;
     font-size: 0.9rem;
+    flex-grow: 1;
 }
 
 .item-button {
     display: block;
     width: 100%;
-    background: #D4AF37;
+    background: #FFFFFF; /* تغيير الذهبي إلى الأبيض */
     color: #8B0000;
     border: none;
     padding: 0.7rem;
@@ -181,7 +192,7 @@ main {
 }
 
 .item-button:hover {
-    background: #c19b2e;
+    background: #e6e6e6;
 }
 
 .novel-images {
@@ -195,14 +206,14 @@ main {
     width: 100%;
     max-width: 120px;
     border-radius: 5px;
-    border: 1px solid #D4AF37;
+    border: 1px solid #FFFFFF; /* تغيير الذهبي إلى الأبيض */
 }
 
 .platform-item {
     text-align: center;
 }
 
-.platform-item img {
+.platform-image {
     width: 100%;
     max-width: 80px;
     margin-bottom: 1rem;
@@ -213,7 +224,7 @@ footer {
     text-align: center;
     padding: 1.5rem;
     background: rgba(139, 0, 0, 0.8);
-    color: #D4AF37;
+    color: #FFFFFF; /* تغيير الذهبي إلى الأبيض */
     position: relative;
     z-index: 1;
 }
@@ -228,7 +239,25 @@ footer {
         margin: 0.5rem 0;
     }
     
+    .main-nav a {
+        font-size: 0.9rem; /* تصغير حجم الخط في الجوال */
+        padding: 0.4rem 0.8rem;
+    }
+    
     .items-container {
         grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    }
+    
+    header {
+        padding: 1rem 0;
+    }
+    
+    .logo {
+        width: 80px;
+        height: 80px;
+    }
+    
+    h1 {
+        font-size: 1.8rem;
     }
 }
