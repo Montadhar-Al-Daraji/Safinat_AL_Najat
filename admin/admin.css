@@ -7,9 +7,9 @@
 
 body {
     background: linear-gradient(135deg, #8B0000, #660000);
-    color: #FFFFFF; /* تغيير الذهبي إلى الأبيض */
+    color: #FFFFFF;
     min-height: 100vh;
-    padding: 20px;
+    padding: 15px;
 }
 
 .hidden {
@@ -27,7 +27,7 @@ body {
     left: 0;
     right: 0;
     bottom: 0;
-    background: rgba(0, 0, 0, 0.8);
+    background: rgba(0, 0, 0, 0.9);
     z-index: 1000;
 }
 
@@ -39,6 +39,16 @@ body {
     width: 100%;
     max-width: 400px;
     text-align: center;
+    position: relative;
+}
+
+.close-btn {
+    position: absolute;
+    top: 10px;
+    left: 15px;
+    font-size: 24px;
+    cursor: pointer;
+    color: #FFFFFF;
 }
 
 .login-form h2 {
@@ -94,12 +104,20 @@ body {
     align-items: center;
     margin-bottom: 30px;
     padding-bottom: 15px;
-    border-bottom: 2px solid #FFFFFF; /* تغيير الذهبي إلى الأبيض */
+    border-bottom: 2px solid #FFFFFF;
+    flex-wrap: wrap;
+    gap: 15px;
 }
 
 .admin-header h1 {
-    font-size: 2.2rem;
+    font-size: 2rem;
     color: #FFFFFF;
+}
+
+.admin-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
 }
 
 .back-to-site, .logout-btn {
@@ -112,7 +130,7 @@ body {
     transition: all 0.3s ease;
     border: none;
     cursor: pointer;
-    margin-left: 10px;
+    font-size: 0.9rem;
 }
 
 .back-to-site:hover, .logout-btn:hover {
@@ -121,13 +139,13 @@ body {
 
 .admin-panels {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(500px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
     gap: 20px;
 }
 
 .admin-panel {
     background: rgba(139, 0, 0, 0.3);
-    border: 1px solid #FFFFFF; /* تغيير الذهبي إلى الأبيض */
+    border: 1px solid #FFFFFF;
     border-radius: 10px;
     padding: 20px;
     margin-bottom: 20px;
@@ -136,9 +154,10 @@ body {
 .admin-panel h2 {
     text-align: center;
     margin-bottom: 20px;
-    color: #FFFFFF; /* تغيير الذهبي إلى الأبيض */
-    border-bottom: 1px solid #FFFFFF; /* تغيير الذهبي إلى الأبيض */
+    color: #FFFFFF;
+    border-bottom: 1px solid #FFFFFF;
     padding-bottom: 10px;
+    font-size: 1.3rem;
 }
 
 .admin-form {
@@ -151,11 +170,12 @@ body {
 .admin-form input,
 .admin-form textarea {
     padding: 12px;
-    border: 1px solid #FFFFFF; /* تغيير الذهبي إلى الأبيض */
+    border: 1px solid #FFFFFF;
     border-radius: 30px;
     background: rgba(0, 0, 0, 0.5);
     color: #fff;
     font-family: 'Cairo', sans-serif;
+    font-size: 0.9rem;
 }
 
 .admin-form textarea {
@@ -165,7 +185,7 @@ body {
 }
 
 .admin-form button {
-    background: #FFFFFF; /* تغيير الذهبي إلى الأبيض */
+    background: #FFFFFF;
     color: #8B0000;
     border: none;
     padding: 12px;
@@ -173,6 +193,7 @@ body {
     font-weight: 600;
     cursor: pointer;
     transition: all 0.3s ease;
+    font-size: 0.9rem;
 }
 
 .admin-form button:hover {
@@ -180,7 +201,7 @@ body {
 }
 
 #add-novel-image {
-    background: rgba(255, 255, 255, 0.3); /* تغيير الذهبي إلى الأبيض */
+    background: rgba(255, 255, 255, 0.3);
     color: #FFFFFF;
     border: 1px solid #FFFFFF;
 }
@@ -201,17 +222,24 @@ body {
 
 .item-card {
     background: rgba(0, 0, 0, 0.5);
-    border: 1px solid #FFFFFF; /* تغيير الذهبي إلى الأبيض */
+    border: 1px solid #FFFFFF;
     border-radius: 10px;
     padding: 15px;
     display: flex;
     justify-content: space-between;
     align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.item-info {
+    flex: 1;
 }
 
 .item-info h3 {
-    color: #FFFFFF; /* تغيير الذهبي إلى الأبيض */
+    color: #FFFFFF;
     margin-bottom: 5px;
+    font-size: 1.1rem;
 }
 
 .item-info p {
@@ -221,12 +249,13 @@ body {
 
 .item-actions button {
     background: #8B0000;
-    color: #FFFFFF; /* تغيير الذهبي إلى الأبيض */
+    color: #FFFFFF;
     border: 1px solid #FFFFFF;
     padding: 8px 15px;
     border-radius: 30px;
     cursor: pointer;
     transition: all 0.3s ease;
+    font-size: 0.9rem;
 }
 
 .item-actions button:hover {
@@ -240,11 +269,23 @@ body {
     }
 }
 
-@media (max-width: 600px) {
+@media (max-width: 768px) {
+    body {
+        padding: 10px;
+    }
+    
+    .admin-container {
+        padding: 15px;
+    }
+    
     .admin-header {
         flex-direction: column;
-        gap: 15px;
         text-align: center;
+        gap: 15px;
+    }
+    
+    .admin-actions {
+        justify-content: center;
     }
     
     .admin-panel {
@@ -253,23 +294,41 @@ body {
     
     .item-card {
         flex-direction: column;
-        gap: 10px;
         text-align: center;
+        gap: 10px;
+    }
+    
+    .admin-form input,
+    .admin-form textarea,
+    .admin-form button {
+        font-size: 0.85rem;
     }
 }
-.login-container {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.9);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 1000;
-}
 
-.login-container.hidden {
-    display: none;
+@media (max-width: 480px) {
+    .login-form {
+        padding: 1.5rem;
+        margin: 0 10px;
+    }
+    
+    .admin-header h1 {
+        font-size: 1.5rem;
+    }
+    
+    .back-to-site, .logout-btn {
+        padding: 8px 16px;
+        font-size: 0.8rem;
+    }
+    
+    .admin-panel h2 {
+        font-size: 1.1rem;
+    }
+    
+    .item-info h3 {
+        font-size: 1rem;
+    }
+    
+    .item-info p {
+        font-size: 0.8rem;
+    }
 }
