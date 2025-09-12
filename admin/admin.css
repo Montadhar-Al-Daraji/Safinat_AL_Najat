@@ -1,3 +1,5 @@
+
+
 * {
     margin: 0;
     padding: 0;
@@ -174,123 +176,112 @@ body {
     gap: 20px;
 }
 
-.admin-panel {
-    background: rgba(139, 0, 0, 0.4);
-    border: 2px solid #FFFFFF;
-    border-radius: 12px;
-    padding: 20px;
-    margin-bottom: 20px;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+.admin-panels {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: 20px;
 }
 
-.admin-panel h2 {
-    text-align: center;
-    margin-bottom: 20px;
-    color: #FFFFFF;
-    border-bottom: 2px solid #FFFFFF;
-    padding-bottom: 10px;
-    font-size: 1.5rem;
-    font-weight: 700;
+@media (max-width: 1200px) {
+    .admin-panels {
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    }
 }
 
+@media (max-width: 900px) {
+    .admin-panels {
+        grid-template-columns: 1fr;
+    }
+    
+    .admin-header {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .admin-actions {
+        justify-content: center;
+        margin-top: 15px;
+    }
+}
+
+@media (max-width: 600px) {
+    .admin-container {
+        padding: 10px;
+    }
+    
+    .admin-panel {
+        padding: 15px;
+    }
+    
+    .admin-form input,
+    .admin-form textarea,
+    .admin-form button {
+        padding: 10px;
+    }
+    
+    .item-card {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .item-actions {
+        margin-top: 10px;
+    }
+}
+
+/* تحسينات للنماذج */
 .admin-form {
     display: flex;
     flex-direction: column;
-    gap: 15px;
-    margin-bottom: 20px;
+    gap: 12px;
 }
 
 .admin-form input,
 .admin-form textarea {
-    padding: 14px;
+    padding: 12px 15px;
     border: 2px solid #FFFFFF;
-    border-radius: 30px;
-    background: rgba(0, 0, 0, 0.6);
+    border-radius: 8px;
+    background: rgba(0, 0, 0, 0.5);
     color: #fff;
-    font-family: 'Cairo', sans-serif;
-    font-size: 1rem;
-    transition: all 0.3s ease;
+    font-size: 0.95rem;
 }
 
 .admin-form input:focus,
 .admin-form textarea:focus {
     outline: none;
     border-color: #D4AF37;
-    background: rgba(0, 0, 0, 0.8);
+    box-shadow: 0 0 0 2px rgba(212, 175, 55, 0.3);
 }
 
-.admin-form textarea {
-    border-radius: 15px;
-    min-height: 120px;
-    resize: vertical;
-}
-
+/* تحسينات للأزرار */
 .admin-form button {
-    background: #FFFFFF;
-    color: #8B0000;
-    border: none;
-    padding: 14px;
-    border-radius: 30px;
-    font-weight: 700;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    font-size: 1rem;
+    padding: 12px 20px;
+    border-radius: 8px;
+    font-weight: 600;
     margin-top: 10px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    transition: all 0.3s ease;
 }
 
 .admin-form button:hover {
-    background: #e6e6e6;
     transform: translateY(-2px);
-    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
-#add-novel-image {
-    background: rgba(255, 255, 255, 0.3);
-    color: #FFFFFF;
-    border: 2px solid #FFFFFF;
-}
-
-#add-novel-image:hover {
-    background: rgba(255, 255, 255, 0.5);
-}
-
-.novel-image-input {
-    margin-bottom: 10px;
-}
-
-.items-list {
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-}
-
+/* تحسينات لعناصر القوائم */
 .item-card {
-    background: rgba(0, 0, 0, 0.6);
-    border: 2px solid #FFFFFF;
-    border-radius: 10px;
-    padding: 15px;
+    background: rgba(0, 0, 0, 0.4);
+    border: 1px solid #FFFFFF;
+    border-radius: 8px;
+    padding: 12px;
+    margin-bottom: 10px;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    flex-wrap: wrap;
-    gap: 10px;
-    transition: all 0.3s ease;
-}
-
-.item-card:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-}
-
-.item-info {
-    flex: 1;
 }
 
 .item-info h3 {
-    color: #FFFFFF;
     margin-bottom: 5px;
-    font-size: 1.2rem;
+    font-size: 1.1rem;
 }
 
 .item-info p {
@@ -299,22 +290,18 @@ body {
 }
 
 .item-actions button {
-    background: #8B0000;
-    color: #FFFFFF;
-    border: 2px solid #FFFFFF;
-    padding: 10px 18px;
-    border-radius: 30px;
-    cursor: pointer;
-    transition: all 0.3s ease;
+    padding: 8px 15px;
+    border-radius: 6px;
     font-size: 0.9rem;
-    font-weight: 600;
 }
 
-.item-actions button:hover {
-    background: #FFFFFF;
-    color: #8B0000;
-    transform: translateY(-2px);
+.item-info h3 {
+    color: #FFFFFF;
+    margin-bottom: 5px;
+    font-size: 1.2rem;
 }
+
+
 
 @media (max-width: 1100px) {
     .admin-panels {
