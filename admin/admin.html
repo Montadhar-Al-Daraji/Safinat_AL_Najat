@@ -12,6 +12,7 @@
 <body>
     <div id="login-container" class="login-container">
         <div class="login-form">
+            <span class="close-btn" onclick="closeLogin()">×</span>
             <h2>تسجيل الدخول</h2>
             <input type="text" id="username" placeholder="اسم المستخدم">
             <input type="password" id="password" placeholder="كلمة المرور">
@@ -23,8 +24,10 @@
     <div id="admin-container" class="admin-container hidden">
         <header class="admin-header">
             <h1>لوحة تحكم المشرف</h1>
-            <a href="../index.html" class="back-to-site">العودة للموقع</a>
-            <button onclick="logout()" class="logout-btn">تسجيل الخروج</button>
+            <div class="admin-actions">
+                <a href="../index.html" class="back-to-site">العودة للموقع</a>
+                <button onclick="logout()" class="logout-btn">تسجيل الخروج</button>
+            </div>
         </header>
         
         <div class="admin-panels">
