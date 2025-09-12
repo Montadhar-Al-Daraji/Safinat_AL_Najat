@@ -154,7 +154,28 @@ async function deleteItem(section, id) {
         }
     }
 }
-
+// إضافة سيرفر جديد
+document.getElementById('server-form').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    const newServer = {
+        title: document.getElementById('server-title').value,
+        description: document.getElementById('server-description').value,
+        image: document.getElementById('server-image').value,
+        link: document.getElementById('server-link').value
+    };
+    
+    try {
+        const savedServer = await saveItemToSupabase('servers', newServer);
+        siteData.servers.push(savedServer);
+        renderAdminList('servers', siteData.servers);
+        this.reset();
+        alert('تم إضافة السيرفر بنجاح!');
+    } catch (error) {
+        console.error('Error adding server:', error);
+        alert('حدث خطأ أثناء إضافة السيرفر: ' + error.message);
+    }
+});
 // إضافة كتاب جديد
 document.getElementById('book-form').addEventListener('submit', async function(e) {
     e.preventDefault();
