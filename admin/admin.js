@@ -1,7 +1,5 @@
-// تهيئة Supabase - استخدم window.supabase للتأكد من أن المكتبة محملة
+// تعريف المتغيرات العامة
 let supabase;
-
-// بيانات الموقع
 let siteData = {
     books: [],
     novels: [],
@@ -17,17 +15,21 @@ function initSupabase() {
     
     if (window.supabase) {
         supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-        console.log('تم تهيئة Supabase بنجاح');
+        console.log('Supabase initialized successfully');
+        return true;
     } else {
-        console.error('لم يتم تحميل مكتبة Supabase بشكل صحيح');
+        console.error('Supabase library not loaded');
+        return false;
     }
 }
 
 // تحميل البيانات من Supabase
 async function loadAdminData() {
     if (!supabase) {
-        console.error('Supabase غير مهيأ');
-        return;
+        if (!initSupabase()) {
+            alert('خطأ في تهيئة قاعدة البيانات');
+            return;
+        }
     }
     
     try {
@@ -60,7 +62,7 @@ async function loadAdminData() {
 // حفظ البيانات إلى Supabase
 async function saveItemToSupabase(table, item) {
     if (!supabase) {
-        throw new Error('Supabase غير مهيأ');
+        throw new Error('Supabase not initialized');
     }
     
     const { data, error } = await supabase
@@ -79,7 +81,7 @@ async function saveItemToSupabase(table, item) {
 // حذف عنصر من Supabase
 async function deleteItemFromSupabase(table, id) {
     if (!supabase) {
-        throw new Error('Supabase غير مهيأ');
+        throw new Error('Supabase not initialized');
     }
     
     const { error } = await supabase
@@ -326,7 +328,7 @@ function logout() {
 
 // تهيئة لوحة التحكم عند التحميل
 document.addEventListener('DOMContentLoaded', function() {
-    // تهيئة Supabase بعد تحميل الصفحة بالكامل
+    // تهيئة Supabase
     initSupabase();
     
     // التأكد من إظهار نافذة التسجيل وإخفاء لوحة التحكم في البداية
@@ -344,13 +346,5 @@ document.addEventListener('DOMContentLoaded', function() {
         if (e.key === 'Enter') {
             login();
         }
-    });
-    
-    // منع إعادة إرسال النماذج عند تحديث الصفحة
-    document.querySelectorAll('form').forEach(form => {
-        form.addEventListener('submit', function(e) {
-            e.preventDefault();
-            // المعالجة تتم عبر event listeners الموجودة لكل نموذج
-        });
     });
 });
