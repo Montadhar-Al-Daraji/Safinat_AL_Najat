@@ -7,11 +7,78 @@
 
 body {
     background: linear-gradient(135deg, #8B0000, #660000);
-    color: #D4AF37;
+    color: #FFFFFF; /* تغيير الذهبي إلى الأبيض */
     min-height: 100vh;
     padding: 20px;
 }
 
+.hidden {
+    display: none;
+}
+
+/* تنسيقات تسجيل الدخول */
+.login-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.8);
+    z-index: 1000;
+}
+
+.login-form {
+    background: rgba(139, 0, 0, 0.9);
+    padding: 2rem;
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    width: 100%;
+    max-width: 400px;
+    text-align: center;
+}
+
+.login-form h2 {
+    margin-bottom: 1.5rem;
+    color: #FFFFFF;
+}
+
+.login-form input {
+    width: 100%;
+    padding: 12px;
+    margin-bottom: 1rem;
+    border: 1px solid #FFFFFF;
+    border-radius: 30px;
+    background: rgba(0, 0, 0, 0.5);
+    color: #fff;
+    font-family: 'Cairo', sans-serif;
+}
+
+.login-form button {
+    width: 100%;
+    background: #FFFFFF;
+    color: #8B0000;
+    border: none;
+    padding: 12px;
+    border-radius: 30px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.login-form button:hover {
+    background: #e6e6e6;
+}
+
+.error-message {
+    color: #ff6b6b;
+    margin-top: 1rem;
+}
+
+/* تنسيقات لوحة التحكم */
 .admin-container {
     max-width: 1200px;
     margin: 0 auto;
@@ -27,26 +94,29 @@ body {
     align-items: center;
     margin-bottom: 30px;
     padding-bottom: 15px;
-    border-bottom: 2px solid #D4AF37;
+    border-bottom: 2px solid #FFFFFF; /* تغيير الذهبي إلى الأبيض */
 }
 
 .admin-header h1 {
     font-size: 2.2rem;
+    color: #FFFFFF;
 }
 
-.back-to-site {
-    background: #D4AF37;
+.back-to-site, .logout-btn {
+    background: #FFFFFF;
     color: #8B0000;
     padding: 10px 20px;
     border-radius: 30px;
     text-decoration: none;
     font-weight: 600;
     transition: all 0.3s ease;
+    border: none;
+    cursor: pointer;
+    margin-left: 10px;
 }
 
-.back-to-site:hover {
-    background: #c19b2e;
-    transform: translateY(-2px);
+.back-to-site:hover, .logout-btn:hover {
+    background: #e6e6e6;
 }
 
 .admin-panels {
@@ -57,7 +127,7 @@ body {
 
 .admin-panel {
     background: rgba(139, 0, 0, 0.3);
-    border: 1px solid #D4AF37;
+    border: 1px solid #FFFFFF; /* تغيير الذهبي إلى الأبيض */
     border-radius: 10px;
     padding: 20px;
     margin-bottom: 20px;
@@ -66,8 +136,8 @@ body {
 .admin-panel h2 {
     text-align: center;
     margin-bottom: 20px;
-    color: #D4AF37;
-    border-bottom: 1px solid #D4AF37;
+    color: #FFFFFF; /* تغيير الذهبي إلى الأبيض */
+    border-bottom: 1px solid #FFFFFF; /* تغيير الذهبي إلى الأبيض */
     padding-bottom: 10px;
 }
 
@@ -81,7 +151,7 @@ body {
 .admin-form input,
 .admin-form textarea {
     padding: 12px;
-    border: 1px solid #D4AF37;
+    border: 1px solid #FFFFFF; /* تغيير الذهبي إلى الأبيض */
     border-radius: 30px;
     background: rgba(0, 0, 0, 0.5);
     color: #fff;
@@ -95,7 +165,7 @@ body {
 }
 
 .admin-form button {
-    background: #D4AF37;
+    background: #FFFFFF; /* تغيير الذهبي إلى الأبيض */
     color: #8B0000;
     border: none;
     padding: 12px;
@@ -106,17 +176,17 @@ body {
 }
 
 .admin-form button:hover {
-    background: #c19b2e;
+    background: #e6e6e6;
 }
 
 #add-novel-image {
-    background: rgba(212, 175, 55, 0.3);
-    color: #D4AF37;
-    border: 1px solid #D4AF37;
+    background: rgba(255, 255, 255, 0.3); /* تغيير الذهبي إلى الأبيض */
+    color: #FFFFFF;
+    border: 1px solid #FFFFFF;
 }
 
 #add-novel-image:hover {
-    background: rgba(212, 175, 55, 0.5);
+    background: rgba(255, 255, 255, 0.5);
 }
 
 .novel-image-input {
@@ -131,7 +201,7 @@ body {
 
 .item-card {
     background: rgba(0, 0, 0, 0.5);
-    border: 1px solid #D4AF37;
+    border: 1px solid #FFFFFF; /* تغيير الذهبي إلى الأبيض */
     border-radius: 10px;
     padding: 15px;
     display: flex;
@@ -140,7 +210,7 @@ body {
 }
 
 .item-info h3 {
-    color: #D4AF37;
+    color: #FFFFFF; /* تغيير الذهبي إلى الأبيض */
     margin-bottom: 5px;
 }
 
@@ -151,8 +221,8 @@ body {
 
 .item-actions button {
     background: #8B0000;
-    color: #D4AF37;
-    border: 1px solid #D4AF37;
+    color: #FFFFFF; /* تغيير الذهبي إلى الأبيض */
+    border: 1px solid #FFFFFF;
     padding: 8px 15px;
     border-radius: 30px;
     cursor: pointer;
@@ -160,7 +230,7 @@ body {
 }
 
 .item-actions button:hover {
-    background: #D4AF37;
+    background: #FFFFFF;
     color: #8B0000;
 }
 
