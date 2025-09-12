@@ -14,8 +14,8 @@
         <div class="login-form">
             <span class="close-btn" onclick="closeLogin()">×</span>
             <h2>تسجيل الدخول</h2>
-            <input type="text" id="username" placeholder="اسم المستخدم">
-            <input type="password" id="password" placeholder="كلمة المرور">
+            <input type="text" id="username" placeholder="اسم المستخدم" value="bahlol121212">
+            <input type="password" id="password" placeholder="كلمة المرور" value="labaik313">
             <button onclick="login()">دخول</button>
             <p id="login-error" class="error-message"></p>
         </div>
@@ -29,6 +29,8 @@
                 <button onclick="logout()" class="logout-btn">تسجيل الخروج</button>
             </div>
         </header>
+        
+        <div class="admin-panels">
         
         <div class="admin-panels">
             <!-- قسم الكتب -->
@@ -99,7 +101,6 @@
         </div>
     </div>
 
-    <!-- إضافة Supabase JS -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
     <script src="./admin.js"></script>
 </body>
