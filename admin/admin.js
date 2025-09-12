@@ -1,7 +1,7 @@
 // تهيئة Supabase
 const SUPABASE_URL = 'https://xzltdsmmolyvcmkfzedf.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bHRkc21tb2x5dmNta2Z6ZWRmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc2Nzg1NzEsImV4cCI6MjA3MzI1NDU3MX0.3TJ49ctEhOT1KDIFtZXFw2jwTq57ujaWbqNNJ2Eeb1U';
-const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 // بيانات الموقع
 let siteData = {
@@ -16,11 +16,11 @@ let siteData = {
 async function loadAdminData() {
     try {
         // جلب البيانات من كل جدول
-        const { data: books, error: booksError } = await supabase.from('books').select('*');
-        const { data: novels, error: novelsError } = await supabase.from('novels').select('*');
-        const { data: files, error: filesError } = await supabase.from('files').select('*');
-        const { data: platforms, error: platformsError } = await supabase.from('platforms').select('*');
-        const { data: apps, error: appsError } = await supabase.from('apps').select('*');
+        const { data: books, error: booksError } = await supabaseClient.from('books').select('*');
+        const { data: novels, error: novelsError } = await supabaseClient.from('novels').select('*');
+        const { data: files, error: filesError } = await supabaseClient.from('files').select('*');
+        const { data: platforms, error: platformsError } = await supabaseClient.from('platforms').select('*');
+        const { data: apps, error: appsError } = await supabaseClient.from('apps').select('*');
 
         if (booksError) throw booksError;
         if (novelsError) throw novelsError;
