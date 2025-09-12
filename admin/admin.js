@@ -137,7 +137,7 @@ document.getElementById('book-form').addEventListener('submit', async function(e
         title: document.getElementById('book-title').value,
         description: document.getElementById('book-description').value,
         image: document.getElementById('book-image').value,
-        drive_link: document.getElementById('book-drive-link').value // استخدام drive_link بدلاً من driveLink
+        drive_link: document.getElementById('book-drive-link').value // استخدام drive_link
     };
     
     try {
@@ -151,6 +151,7 @@ document.getElementById('book-form').addEventListener('submit', async function(e
     }
 });
 
+// إضافة رواية جديدة
 // إضافة رواية جديدة
 document.getElementById('novel-form').addEventListener('submit', async function(e) {
     e.preventDefault();
@@ -167,8 +168,23 @@ document.getElementById('novel-form').addEventListener('submit', async function(
     const newNovel = {
         title: document.getElementById('novel-title').value,
         description: document.getElementById('novel-description').value,
-        images: images
+        images: images // إرسال كمصفوفة
     };
+    
+    try {
+        const savedNovel = await saveItemToSupabase('novels', newNovel);
+        siteData.novels.push(savedNovel);
+        renderAdminList('novels', siteData.novels);
+        this.reset();
+        
+        // إعادة تعيين حقل الصور
+        const imagesContainer = document.getElementById('novel-images-container');
+        imagesContainer.innerHTML = '<input type="url" class="novel-image-input" placeholder="رابط الصورة">';
+    } catch (error) {
+        console.error('Error adding novel:', error);
+        alert('حدث خطأ أثناء إضافة الرواية: ' + error.message);
+    }
+});
     
     try {
         const savedNovel = await saveItemToSupabase('novels', newNovel);
