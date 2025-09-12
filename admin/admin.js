@@ -137,7 +137,7 @@ document.getElementById('book-form').addEventListener('submit', async function(e
         title: document.getElementById('book-title').value,
         description: document.getElementById('book-description').value,
         image: document.getElementById('book-image').value,
-        drive_link: document.getElementById('book-drive-link').value // استخدام drive_link
+        drive_link: document.getElementById('book-drive-link').value
     };
     
     try {
@@ -151,7 +151,6 @@ document.getElementById('book-form').addEventListener('submit', async function(e
     }
 });
 
-// إضافة رواية جديدة
 // إضافة رواية جديدة
 document.getElementById('novel-form').addEventListener('submit', async function(e) {
     e.preventDefault();
@@ -168,23 +167,8 @@ document.getElementById('novel-form').addEventListener('submit', async function(
     const newNovel = {
         title: document.getElementById('novel-title').value,
         description: document.getElementById('novel-description').value,
-        images: images // إرسال كمصفوفة
+        images: images
     };
-    
-    try {
-        const savedNovel = await saveItemToSupabase('novels', newNovel);
-        siteData.novels.push(savedNovel);
-        renderAdminList('novels', siteData.novels);
-        this.reset();
-        
-        // إعادة تعيين حقل الصور
-        const imagesContainer = document.getElementById('novel-images-container');
-        imagesContainer.innerHTML = '<input type="url" class="novel-image-input" placeholder="رابط الصورة">';
-    } catch (error) {
-        console.error('Error adding novel:', error);
-        alert('حدث خطأ أثناء إضافة الرواية: ' + error.message);
-    }
-});
     
     try {
         const savedNovel = await saveItemToSupabase('novels', newNovel);
@@ -219,7 +203,7 @@ document.getElementById('file-form').addEventListener('submit', async function(e
         title: document.getElementById('file-title').value,
         description: document.getElementById('file-description').value,
         image: document.getElementById('file-image').value,
-        drive_link: document.getElementById('file-drive-link').value // استخدام drive_link بدلاً من driveLink
+        drive_link: document.getElementById('file-drive-link').value
     };
     
     try {
@@ -262,7 +246,7 @@ document.getElementById('app-form').addEventListener('submit', async function(e)
         title: document.getElementById('app-title').value,
         description: document.getElementById('app-description').value,
         image: document.getElementById('app-image').value,
-        download_link: document.getElementById('app-download-link').value // استخدام download_link بدلاً من downloadLink
+        download_link: document.getElementById('app-download-link').value
     };
     
     try {
@@ -282,7 +266,7 @@ function login() {
     const password = document.getElementById('password').value;
     const errorElement = document.getElementById('login-error');
     
-    if (username === 'admin' && password === 'admin') {
+    if (username === 'bahlol121212' && password === 'labaik313') {
         // تسجيل الدخول ناجح
         document.getElementById('login-container').classList.add('hidden');
         document.getElementById('admin-container').classList.remove('hidden');
@@ -291,6 +275,11 @@ function login() {
     } else {
         errorElement.textContent = 'اسم المستخدم أو كلمة المرور غير صحيحة';
     }
+}
+
+// إغلاق نافذة التسجيل
+function closeLogin() {
+    document.getElementById('login-container').classList.add('hidden');
 }
 
 // تسجيل الخروج
@@ -307,4 +296,17 @@ function logout() {
 document.addEventListener('DOMContentLoaded', function() {
     // إخفاء لوحة التحكم حتى تسجيل الدخول
     document.getElementById('admin-container').classList.add('hidden');
+    
+    // إضافة event listener لحقول الإدخال للسماح بالدخول بالزر Enter
+    document.getElementById('username').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            login();
+        }
+    });
+    
+    document.getElementById('password').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            login();
+        }
+    });
 });
