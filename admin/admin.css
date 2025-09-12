@@ -13,7 +13,10 @@ body {
 }
 
 .hidden {
-    display: none;
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
 }
 
 /* تنسيقات تسجيل الدخول */
@@ -27,16 +30,12 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
-    z-index: 10000; /* زيادة قيمة z-index */
-}
-
-.login-container.hidden {
-    display: none !important;
+    z-index: 10000;
 }
 
 .admin-container {
     position: relative;
-    z-index: 1; /* تأكد من أن لوحة التحكم لديها z-index أقل */
+    z-index: 1;
 }
 
 /* تحسين مظهر زر الإغلاق */
@@ -46,7 +45,6 @@ body {
     left: 15px;
     font-size: 24px;
     cursor: pointer;
-    color: #FFFFFF;
     color: #FFFFFF;
     background: none;
     border: none;
@@ -72,8 +70,6 @@ body {
     text-align: center;
     position: relative;
 }
-
-
 
 .login-form h2 {
     margin-bottom: 1.5rem;
