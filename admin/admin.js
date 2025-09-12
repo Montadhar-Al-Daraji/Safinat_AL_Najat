@@ -1,3 +1,8 @@
+// تهيئة Supabase
+const SUPABASE_URL = 'YOUR_SUPABASE_URL';
+const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
+const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
 // بيانات الموقع
 let siteData = {
     books: [],
@@ -7,18 +12,60 @@ let siteData = {
     apps: []
 };
 
-// تحميل البيانات من localStorage
-function loadAdminData() {
-    const savedData = localStorage.getItem('religiousSiteData');
-    if (savedData) {
-        siteData = JSON.parse(savedData);
+// تحميل البيانات من Supabase
+async function loadAdminData() {
+    try {
+        // جلب البيانات من كل جدول
+        const { data: books, error: booksError } = await supabase.from('books').select('*');
+        const { data: novels, error: novelsError } = await supabase.from('novels').select('*');
+        const { data: files, error: filesError } = await supabase.from('files').select('*');
+        const { data: platforms, error: platformsError } = await supabase.from('platforms').select('*');
+        const { data: apps, error: appsError } = await supabase.from('apps').select('*');
+
+        if (booksError) throw booksError;
+        if (novelsError) throw novelsError;
+        if (filesError) throw filesError;
+        if (platformsError) throw platformsError;
+        if (appsError) throw appsError;
+
+        siteData.books = books || [];
+        siteData.novels = novels || [];
+        siteData.files = files || [];
+        siteData.platforms = platforms || [];
+        siteData.apps = apps || [];
+
+        renderAllAdminLists();
+    } catch (error) {
+        console.error('Error loading data:', error);
     }
-    renderAllAdminLists();
 }
 
-// حفظ البيانات إلى localStorage
-function saveAdminData() {
-    localStorage.setItem('religiousSiteData', JSON.stringify(siteData));
+// حفظ البيانات إلى Supabase
+async function saveItemToSupabase(table, item) {
+    const { data, error } = await supabase
+        .from(table)
+        .insert([item])
+        .select();
+
+    if (error) {
+        console.error('Error saving item:', error);
+        throw error;
+    }
+
+    return data[0];
+}
+
+// حذف عنصر من Supabase
+async function deleteItemFromSupabase(table, id) {
+    const { error } = await supabase
+        .from(table)
+        .delete()
+        .eq('id', id);
+
+    if (error) {
+        console.error('Error deleting item:', error);
+        throw error;
+    }
 }
 
 // عرض جميع القوائم في لوحة التحكم
@@ -59,7 +106,7 @@ function renderAdminList(section, items) {
         
         itemElement.innerHTML = infoHtml + `
             <div class="item-actions">
-                <button onclick="deleteItem('${section}', ${index})">حذف</button>
+                <button onclick="deleteItem('${section}', ${item.id})">حذف</button>
             </div>
         `;
         
@@ -68,32 +115,42 @@ function renderAdminList(section, items) {
 }
 
 // حذف عنصر
-function deleteItem(section, index) {
+async function deleteItem(section, id) {
     if (confirm('هل أنت متأكد من حذف هذا العنصر؟')) {
-        siteData[section].splice(index, 1);
-        saveAdminData();
-        renderAllAdminLists();
+        try {
+            await deleteItemFromSupabase(section, id);
+            // إعادة تحميل البيانات من Supabase
+            await loadAdminData();
+        } catch (error) {
+            console.error('Error deleting item:', error);
+            alert('حدث خطأ أثناء حذف العنصر');
+        }
     }
 }
 
 // إضافة كتاب جديد
-document.getElementById('book-form').addEventListener('submit', function(e) {
+document.getElementById('book-form').addEventListener('submit', async function(e) {
     e.preventDefault();
     
     const newBook = {
         title: document.getElementById('book-title').value,
         description: document.getElementById('book-description').value,
+        image: document.getElementById('book-image').value,
         driveLink: document.getElementById('book-drive-link').value
     };
     
-    siteData.books.push(newBook);
-    saveAdminData();
-    renderAdminList('books', siteData.books);
-    this.reset();
+    try {
+        const savedBook = await saveItemToSupabase('books', newBook);
+        siteData.books.push(savedBook);
+        renderAdminList('books', siteData.books);
+        this.reset();
+    } catch (error) {
+        alert('حدث خطأ أثناء إضافة الكتاب');
+    }
 });
 
 // إضافة رواية جديدة
-document.getElementById('novel-form').addEventListener('submit', function(e) {
+document.getElementById('novel-form').addEventListener('submit', async function(e) {
     e.preventDefault();
     
     const imageInputs = document.querySelectorAll('.novel-image-input');
@@ -111,14 +168,18 @@ document.getElementById('novel-form').addEventListener('submit', function(e) {
         images: images
     };
     
-    siteData.novels.push(newNovel);
-    saveAdminData();
-    renderAdminList('novels', siteData.novels);
-    this.reset();
-    
-    // إعادة تعيين حقل الصور
-    const imagesContainer = document.getElementById('novel-images-container');
-    imagesContainer.innerHTML = '<input type="url" class="novel-image-input" placeholder="رابط الصورة">';
+    try {
+        const savedNovel = await saveItemToSupabase('novels', newNovel);
+        siteData.novels.push(savedNovel);
+        renderAdminList('novels', siteData.novels);
+        this.reset();
+        
+        // إعادة تعيين حقل الصور
+        const imagesContainer = document.getElementById('novel-images-container');
+        imagesContainer.innerHTML = '<input type="url" class="novel-image-input" placeholder="رابط الصورة">';
+    } catch (error) {
+        alert('حدث خطأ أثناء إضافة الرواية');
+    }
 });
 
 // إضافة صورة أخرى للرواية
@@ -132,23 +193,28 @@ document.getElementById('add-novel-image').addEventListener('click', function() 
 });
 
 // إضافة ملف جديد
-document.getElementById('file-form').addEventListener('submit', function(e) {
+document.getElementById('file-form').addEventListener('submit', async function(e) {
     e.preventDefault();
     
     const newFile = {
         title: document.getElementById('file-title').value,
         description: document.getElementById('file-description').value,
+        image: document.getElementById('file-image').value,
         driveLink: document.getElementById('file-drive-link').value
     };
     
-    siteData.files.push(newFile);
-    saveAdminData();
-    renderAdminList('files', siteData.files);
-    this.reset();
+    try {
+        const savedFile = await saveItemToSupabase('files', newFile);
+        siteData.files.push(savedFile);
+        renderAdminList('files', siteData.files);
+        this.reset();
+    } catch (error) {
+        alert('حدث خطأ أثناء إضافة الملف');
+    }
 });
 
 // إضافة منصة جديدة
-document.getElementById('platform-form').addEventListener('submit', function(e) {
+document.getElementById('platform-form').addEventListener('submit', async function(e) {
     e.preventDefault();
     
     const newPlatform = {
@@ -157,29 +223,66 @@ document.getElementById('platform-form').addEventListener('submit', function(e) 
         link: document.getElementById('platform-link').value
     };
     
-    siteData.platforms.push(newPlatform);
-    saveAdminData();
-    renderAdminList('platforms', siteData.platforms);
-    this.reset();
+    try {
+        const savedPlatform = await saveItemToSupabase('platforms', newPlatform);
+        siteData.platforms.push(savedPlatform);
+        renderAdminList('platforms', siteData.platforms);
+        this.reset();
+    } catch (error) {
+        alert('حدث خطأ أثناء إضافة المنصة');
+    }
 });
 
 // إضافة تطبيق جديد
-document.getElementById('app-form').addEventListener('submit', function(e) {
+document.getElementById('app-form').addEventListener('submit', async function(e) {
     e.preventDefault();
     
     const newApp = {
         title: document.getElementById('app-title').value,
         description: document.getElementById('app-description').value,
+        image: document.getElementById('app-image').value,
         downloadLink: document.getElementById('app-download-link').value
     };
     
-    siteData.apps.push(newApp);
-    saveAdminData();
-    renderAdminList('apps', siteData.apps);
-    this.reset();
+    try {
+        const savedApp = await saveItemToSupabase('apps', newApp);
+        siteData.apps.push(savedApp);
+        renderAdminList('apps', siteData.apps);
+        this.reset();
+    } catch (error) {
+        alert('حدث خطأ أثناء إضافة التطبيق');
+    }
 });
+
+// تسجيل الدخول
+function login() {
+    const username = document.getElementById('username').value;
+    const password = document.getElementById('password').value;
+    const errorElement = document.getElementById('login-error');
+    
+    if (username === 'admin' && password === 'admin') {
+        // تسجيل الدخول ناجح
+        document.getElementById('login-container').classList.add('hidden');
+        document.getElementById('admin-container').classList.remove('hidden');
+        // تحميل البيانات
+        loadAdminData();
+    } else {
+        errorElement.textContent = 'اسم المستخدم أو كلمة المرور غير صحيحة';
+    }
+}
+
+// تسجيل الخروج
+function logout() {
+    document.getElementById('login-container').classList.remove('hidden');
+    document.getElementById('admin-container').classList.add('hidden');
+    // مسح الحقول
+    document.getElementById('username').value = '';
+    document.getElementById('password').value = '';
+    document.getElementById('login-error').textContent = '';
+}
 
 // تهيئة لوحة التحكم عند التحميل
 document.addEventListener('DOMContentLoaded', function() {
-    loadAdminData();
+    // إخفاء لوحة التحكم حتى تسجيل الدخول
+    document.getElementById('admin-container').classList.add('hidden');
 });
