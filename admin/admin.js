@@ -271,6 +271,9 @@ function login() {
     const password = document.getElementById('password').value;
     const errorElement = document.getElementById('login-error');
     
+    // مسح أي رسائل خطأ سابقة
+    errorElement.textContent = '';
+    
     if (username === 'bahlol121212' && password === 'labaik313') {
         // تسجيل الدخول ناجح
         document.getElementById('login-container').classList.add('hidden');
@@ -299,7 +302,8 @@ function logout() {
 
 // تهيئة لوحة التحكم عند التحميل
 document.addEventListener('DOMContentLoaded', function() {
-    // إخفاء لوحة التحكم حتى تسجيل الدخول
+    // التأكد من إظهار نافذة التسجيل وإخفاء لوحة التحكم في البداية
+    document.getElementById('login-container').classList.remove('hidden');
     document.getElementById('admin-container').classList.add('hidden');
     
     // إضافة event listener لحقول الإدخال للسماح بالدخول بالزر Enter
@@ -314,4 +318,13 @@ document.addEventListener('DOMContentLoaded', function() {
             login();
         }
     });
+    
+    // منع إعادة إرسال النماذج عند تحديث الصفحة
+    document.querySelectorAll('form').forEach(form => {
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            // المعالجة تتم عبر event listeners الموجودة لكل نموذج
+        });
+    });
 });
+
