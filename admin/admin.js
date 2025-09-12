@@ -1,7 +1,5 @@
-// تهيئة Supabase
-const SUPABASE_URL = 'https://xzltdsmmolyvcmkfzedf.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bHRkc21tb2x5dmNta2Z6ZWRmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc2Nzg1NzEsImV4cCI6MjA3MzI1NDU3MX0.3TJ49ctEhOT1KDIFtZXFw2jwTq57ujaWbqNNJ2Eeb1U';
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+// تهيئة Supabase - استخدم window.supabase للتأكد من أن المكتبة محملة
+let supabase;
 
 // بيانات الموقع
 let siteData = {
@@ -12,8 +10,26 @@ let siteData = {
     apps: []
 };
 
+// تهيئة Supabase بعد تحميل المكتبة
+function initSupabase() {
+    const SUPABASE_URL = 'https://xzltdsmmolyvcmkfzedf.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bHRkc21tb2x5dmNta2Z6ZWRmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc2Nzg1NzEsImV4cCI6MjA3MzI1NDU3MX0.3TJ49ctEhOT1KDIFtZXFw2jwTq57ujaWbqNNJ2Eeb1U';
+    
+    if (window.supabase) {
+        supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        console.log('تم تهيئة Supabase بنجاح');
+    } else {
+        console.error('لم يتم تحميل مكتبة Supabase بشكل صحيح');
+    }
+}
+
 // تحميل البيانات من Supabase
 async function loadAdminData() {
+    if (!supabase) {
+        console.error('Supabase غير مهيأ');
+        return;
+    }
+    
     try {
         // جلب البيانات من كل جدول
         const { data: books, error: booksError } = await supabase.from('books').select('*');
@@ -43,6 +59,10 @@ async function loadAdminData() {
 
 // حفظ البيانات إلى Supabase
 async function saveItemToSupabase(table, item) {
+    if (!supabase) {
+        throw new Error('Supabase غير مهيأ');
+    }
+    
     const { data, error } = await supabase
         .from(table)
         .insert([item])
@@ -58,6 +78,10 @@ async function saveItemToSupabase(table, item) {
 
 // حذف عنصر من Supabase
 async function deleteItemFromSupabase(table, id) {
+    if (!supabase) {
+        throw new Error('Supabase غير مهيأ');
+    }
+    
     const { error } = await supabase
         .from(table)
         .delete()
@@ -302,6 +326,9 @@ function logout() {
 
 // تهيئة لوحة التحكم عند التحميل
 document.addEventListener('DOMContentLoaded', function() {
+    // تهيئة Supabase بعد تحميل الصفحة بالكامل
+    initSupabase();
+    
     // التأكد من إظهار نافذة التسجيل وإخفاء لوحة التحكم في البداية
     document.getElementById('login-container').classList.remove('hidden');
     document.getElementById('admin-container').classList.add('hidden');
@@ -327,4 +354,3 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 });
-
