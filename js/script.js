@@ -1,6 +1,6 @@
 // تهيئة Supabase
 const SUPABASE_URL = 'https://xzltdsmmolyvcmkfzedf.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bHRkc21tb2x5dmNta2Z6ZWRmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc2Nzg1NzEsImV4cCI6MjA3MzI1NDU3MX0.3TJ49ctEhOT1KDIFtZXFw2jwTq57ujaWbqNNJ2Eeb1U';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhbmFzZSIsInJlZiI6Inh6bHRkc21tb2x5dmNta2Z6ZWRmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc2Nzg1NzEsImV4cCI6MjA3MzI1NDU3MX0.3TJ49ctEhOT1KDIFtZXFw2jwTq57ujaWbqNNJ2Eeb1U';
 const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 // بيانات الموقع (سيتم استبدالها بالبيانات من Supabase)
@@ -75,7 +75,7 @@ function renderBookItem(book) {
         ${book.image ? `<img src="${book.image}" alt="${book.title}" class="item-image">` : ''}
         <h3>${book.title}</h3>
         <p>${book.description}</p>
-        <a href="${book.driveLink}" target="_blank" class="item-button">تحميل الكتاب</a>
+        <a href="${book.drive_link}" target="_blank" class="item-button">تحميل الكتاب</a>
     `;
     return div;
 }
@@ -110,7 +110,7 @@ function renderFileItem(file) {
         ${file.image ? `<img src="${file.image}" alt="${file.title}" class="item-image">` : ''}
         <h3>${file.title}</h3>
         <p>${file.description}</p>
-        <a href="${file.driveLink}" target="_blank" class="item-button">تحميل الملف</a>
+        <a href="${file.drive_link}" target="_blank" class="item-button">تحميل الملف</a>
     `;
     return div;
 }
@@ -127,7 +127,7 @@ function renderPlatformItem(platform) {
     return div;
 }
 
-// عرض عنرق تطبيق
+// عرض عنصر تطبيق
 function renderAppItem(app) {
     const div = document.createElement('div');
     div.className = 'item';
@@ -135,7 +135,7 @@ function renderAppItem(app) {
         ${app.image ? `<img src="${app.image}" alt="${app.title}" class="item-image">` : ''}
         <h3>${app.title}</h3>
         <p>${app.description}</p>
-        <a href="${app.downloadLink}" class="item-button">تحميل التطبيق</a>
+        <a href="${app.download_link}" class="item-button">تحميل التطبيق</a>
     `;
     return div;
 }
