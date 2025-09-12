@@ -1,4 +1,9 @@
-// بيانات الموقع (سيتم استبدالها بالبيانات من localStorage)
+// تهيئة Supabase
+const SUPABASE_URL = 'YOUR_SUPABASE_URL';
+const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
+const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+// بيانات الموقع (سيتم استبدالها بالبيانات من Supabase)
 let siteData = {
     books: [],
     novels: [],
@@ -7,18 +12,32 @@ let siteData = {
     apps: []
 };
 
-// تحميل البيانات من localStorage
-function loadData() {
-    const savedData = localStorage.getItem('religiousSiteData');
-    if (savedData) {
-        siteData = JSON.parse(savedData);
-    }
-    renderAllSections();
-}
+// تحميل البيانات من Supabase
+async function loadData() {
+    try {
+        // جلب البيانات من كل جدول
+        const { data: books, error: booksError } = await supabase.from('books').select('*');
+        const { data: novels, error: novelsError } = await supabase.from('novels').select('*');
+        const { data: files, error: filesError } = await supabase.from('files').select('*');
+        const { data: platforms, error: platformsError } = await supabase.from('platforms').select('*');
+        const { data: apps, error: appsError } = await supabase.from('apps').select('*');
 
-// حفظ البيانات إلى localStorage
-function saveData() {
-    localStorage.setItem('religiousSiteData', JSON.stringify(siteData));
+        if (booksError) throw booksError;
+        if (novelsError) throw novelsError;
+        if (filesError) throw filesError;
+        if (platformsError) throw platformsError;
+        if (appsError) throw appsError;
+
+        siteData.books = books || [];
+        siteData.novels = novels || [];
+        siteData.files = files || [];
+        siteData.platforms = platforms || [];
+        siteData.apps = apps || [];
+
+        renderAllSections();
+    } catch (error) {
+        console.error('Error loading data:', error);
+    }
 }
 
 // عرض جميع الأقسام
@@ -53,6 +72,7 @@ function renderBookItem(book) {
     const div = document.createElement('div');
     div.className = 'item';
     div.innerHTML = `
+        ${book.image ? `<img src="${book.image}" alt="${book.title}" class="item-image">` : ''}
         <h3>${book.title}</h3>
         <p>${book.description}</p>
         <a href="${book.driveLink}" target="_blank" class="item-button">تحميل الكتاب</a>
@@ -87,6 +107,7 @@ function renderFileItem(file) {
     const div = document.createElement('div');
     div.className = 'item';
     div.innerHTML = `
+        ${file.image ? `<img src="${file.image}" alt="${file.title}" class="item-image">` : ''}
         <h3>${file.title}</h3>
         <p>${file.description}</p>
         <a href="${file.driveLink}" target="_blank" class="item-button">تحميل الملف</a>
@@ -99,18 +120,19 @@ function renderPlatformItem(platform) {
     const div = document.createElement('div');
     div.className = 'item platform-item';
     div.innerHTML = `
-        <img src="${platform.image}" alt="${platform.title}">
+        <img src="${platform.image}" alt="${platform.title}" class="platform-image">
         <h3>${platform.title}</h3>
         <a href="${platform.link}" target="_blank" class="item-button">زيارة المنصة</a>
     `;
     return div;
 }
 
-// عرض عنصر تطبيق
+// عرض عنرق تطبيق
 function renderAppItem(app) {
     const div = document.createElement('div');
     div.className = 'item';
     div.innerHTML = `
+        ${app.image ? `<img src="${app.image}" alt="${app.title}" class="item-image">` : ''}
         <h3>${app.title}</h3>
         <p>${app.description}</p>
         <a href="${app.downloadLink}" class="item-button">تحميل التطبيق</a>
