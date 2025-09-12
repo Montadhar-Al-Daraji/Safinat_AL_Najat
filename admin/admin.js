@@ -94,7 +94,33 @@ async function deleteItemFromSupabase(table, id) {
         throw error;
     }
 }
-
+// تحسين دالة الحذف
+async function deleteItem(section, id, title) {
+    if (confirm(`هل أنت متأكد من حذف ${title}؟`)) {
+        try {
+            // إظهار مؤشر تحميل
+            const deleteBtn = event.target;
+            const originalText = deleteBtn.textContent;
+            deleteBtn.textContent = 'جاري الحذف...';
+            deleteBtn.disabled = true;
+            
+            await deleteItemFromSupabase(section, id);
+            await loadAdminData();
+            
+            // إعادة تعيين الزر
+            deleteBtn.textContent = originalText;
+            deleteBtn.disabled = false;
+        } catch (error) {
+            console.error('Error deleting item:', error);
+            alert('حدث خطأ أثناء حذف العنصر: ' + error.message);
+            
+            // إعادة تعيين الزر في حالة الخطأ
+            const deleteBtn = event.target;
+            deleteBtn.textContent = 'حذف';
+            deleteBtn.disabled = false;
+        }
+    }
+}
 // عرض جميع القوائم في لوحة التحكم
 function renderAllAdminLists() {
     renderAdminList('books', siteData.books);
