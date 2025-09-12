@@ -1,0 +1,234 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Cairo', sans-serif;
+}
+
+body {
+    color: #D4AF37; /* ذهبي */
+    overflow-x: hidden;
+    position: relative;
+}
+
+.video-background {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -2;
+    overflow: hidden;
+}
+
+.video-background video {
+    min-width: 100%;
+    min-height: 100%;
+    width: auto;
+    height: auto;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    z-index: -1;
+}
+
+header {
+    text-align: center;
+    padding: 2rem 0;
+    position: relative;
+    z-index: 1;
+}
+
+.logo-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.logo {
+    width: 120px;
+    height: 120px;
+    margin-bottom: 1rem;
+    border: 3px solid #D4AF37;
+    border-radius: 50%;
+    padding: 5px;
+    background: rgba(139, 0, 0, 0.7);
+}
+
+h1 {
+    font-size: 2.5rem;
+    color: #D4AF37;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.main-nav {
+    background: rgba(139, 0, 0, 0.8); /* أحمر غامق */
+    padding: 1rem 0;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.main-nav ul {
+    display: flex;
+    justify-content: center;
+    list-style: none;
+    flex-wrap: wrap;
+}
+
+.main-nav li {
+    margin: 0 1rem;
+}
+
+.main-nav a {
+    color: #D4AF37;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 1.1rem;
+    padding: 0.5rem 1rem;
+    border-radius: 30px;
+    transition: all 0.3s ease;
+}
+
+.main-nav a:hover {
+    background: #D4AF37;
+    color: #8B0000;
+}
+
+.admin-link {
+    background: rgba(212, 175, 55, 0.3);
+    border: 1px solid #D4AF37;
+}
+
+main {
+    padding: 2rem;
+    position: relative;
+    z-index: 1;
+}
+
+.section {
+    background: rgba(139, 0, 0, 0.8);
+    margin: 2rem 0;
+    padding: 2rem;
+    border-radius: 15px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+}
+
+.section h2 {
+    text-align: center;
+    margin-bottom: 2rem;
+    color: #D4AF37;
+    font-size: 2rem;
+    border-bottom: 2px solid #D4AF37;
+    padding-bottom: 0.5rem;
+}
+
+.items-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 1.5rem;
+}
+
+.item {
+    background: rgba(0, 0, 0, 0.6);
+    border: 1px solid #D4AF37;
+    border-radius: 10px;
+    padding: 1rem;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.item:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+}
+
+.item h3 {
+    color: #D4AF37;
+    margin-bottom: 0.5rem;
+    text-align: center;
+}
+
+.item p {
+    color: #fff;
+    margin-bottom: 1rem;
+    font-size: 0.9rem;
+}
+
+.item-button {
+    display: block;
+    width: 100%;
+    background: #D4AF37;
+    color: #8B0000;
+    border: none;
+    padding: 0.7rem;
+    border-radius: 30px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.3s ease;
+    text-align: center;
+    text-decoration: none;
+}
+
+.item-button:hover {
+    background: #c19b2e;
+}
+
+.novel-images {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.novel-images img {
+    width: 100%;
+    max-width: 120px;
+    border-radius: 5px;
+    border: 1px solid #D4AF37;
+}
+
+.platform-item {
+    text-align: center;
+}
+
+.platform-item img {
+    width: 100%;
+    max-width: 80px;
+    margin-bottom: 1rem;
+    border-radius: 10px;
+}
+
+footer {
+    text-align: center;
+    padding: 1.5rem;
+    background: rgba(139, 0, 0, 0.8);
+    color: #D4AF37;
+    position: relative;
+    z-index: 1;
+}
+
+@media (max-width: 768px) {
+    .main-nav ul {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .main-nav li {
+        margin: 0.5rem 0;
+    }
+    
+    .items-container {
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    }
+}

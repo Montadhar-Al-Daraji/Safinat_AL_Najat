@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>المنصة الدينية</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="video-background">
+        <video autoplay muted loop id="bgVideo">
+            <source src="assets/video-background.mp4" type="video/mp4">
+            متصفحك لا يدعم تشغيل الفيديو
+        </video>
+    </div>
+    
+    <div class="overlay"></div>
+    
+    <header>
+        <div class="logo-container">
+            <img src="assets/logo.png" alt="شعار المنصة الدينية" class="logo">
+            <h1>المنصة الدينية</h1>
+        </div>
+    </header>
+    
+    <nav class="main-nav">
+        <ul>
+            <li><a href="#books">الكتب</a></li>
+            <li><a href="#novels">الروايات</a></li>
+            <li><a href="#files">الملفات</a></li>
+            <li><a href="#platforms">المنصات</a></li>
+            <li><a href="#apps">التطبيقات</a></li>
+            <li><a href="admin/admin.html" class="admin-link">لوحة التحكم</a></li>
+        </ul>
+    </nav>
+    
+    <main>
+        <section id="books" class="section">
+            <h2>الكتب الدينية</h2>
+            <div class="items-container" id="books-container"></div>
+        </section>
+        
+        <section id="novels" class="section">
+            <h2>الروايات الدينية</h2>
+            <div class="items-container" id="novels-container"></div>
+        </section>
+        
+        <section id="files" class="section">
+            <h2>الملفات الدينية</h2>
+            <div class="items-container" id="files-container"></div>
+        </section>
+        
+        <section id="platforms" class="section">
+            <h2>منصاتنا</h2>
+            <div class="items-container" id="platforms-container"></div>
+        </section>
+        
+        <section id="apps" class="section">
+            <h2>تطبيقاتنا</h2>
+            <div class="items-container" id="apps-container"></div>
+        </section>
+    </main>
+    
+    <footer>
+        <p>جميع الحقوق محفوظة © المنصة الدينية 2023</p>
+    </footer>
+    
+    <script src="js/script.js"></script>
+</body>
+</html>
