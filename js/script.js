@@ -135,7 +135,18 @@ function renderFileItem(file) {
     `;
     return div;
 }
-
+// عرض عنصر سيرفر
+function renderServerItem(server) {
+    const div = document.createElement('div');
+    div.className = 'item';
+    div.innerHTML = `
+        ${server.image ? `<img src="${server.image}" alt="${server.title}" class="item-image">` : ''}
+        <h3>${server.title}</h3>
+        <p>${server.description}</p>
+        <a href="${server.link}" target="_blank" class="item-button">انضم إلى السيرفر</a>
+    `;
+    return div;
+}
 // عرض عنصر منصة
 function renderPlatformItem(platform) {
     const div = document.createElement('div');
