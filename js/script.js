@@ -26,18 +26,24 @@ async function loadData() {
         const { data: files, error: filesError } = await supabaseClient.from('files').select('*');
         const { data: platforms, error: platformsError } = await supabaseClient.from('platforms').select('*');
         const { data: apps, error: appsError } = await supabaseClient.from('apps').select('*');
+        const { data: servers, error: serversError } = await supabase.from('servers').select('*');
+        
 
         if (booksError) throw booksError;
         if (novelsError) throw novelsError;
         if (filesError) throw filesError;
         if (platformsError) throw platformsError;
         if (appsError) throw appsError;
+        if (serverssError) throw serversError;
+        
 
         siteData.books = books || [];
         siteData.novels = novels || [];
         siteData.files = files || [];
         siteData.platforms = platforms || [];
         siteData.apps = apps || [];
+        siteData.servers = servers || [];
+        
 
         renderAllSections();
     } catch (error) {
