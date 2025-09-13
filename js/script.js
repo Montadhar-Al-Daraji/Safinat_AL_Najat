@@ -9,8 +9,10 @@ let siteData = {
     novels: [],
     files: [],
     platforms: [],
-    apps: []
+    apps: [],
+    servers: [] // أضف هذا
 };
+
 
 // تحميل البيانات من Supabase
 async function loadData() {
@@ -49,6 +51,17 @@ async function loadData() {
     }
 }
 
+function renderServerItem(server) {
+    const div = document.createElement('div');
+    div.className = 'item';
+    div.innerHTML = `
+        ${server.image ? `<img src="${server.image}" alt="${server.title}" class="item-image">` : ''}
+        <h3>${server.title}</h3>
+        <p>${server.description}</p>
+        <a href="${server.link}" target="_blank" class="item-button">انضم إلى السيرفر</a>
+    `;
+    return div;
+}
 // عرض جميع الأقسام
 function renderAllSections() {
     renderSection('books', siteData.books, renderBookItem);
@@ -56,6 +69,8 @@ function renderAllSections() {
     renderSection('files', siteData.files, renderFileItem);
     renderSection('platforms', siteData.platforms, renderPlatformItem);
     renderSection('apps', siteData.apps, renderAppItem);
+    renderSection('servers', siteData.servers, renderServerItem); // أضف هذا
+
 }
 
 // عرض قسم معين
