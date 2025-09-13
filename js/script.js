@@ -109,9 +109,26 @@ function renderNovelItem(novel) {
     div.className = 'item';
     
     let imagesHtml = '';
-    if (novel.images && novel.images.length > 0) {
+    
+    // محاولة تحليل images إذا كانت نصًا (JSON)
+    let imagesArray = [];
+    if (novel.images) {
+        if (typeof novel.images === 'string') {
+            try {
+                imagesArray = JSON.parse(novel.images);
+            } catch (e) {
+                console.error('Error parsing images JSON:', e);
+                // إذا فشل التحليل، نعتبرها مصفوفة تحتوي على عنصر واحد
+                imagesArray = [novel.images];
+            }
+        } else if (Array.isArray(novel.images)) {
+            imagesArray = novel.images;
+        }
+    }
+    
+    if (imagesArray.length > 0) {
         imagesHtml = '<div class="novel-images">';
-        novel.images.forEach(img => {
+        imagesArray.forEach(img => {
             imagesHtml += `<img src="${img}" alt="صورة الرواية">`;
         });
         imagesHtml += '</div>';
@@ -124,6 +141,7 @@ function renderNovelItem(novel) {
     `;
     return div;
 }
+
 // عرض مؤشر تحميل
 function showLoader() {
     document.querySelectorAll('.items-container').forEach(container => {
