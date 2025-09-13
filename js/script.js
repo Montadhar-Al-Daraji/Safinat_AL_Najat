@@ -199,7 +199,46 @@ function renderAppItem(app) {
     `;
     return div;
 }
+// دالة لتحديث الموقع الرئيسي بعد الإضافة
+async function refreshMainSite() {
+    try {
+        // إرسال طلب إلى الموقع الرئيسي لتحديث البيانات
+        const response = await fetch('/');
+        if (response.ok) {
+            console.log('تم تحديث الموقع الرئيسي بنجاح');
+        }
+    } catch (error) {
+        console.error('Error refreshing main site:', error);
+    }
+}
 
+// مثال في دالة addItemToSiteData:
+async function addItemToSiteData(table, item, formElement) {
+    try {
+        const savedItem = await saveItemToSupabase(table, item);
+        
+        if (!siteData[table]) {
+            siteData[table] = [];
+        }
+        
+        siteData[table].push(savedItem);
+        renderAdminList(table, siteData[table]);
+        
+        if (formElement) {
+            formElement.reset();
+        }
+        
+        // تحديث الموقع الرئيسي
+        await refreshMainSite();
+        
+        alert(`تم الإضافة بنجاح!`);
+        return true;
+    } catch (error) {
+        console.error(`Error adding to ${table}:`, error);
+        alert(`حدث خطأ أثناء الإضافة: ${error.message}`);
+        return false;
+    }
+}
 // تهيئة الصفحة عند التحميل
 document.addEventListener('DOMContentLoaded', function() {
     loadData();
