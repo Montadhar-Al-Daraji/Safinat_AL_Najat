@@ -5,7 +5,8 @@ let siteData = {
     novels: [],
     files: [],
     platforms: [],
-    apps: []
+    apps: [],
+    servers: [] // إضافة مصفوفة السيرفرات
 };
 
 // تهيئة Supabase بعد تحميل المكتبة
@@ -39,18 +40,21 @@ async function loadAdminData() {
         const { data: files, error: filesError } = await supabase.from('files').select('*');
         const { data: platforms, error: platformsError } = await supabase.from('platforms').select('*');
         const { data: apps, error: appsError } = await supabase.from('apps').select('*');
+        const { data: servers, error: serversError } = await supabase.from('servers').select('*'); // جلب بيانات السيرفرات
 
         if (booksError) throw booksError;
         if (novelsError) throw novelsError;
         if (filesError) throw filesError;
         if (platformsError) throw platformsError;
         if (appsError) throw appsError;
+        if (serversError) throw serversError;
 
         siteData.books = books || [];
         siteData.novels = novels || [];
         siteData.files = files || [];
         siteData.platforms = platforms || [];
         siteData.apps = apps || [];
+        siteData.servers = servers || []; // تعيين بيانات السيرفرات
 
         renderAllAdminLists();
     } catch (error) {
@@ -94,6 +98,7 @@ async function deleteItemFromSupabase(table, id) {
         throw error;
     }
 }
+
 // تحسين دالة الحذف
 async function deleteItem(section, id, title) {
     if (confirm(`هل أنت متأكد من حذف ${title}؟`)) {
@@ -121,6 +126,7 @@ async function deleteItem(section, id, title) {
         }
     }
 }
+
 // عرض جميع القوائم في لوحة التحكم
 function renderAllAdminLists() {
     renderAdminList('books', siteData.books);
@@ -128,6 +134,7 @@ function renderAllAdminLists() {
     renderAdminList('files', siteData.files);
     renderAdminList('platforms', siteData.platforms);
     renderAdminList('apps', siteData.apps);
+    renderAdminList('servers', siteData.servers); // عرض السيرفرات
 }
 
 // عرض قائمة العناصر في لوحة التحكم
@@ -159,7 +166,7 @@ function renderAdminList(section, items) {
         
         itemElement.innerHTML = infoHtml + `
             <div class="item-actions">
-                <button onclick="deleteItem('${section}', ${item.id})">حذف</button>
+                <button onclick="deleteItem('${section}', ${item.id}, '${item.title.replace(/'/g, "\\'")}')">حذف</button>
             </div>
         `;
         
@@ -167,19 +174,6 @@ function renderAdminList(section, items) {
     });
 }
 
-// حذف عنصر
-async function deleteItem(section, id) {
-    if (confirm('هل أنت متأكد من حذف هذا العنصر؟')) {
-        try {
-            await deleteItemFromSupabase(section, id);
-            // إعادة تحميل البيانات من Supabase
-            await loadAdminData();
-        } catch (error) {
-            console.error('Error deleting item:', error);
-            alert('حدث خطأ أثناء حذف العنصر: ' + error.message);
-        }
-    }
-}
 // إضافة سيرفر جديد
 document.getElementById('server-form').addEventListener('submit', async function(e) {
     e.preventDefault();
@@ -202,6 +196,7 @@ document.getElementById('server-form').addEventListener('submit', async function
         alert('حدث خطأ أثناء إضافة السيرفر: ' + error.message);
     }
 });
+
 // إضافة كتاب جديد
 document.getElementById('book-form').addEventListener('submit', async function(e) {
     e.preventDefault();
