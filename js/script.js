@@ -3,22 +3,19 @@ const SUPABASE_URL = 'https://xzltdsmmolyvcmkfzedf.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bHRkc21tb2x5dmNta2Z6ZWRmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc2Nzg1NzEsImV4cCI6MjA3MzI1NDU3MX0.3TJ49ctEhOT1KDIFtZXFw2jwTq57ujaWbqNNJ2Eeb1U';
 const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-// بيانات الموقع (سيتم استبدالها بالبيانات من Supabase)
+// بيانات الموقع
 let siteData = {
     books: [],
     novels: [],
     files: [],
     platforms: [],
     apps: [],
-    servers: [] // أضف هذا
+    servers: [] // تأكد من وجود مصفوفة السيرفرات
 };
 
 
 // تحميل البيانات من Supabase
 async function loadData() {
-        showLoader(); // عرض مؤشر التحميل
-
-    
     try {
         // جلب البيانات من كل جدول
         const { data: books, error: booksError } = await supabaseClient.from('books').select('*');
@@ -26,24 +23,21 @@ async function loadData() {
         const { data: files, error: filesError } = await supabaseClient.from('files').select('*');
         const { data: platforms, error: platformsError } = await supabaseClient.from('platforms').select('*');
         const { data: apps, error: appsError } = await supabaseClient.from('apps').select('*');
-        const { data: servers, error: serversError } = await supabase.from('servers').select('*');
-        
+        const { data: servers, error: serversError } = await supabaseClient.from('servers').select('*'); // جلب السيرفرات
 
         if (booksError) throw booksError;
         if (novelsError) throw novelsError;
         if (filesError) throw filesError;
         if (platformsError) throw platformsError;
         if (appsError) throw appsError;
-        if (serverssError) throw serversError;
-        
+        if (serversError) throw serversError;
 
         siteData.books = books || [];
         siteData.novels = novels || [];
         siteData.files = files || [];
         siteData.platforms = platforms || [];
         siteData.apps = apps || [];
-        siteData.servers = servers || [];
-        
+        siteData.servers = servers || []; // تعيين بيانات السيرفرات
 
         renderAllSections();
     } catch (error) {
@@ -52,10 +46,9 @@ async function loadData() {
         document.querySelectorAll('.items-container').forEach(container => {
             container.innerHTML = '<p class="no-items">لا توجد عناصر لعرضها حالياً</p>';
         });
-    } finally {
-        setTimeout(hideLoader, 500); // إخفاء مؤشر التحميل بعد نصف ثانية
     }
 }
+
 
 function renderServerItem(server) {
     const div = document.createElement('div');
@@ -75,8 +68,7 @@ function renderAllSections() {
     renderSection('files', siteData.files, renderFileItem);
     renderSection('platforms', siteData.platforms, renderPlatformItem);
     renderSection('apps', siteData.apps, renderAppItem);
-    renderSection('servers', siteData.servers, renderServerItem); // أضف هذا
-
+    renderSection('servers', siteData.servers, renderServerItem); // عرض السيرفرات
 }
 
 // عرض قسم معين
@@ -86,7 +78,7 @@ function renderSection(sectionId, items, renderFunction) {
     
     container.innerHTML = '';
     
-    if (items.length === 0) {
+    if (!items || items.length === 0) {
         container.innerHTML = '<p class="no-items">لا توجد عناصر لعرضها</p>';
         return;
     }
@@ -96,6 +88,8 @@ function renderSection(sectionId, items, renderFunction) {
         container.appendChild(itemElement);
     });
 }
+
+
 
 // عرض عنصر كتاب
 function renderBookItem(book) {
@@ -109,7 +103,6 @@ function renderBookItem(book) {
     `;
     return div;
 }
-
 // عرض عنصر رواية
 function renderNovelItem(novel) {
     const div = document.createElement('div');
@@ -156,6 +149,7 @@ function renderFileItem(file) {
     `;
     return div;
 }
+
 // عرض عنصر سيرفر
 function renderServerItem(server) {
     const div = document.createElement('div');
@@ -168,6 +162,19 @@ function renderServerItem(server) {
     `;
     return div;
 }
+// عرض عنصر ملف
+function renderFileItem(file) {
+    const div = document.createElement('div');
+    div.className = 'item';
+    div.innerHTML = `
+        ${file.image ? `<img src="${file.image}" alt="${file.title}" class="item-image">` : ''}
+        <h3>${file.title}</h3>
+        <p>${file.description}</p>
+        <a href="${file.drive_link}" target="_blank" class="item-button">تحميل الملف</a>
+    `;
+    return div;
+}
+
 // عرض عنصر منصة
 function renderPlatformItem(platform) {
     const div = document.createElement('div');
