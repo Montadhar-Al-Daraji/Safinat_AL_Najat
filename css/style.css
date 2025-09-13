@@ -301,6 +301,96 @@ footer {
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
 }
 
+/* تحسينات للاستجابة */
+@media (max-width: 1200px) {
+    .admin-panels {
+        grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    }
+}
+
+@media (max-width: 900px) {
+    .admin-panels {
+        grid-template-columns: 1fr;
+    }
+    
+    .admin-header {
+        flex-direction: column;
+        text-align: center;
+        gap: 15px;
+    }
+    
+    .admin-actions {
+        justify-content: center;
+        margin-top: 15px;
+    }
+}
+
+@media (max-width: 600px) {
+    .admin-container {
+        padding: 10px;
+        margin: 5px;
+    }
+    
+    .admin-panel {
+        padding: 15px;
+        margin-bottom: 15px;
+    }
+    
+    .admin-form input,
+    .admin-form textarea,
+    .admin-form button {
+        padding: 12px;
+        font-size: 16px; /* منع التكبير في iOS */
+    }
+    
+    .item-card {
+        flex-direction: column;
+        text-align: center;
+        gap: 10px;
+    }
+    
+    .item-actions {
+        margin-top: 10px;
+    }
+    
+    .login-form {
+        padding: 1.5rem;
+        margin: 0 10px;
+    }
+}
+
+/* تحسينات للنماذج على الشاشات الصغيرة */
+@media (max-width: 480px) {
+    .admin-header h1 {
+        font-size: 1.5rem;
+    }
+    
+    .admin-panel h2 {
+        font-size: 1.2rem;
+    }
+    
+    .back-to-site, .logout-btn {
+        padding: 10px 15px;
+        font-size: 0.9rem;
+    }
+    
+    .item-info h3 {
+        font-size: 1rem;
+    }
+    
+    .item-info p {
+        font-size: 0.85rem;
+    }
+}
+
+/* تحسينات خاصة لأجهزة iOS */
+@supports (-webkit-touch-callout: none) {
+    .admin-form input,
+    .admin-form textarea {
+        font-size: 16px; /* منع التكبير في iOS */
+    }
+}
+
 @media (max-width: 768px) {
     header {
         padding: 1rem 0;
