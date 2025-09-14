@@ -10,9 +10,8 @@ let siteData = {
     files: [],
     platforms: [],
     apps: [],
-    servers: [] // تأكد من وجود مصفوفة السيرفرات
+    servers: []
 };
-
 
 // تحميل البيانات من Supabase
 async function loadData() {
@@ -23,7 +22,7 @@ async function loadData() {
         const { data: files, error: filesError } = await supabaseClient.from('files').select('*');
         const { data: platforms, error: platformsError } = await supabaseClient.from('platforms').select('*');
         const { data: apps, error: appsError } = await supabaseClient.from('apps').select('*');
-        const { data: servers, error: serversError } = await supabaseClient.from('servers').select('*'); // جلب السيرفرات
+        const { data: servers, error: serversError } = await supabaseClient.from('servers').select('*');
 
         if (booksError) throw booksError;
         if (novelsError) throw novelsError;
@@ -37,9 +36,12 @@ async function loadData() {
         siteData.files = files || [];
         siteData.platforms = platforms || [];
         siteData.apps = apps || [];
-        siteData.servers = servers || []; // تعيين بيانات السيرفرات
+        siteData.servers = servers || [];
 
         renderAllSections();
+        setupTabs();
+        setupSearch();
+        
     } catch (error) {
         console.error('Error loading data:', error);
         // عرض رسالة توضح أن البيانات غير متوفرة
@@ -49,30 +51,280 @@ async function loadData() {
     }
 }
 
+// إعداد نظام التبويبات
+function setupTabs() {
+    const tabs = document.querySelectorAll('.nav-tab');
+    
+    tabs.forEach(tab => {
+        tab.addEventListener('click', function(e) {
+            e.preventDefault();
+            
+            // إلغاء تنشيط جميع التبويبات
+            tabs.forEach(t => t.classList.remove('active'));
+            
+            // تنشيط التبويب الحالي
+            this.classList.add('active');
+            
+            // إخفاء جميع الأقسام
+            document.querySelectorAll('.content-section').forEach(section => {
+                section.classList.remove('active');
+            });
+            
+            // إظهار القسم المحدد
+            const tabName = this.getAttribute('data-tab');
+            if (tabName === 'all') {
+                document.getElementById('all-content').classList.add('active');
+                renderHighlights();
+            } else {
+                document.getElementById(`${tabName}-content`).classList.add('active');
+            }
+        });
+    });
+}
 
-function renderServerItem(server) {
+// إعداد نظام البحث
+function setupSearch() {
+    const searchInput = document.getElementById('search-input');
+    const searchBtn = document.getElementById('search-btn');
+    const searchResults = document.getElementById('search-results');
+    
+    searchBtn.addEventListener('click', performSearch);
+    searchInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            performSearch();
+        }
+    });
+    
+    function performSearch() {
+        const searchTerm = searchInput.value.trim().toLowerCase();
+        
+        if (searchTerm.length < 2) {
+            searchResults.classList.remove('active');
+            return;
+        }
+        
+        // البحث في جميع البيانات
+        const results = [];
+        
+        Object.keys(siteData).forEach(category => {
+            siteData[category].forEach(item => {
+                if (item.title && item.title.toLowerCase().includes(searchTerm) ||
+                    (item.description && item.description.toLowerCase().includes(searchTerm))) {
+                    results.push({
+                        category: category,
+                        item: item
+                    });
+                }
+            });
+        });
+        
+        // عرض نتائج البحث
+        if (results.length > 0) {
+            let html = '';
+            results.forEach(result => {
+                const categoryNames = {
+                    'books': 'كتاب',
+                    'novels': 'رواية',
+                    'files': 'ملف',
+                    'platforms': 'منصة',
+                    'apps': 'تطبيق',
+                    'servers': 'سيرفر'
+                };
+                
+                html += `
+                    <div class="search-item" data-category="${result.category}" data-id="${result.item.id}">
+                        <strong>${result.item.title}</strong>
+                        <span>(${categoryNames[result.category]})</span>
+                    </div>
+                `;
+            });
+            
+            searchResults.innerHTML = html;
+            searchResults.classList.add('active');
+            
+            // إضافة event listeners للنتائج
+            document.querySelectorAll('.search-item').forEach(item => {
+                item.addEventListener('click', function() {
+                    const category = this.getAttribute('data-category');
+                    const id = this.getAttribute('data-id');
+                    
+                    // الانتقال إلى القسم المناسب
+                    document.querySelectorAll('.nav-tab').forEach(tab => {
+                        tab.classList.remove('active');
+                        if (tab.getAttribute('data-tab') === category) {
+                            tab.classList.add('active');
+                        }
+                    });
+                    
+                    document.querySelectorAll('.content-section').forEach(section => {
+                        section.classList.remove('active');
+                    });
+                    
+                    document.getElementById(`${category}-content`).classList.add('active');
+                    
+                    // إخفاء نتائج البحث
+                    searchResults.classList.remove('active');
+                    searchInput.value = '';
+                    
+                    // التمرير إلى العنصر المحدد
+                    setTimeout(() => {
+                        const element = document.querySelector(`[data-item-id="${id}"]`);
+                        if (element) {
+                            element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                            element.classList.add('highlight');
+                            setTimeout(() => element.classList.remove('highlight'), 2000);
+                        }
+                    }, 300);
+                });
+            });
+            
+        } else {
+            searchResults.innerHTML = '<p class="no-items">لا توجد نتائج للبحث</p>';
+            searchResults.classList.add('active');
+        }
+    }
+    
+    // إغلاق نتائج البحث عند النقر خارجها
+    document.addEventListener('click', function(e) {
+        if (!searchResults.contains(e.target) && e.target !== searchInput && e.target !== searchBtn) {
+            searchResults.classList.remove('active');
+        }
+    });
+}
+
+// عرض المحتوى البارز على الصفحة الرئيسية
+function renderHighlights() {
+    const container = document.getElementById('highlights-container');
+    if (!container) return;
+    
+    container.innerHTML = '';
+    
+    // اختيار عناصر عشوائية من كل قسم لعرضها
+    const highlights = [];
+    
+    Object.keys(siteData).forEach(category => {
+        if (siteData[category].length > 0) {
+            const randomIndex = Math.floor(Math.random() * siteData[category].length);
+            highlights.push({
+                category: category,
+                item: siteData[category][randomIndex]
+            });
+        }
+    });
+    
+    if (highlights.length === 0) {
+        container.innerHTML = '<p class="no-items">لا توجد عناصر لعرضها</p>';
+        return;
+    }
+    
+    highlights.forEach(highlight => {
+        const itemElement = createItemElement(highlight.category, highlight.item);
+        container.appendChild(itemElement);
+    });
+}
+
+// إنشاء عنصر لعرضه
+function createItemElement(category, item) {
     const div = document.createElement('div');
     div.className = 'item';
-    div.innerHTML = `
-        ${server.image ? `<img src="${server.image}" alt="${server.title}" class="item-image">` : ''}
-        <h3>${server.title}</h3>
-        <p>${server.description}</p>
-        <a href="${server.link}" target="_blank" class="item-button">انضم إلى السيرفر</a>
-    `;
+    div.setAttribute('data-item-id', item.id);
+    
+    let content = '';
+    
+    switch(category) {
+        case 'books':
+            content = `
+                ${item.image ? `<img src="${item.image}" alt="${item.title}" class="item-image">` : ''}
+                <h3>${item.title}</h3>
+                <p>${item.description || ''}</p>
+                <a href="${item.drive_link}" target="_blank" class="item-button">تحميل الكتاب</a>
+            `;
+            break;
+            
+        case 'novels':
+            let imagesHtml = '';
+            let imagesArray = [];
+            
+            if (item.images) {
+                if (typeof item.images === 'string') {
+                    try {
+                        imagesArray = JSON.parse(item.images);
+                    } catch (e) {
+                        imagesArray = [item.images];
+                    }
+                } else if (Array.isArray(item.images)) {
+                    imagesArray = item.images;
+                }
+            }
+            
+            if (imagesArray.length > 0) {
+                imagesHtml = '<div class="novel-images">';
+                imagesArray.slice(0, 3).forEach(img => {
+                    imagesHtml += `<img src="${img}" alt="صورة الرواية">`;
+                });
+                imagesHtml += '</div>';
+            }
+            
+            content = `
+                <h3>${item.title}</h3>
+                ${imagesHtml}
+                <p>${item.description || ''}</p>
+            `;
+            break;
+            
+        case 'files':
+            content = `
+                ${item.image ? `<img src="${item.image}" alt="${item.title}" class="item-image">` : ''}
+                <h3>${item.title}</h3>
+                <p>${item.description || ''}</p>
+                <a href="${item.drive_link}" target="_blank" class="item-button">تحميل الملف</a>
+            `;
+            break;
+            
+        case 'platforms':
+            content = `
+                <img src="${item.image}" alt="${item.title}" class="platform-image">
+                <h3>${item.title}</h3>
+                <a href="${item.link}" target="_blank" class="item-button">زيارة المنصة</a>
+            `;
+            break;
+            
+        case 'apps':
+            content = `
+                ${item.image ? `<img src="${item.image}" alt="${item.title}" class="item-image">` : ''}
+                <h3>${item.title}</h3>
+                <p>${item.description || ''}</p>
+                <a href="${item.download_link}" class="item-button">تحميل التطبيق</a>
+            `;
+            break;
+            
+        case 'servers':
+            content = `
+                ${item.image ? `<img src="${item.image}" alt="${item.title}" class="item-image">` : ''}
+                <h3>${item.title}</h3>
+                <p>${item.description || ''}</p>
+                <a href="${item.link}" target="_blank" class="item-button">انضم إلى السيرفر</a>
+            `;
+            break;
+    }
+    
+    div.innerHTML = content;
     return div;
 }
+
 // عرض جميع الأقسام
 function renderAllSections() {
-    renderSection('books', siteData.books, renderBookItem);
-    renderSection('novels', siteData.novels, renderNovelItem);
-    renderSection('files', siteData.files, renderFileItem);
-    renderSection('platforms', siteData.platforms, renderPlatformItem);
-    renderSection('apps', siteData.apps, renderAppItem);
-    renderSection('servers', siteData.servers, renderServerItem); // عرض السيرفرات
+    renderSection('books', siteData.books);
+    renderSection('novels', siteData.novels);
+    renderSection('files', siteData.files);
+    renderSection('platforms', siteData.platforms);
+    renderSection('apps', siteData.apps);
+    renderSection('servers', siteData.servers);
+    renderHighlights();
 }
 
 // عرض قسم معين
-function renderSection(sectionId, items, renderFunction) {
+function renderSection(sectionId, items) {
     const container = document.getElementById(`${sectionId}-container`);
     if (!container) return;
     
@@ -84,335 +336,11 @@ function renderSection(sectionId, items, renderFunction) {
     }
     
     items.forEach(item => {
-        const itemElement = renderFunction(item);
+        const itemElement = createItemElement(sectionId, item);
         container.appendChild(itemElement);
     });
 }
 
-
-
-// عرض عنصر كتاب
-function renderBookItem(book) {
-    const div = document.createElement('div');
-    div.className = 'item';
-    div.innerHTML = `
-        ${book.image ? `<img src="${book.image}" alt="${book.title}" class="item-image">` : ''}
-        <h3>${book.title}</h3>
-        <p>${book.description}</p>
-        <a href="${book.drive_link}" target="_blank" class="item-button">تحميل الكتاب</a>
-    `;
-    return div;
-}
-// عرض عنصر رواية
-function renderNovelItem(novel) {
-    const div = document.createElement('div');
-    div.className = 'item';
-    
-    let imagesHtml = '';
-    
-    // محاولة تحليل images إذا كانت نصًا (JSON)
-    let imagesArray = [];
-    if (novel.images) {
-        if (typeof novel.images === 'string') {
-            try {
-                imagesArray = JSON.parse(novel.images);
-            } catch (e) {
-                console.error('Error parsing images JSON:', e);
-                // إذا فشل التحليل، نعتبرها مصفوفة تحتوي على عنصر واحد
-                imagesArray = [novel.images];
-            }
-        } else if (Array.isArray(novel.images)) {
-            imagesArray = novel.images;
-        }
-    }
-    
-    if (imagesArray.length > 0) {
-        imagesHtml = '<div class="novel-images">';
-        imagesArray.forEach(img => {
-            imagesHtml += `<img src="${img}" alt="صورة الرواية">`;
-        });
-        imagesHtml += '</div>';
-    }
-    
-    div.innerHTML = `
-        <h3>${novel.title}</h3>
-        ${imagesHtml}
-        <p>${novel.description}</p>
-    `;
-    return div;
-}
-
-// عرض مؤشر تحميل
-function showLoader() {
-    document.querySelectorAll('.items-container').forEach(container => {
-        container.innerHTML = '<div class="loader">جاري تحميل المحتوى...</div>';
-    });
-}
-
-// إخفاء مؤشر تحميل
-function hideLoader() {
-    document.querySelectorAll('.loader').forEach(loader => {
-        loader.remove();
-    });
-}
-// عرض عنصر ملف
-function renderFileItem(file) {
-    const div = document.createElement('div');
-    div.className = 'item';
-    div.innerHTML = `
-        ${file.image ? `<img src="${file.image}" alt="${file.title}" class="item-image">` : ''}
-        <h3>${file.title}</h3>
-        <p>${file.description}</p>
-        <a href="${file.drive_link}" target="_blank" class="item-button">تحميل الملف</a>
-    `;
-    return div;
-}
-
-// عرض عنصر سيرفر
-function renderServerItem(server) {
-    const div = document.createElement('div');
-    div.className = 'item';
-    div.innerHTML = `
-        ${server.image ? `<img src="${server.image}" alt="${server.title}" class="item-image">` : ''}
-        <h3>${server.title}</h3>
-        <p>${server.description}</p>
-        <a href="${server.link}" target="_blank" class="item-button">انضم إلى السيرفر</a>
-    `;
-    return div;
-}
-
-// فتح صفحة تفاصيل العنصر
-function openItemDetails(itemType, itemId) {
-    window.location.href = `item-details.html?type=${itemType}&id=${itemId}`;
-}
-
-// تعديل دوال العرض لإضافة حدث النقر
-function renderBookItem(book) {
-    const div = document.createElement('div');
-    div.className = 'item';
-    div.innerHTML = `
-        ${book.image ? `<img src="${book.image}" alt="${book.title}" class="item-image">` : ''}
-        <h3>${book.title}</h3>
-        <p>${book.description}</p>
-        <a href="${book.drive_link}" target="_blank" class="item-button">تحميل الكتاب</a>
-    `;
-    
-    // إضافة حدث النقر لفتح التفاصيل
-    div.addEventListener('click', () => openItemDetails('books', book.id));
-    
-    return div;
-}
-
-// عرض عنصر ملف
-function renderFileItem(file) {
-    const div = document.createElement('div');
-    div.className = 'item';
-    div.innerHTML = `
-        ${file.image ? `<img src="${file.image}" alt="${file.title}" class="item-image">` : ''}
-        <h3>${file.title}</h3>
-        <p>${file.description}</p>
-        <a href="${file.drive_link}" target="_blank" class="item-button">تحميل الملف</a>
-    `;
-    return div;
-}
-
-// عرض عنصر منصة
-function renderPlatformItem(platform) {
-    const div = document.createElement('div');
-    div.className = 'item platform-item';
-    div.innerHTML = `
-        <img src="${platform.image}" alt="${platform.title}" class="platform-image">
-        <h3>${platform.title}</h3>
-        <a href="${platform.link}" target="_blank" class="item-button">زيارة المنصة</a>
-    `;
-    return div;
-}
-
-// عرض عنصر تطبيق
-function renderAppItem(app) {
-    const div = document.createElement('div');
-    div.className = 'item';
-    div.innerHTML = `
-        ${app.image ? `<img src="${app.image}" alt="${app.title}" class="item-image">` : ''}
-        <h3>${app.title}</h3>
-        <p>${app.description}</p>
-        <a href="${app.download_link}" class="item-button">تحميل التطبيق</a>
-    `;
-    return div;
-}
-
-
-// فتح صفحة تفاصيل العنصر
-function openItemDetails(itemType, itemId, event) {
-    // منع الانتقال إذا كان النقر على زر التحميل أو رابط
-    if (event && (event.target.tagName === 'A' || event.target.closest('a'))) {
-        return;
-    }
-    
-    window.location.href = `item-details.html?type=${itemType}&id=${itemId}`;
-}
-
-// تعديل دوال العرض لإضافة حدث النقر
-function renderBookItem(book) {
-    const div = document.createElement('div');
-    div.className = 'item';
-    div.innerHTML = `
-        ${book.image ? `<img src="${book.image}" alt="${book.title}" class="item-image">` : ''}
-        <h3>${book.title}</h3>
-        <p>${book.description}</p>
-        <a href="${book.drive_link}" target="_blank" class="item-button">تحميل الكتاب</a>
-    `;
-    
-    // إضافة حدث النقر لفتح التفاصيل
-    div.addEventListener('click', (e) => openItemDetails('books', book.id, e));
-    
-    return div;
-}
-
-function renderNovelItem(novel) {
-    const div = document.createElement('div');
-    div.className = 'item';
-    
-    let imagesHtml = '';
-    let imagesArray = [];
-    
-    // معالجة الصور
-    if (novel.images) {
-        if (typeof novel.images === 'string') {
-            try {
-                imagesArray = JSON.parse(novel.images);
-            } catch (e) {
-                console.error('Error parsing images JSON:', e);
-                imagesArray = [novel.images];
-            }
-        } else if (Array.isArray(novel.images)) {
-            imagesArray = novel.images;
-        }
-    }
-    
-    if (imagesArray.length > 0) {
-        imagesHtml = '<div class="novel-images">';
-        imagesArray.slice(0, 3).forEach(img => {
-            imagesHtml += `<img src="${img}" alt="صورة الرواية">`;
-        });
-        imagesHtml += '</div>';
-    }
-    
-    div.innerHTML = `
-        <h3>${novel.title}</h3>
-        ${imagesHtml}
-        <p>${novel.description}</p>
-    `;
-    
-    // إضافة حدث النقر لفتح التفاصيل
-    div.addEventListener('click', (e) => openItemDetails('novels', novel.id, e));
-    
-    return div;
-}
-
-function renderFileItem(file) {
-    const div = document.createElement('div');
-    div.className = 'item';
-    div.innerHTML = `
-        ${file.image ? `<img src="${file.image}" alt="${file.title}" class="item-image">` : ''}
-        <h3>${file.title}</h3>
-        <p>${file.description}</p>
-        <a href="${file.drive_link}" target="_blank" class="item-button">تحميل الملف</a>
-    `;
-    
-    // إضافة حدث النقر لفتح التفاصيل
-    div.addEventListener('click', (e) => openItemDetails('files', file.id, e));
-    
-    return div;
-}
-
-function renderPlatformItem(platform) {
-    const div = document.createElement('div');
-    div.className = 'item platform-item';
-    div.innerHTML = `
-        <img src="${platform.image}" alt="${platform.title}" class="platform-image">
-        <h3>${platform.title}</h3>
-        <a href="${platform.link}" target="_blank" class="item-button">زيارة المنصة</a>
-    `;
-    
-    // إضافة حدث النقر لفتح التفاصيل
-    div.addEventListener('click', (e) => openItemDetails('platforms', platform.id, e));
-    
-    return div;
-}
-
-function renderAppItem(app) {
-    const div = document.createElement('div');
-    div.className = 'item';
-    div.innerHTML = `
-        ${app.image ? `<img src="${app.image}" alt="${app.title}" class="item-image">` : ''}
-        <h3>${app.title}</h3>
-        <p>${app.description}</p>
-        <a href="${app.download_link}" class="item-button">تحميل التطبيق</a>
-    `;
-    
-    // إضافة حدث النقر لفتح التفاصيل
-    div.addEventListener('click', (e) => openItemDetails('apps', app.id, e));
-    
-    return div;
-}
-
-function renderServerItem(server) {
-    const div = document.createElement('div');
-    div.className = 'item';
-    div.innerHTML = `
-        ${server.image ? `<img src="${server.image}" alt="${server.title}" class="item-image">` : ''}
-        <h3>${server.title}</h3>
-        <p>${server.description}</p>
-        <a href="${server.link}" target="_blank" class="item-button">انضم إلى السيرفر</a>
-    `;
-    
-    // إضافة حدث النقر لفتح التفاصيل
-    div.addEventListener('click', (e) => openItemDetails('servers', server.id, e));
-    
-    return div;
-}
-
-// دالة لتحديث الموقع الرئيسي بعد الإضافة
-async function refreshMainSite() {
-    try {
-        // إرسال طلب إلى الموقع الرئيسي لتحديث البيانات
-        const response = await fetch('/');
-        if (response.ok) {
-            console.log('تم تحديث الموقع الرئيسي بنجاح');
-        }
-    } catch (error) {
-        console.error('Error refreshing main site:', error);
-    }
-}
-
-// مثال في دالة addItemToSiteData:
-async function addItemToSiteData(table, item, formElement) {
-    try {
-        const savedItem = await saveItemToSupabase(table, item);
-        
-        if (!siteData[table]) {
-            siteData[table] = [];
-        }
-        
-        siteData[table].push(savedItem);
-        renderAdminList(table, siteData[table]);
-        
-        if (formElement) {
-            formElement.reset();
-        }
-        
-        // تحديث الموقع الرئيسي
-        await refreshMainSite();
-        
-        alert(`تم الإضافة بنجاح!`);
-        return true;
-    } catch (error) {
-        console.error(`Error adding to ${table}:`, error);
-        alert(`حدث خطأ أثناء الإضافة: ${error.message}`);
-        return false;
-    }
-}
 // تهيئة الصفحة عند التحميل
 document.addEventListener('DOMContentLoaded', function() {
     loadData();
@@ -432,3 +360,19 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 });
+
+// تأثير التمييز للعناصر
+const style = document.createElement('style');
+style.textContent = `
+    .highlight {
+        animation: highlight 2s ease;
+        border: 2px solid #D4AF37 !important;
+    }
+    
+    @keyframes highlight {
+        0% { box-shadow: 0 0 0 0 rgba(212, 175, 55, 0.7); }
+        70% { box-shadow: 0 0 0 10px rgba(212, 175, 55, 0); }
+        100% { box-shadow: 0 0 0 0 rgba(212, 175, 55, 0); }
+    }
+`;
+document.head.appendChild(style);
