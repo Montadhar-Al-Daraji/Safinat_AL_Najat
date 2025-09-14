@@ -201,7 +201,278 @@ main {
     height: 200px;
     object-fit: cover;
 }
+/* أنماط التبويبات والبحث */
+.nav-tab {
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
 
+.nav-tab::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 50%;
+    width: 0;
+    height: 3px;
+    background: #FFFFFF;
+    transition: all 0.3s ease;
+    transform: translateX(-50%);
+}
+
+.nav-tab.active::after,
+.nav-tab:hover::after {
+    width: 80%;
+}
+
+.nav-tab.active {
+    background: #FFFFFF;
+    color: #8B0000;
+}
+
+.search-container {
+    background: rgba(139, 0, 0, 0.9);
+    padding: 1rem;
+    margin: 1rem auto;
+    border-radius: 10px;
+    max-width: 1200px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+.search-box {
+    display: flex;
+    max-width: 600px;
+    margin: 0 auto;
+    position: relative;
+}
+
+#search-input {
+    flex: 1;
+    padding: 12px 20px;
+    border: 2px solid #FFFFFF;
+    border-radius: 30px 0 0 30px;
+    background: rgba(0, 0, 0, 0.6);
+    color: #fff;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+}
+
+#search-input:focus {
+    outline: none;
+    border-color: #D4AF37;
+    background: rgba(0, 0, 0, 0.8);
+}
+
+#search-btn {
+    padding: 0 20px;
+    background: #D4AF37;
+    color: #8B0000;
+    border: 2px solid #D4AF37;
+    border-radius: 0 30px 30px 0;
+    cursor: pointer;
+    font-weight: bold;
+    transition: all 0.3s ease;
+}
+
+#search-btn:hover {
+    background: #FFD700;
+    border-color: #FFD700;
+}
+
+.search-results {
+    display: none;
+    margin-top: 1rem;
+    background: rgba(0, 0, 0, 0.7);
+    border-radius: 10px;
+    padding: 1rem;
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.search-results.active {
+    display: block;
+    animation: fadeIn 0.3s ease;
+}
+
+.search-item {
+    padding: 10px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.search-item:hover {
+    background: rgba(139, 0, 0, 0.5);
+}
+
+.search-item:last-child {
+    border-bottom: none;
+}
+
+/* أنماط المحتوى */
+.content-section {
+    display: none;
+    animation: fadeIn 0.5s ease;
+}
+
+.content-section.active {
+    display: block;
+}
+
+.welcome-message {
+    text-align: center;
+    background: rgba(139, 0, 0, 0.8);
+    padding: 2rem;
+    border-radius: 15px;
+    margin-bottom: 2rem;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+}
+
+.welcome-message h2 {
+    color: #D4AF37;
+    margin-bottom: 1rem;
+    font-size: 2rem;
+}
+
+.welcome-message p {
+    font-size: 1.2rem;
+    line-height: 1.6;
+}
+
+.highlights {
+    margin-top: 2rem;
+}
+
+.highlights h3 {
+    text-align: center;
+    color: #FFFFFF;
+    margin-bottom: 1.5rem;
+    font-size: 1.5rem;
+    border-bottom: 2px solid #D4AF37;
+    padding-bottom: 0.5rem;
+    display: inline-block;
+}
+
+/* تحسينات للبطاقات */
+.item {
+    position: relative;
+    overflow: hidden;
+    transform: translateY(0);
+    transition: all 0.3s ease;
+}
+
+.item:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+}
+
+.item::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(to bottom, transparent 0%, rgba(0, 0, 0, 0.7) 100%);
+    opacity: 0;
+    transition: all 0.3s ease;
+}
+
+.item:hover::before {
+    opacity: 1;
+}
+
+.item-button {
+    position: relative;
+    z-index: 2;
+    transition: all 0.3s ease;
+}
+
+.item-button:hover {
+    background: #D4AF37;
+    color: #8B0000;
+}
+
+/* تأثيرات للرواية مع صور متعددة */
+.novel-images {
+    position: relative;
+    height: 160px;
+    overflow: hidden;
+    border-radius: 8px;
+}
+
+.novel-images img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.5s ease;
+}
+
+.item:hover .novel-images img {
+    transform: scale(1.05);
+}
+
+/* أنيميشن */
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+/* تحسينات للاستجابة على الجوال */
+@media (max-width: 768px) {
+    .main-nav ul {
+        flex-direction: row;
+        overflow-x: auto;
+        padding-bottom: 10px;
+        justify-content: flex-start;
+    }
+    
+    .main-nav li {
+        flex-shrink: 0;
+    }
+    
+    .search-box {
+        flex-direction: column;
+    }
+    
+    #search-input {
+        border-radius: 30px;
+        margin-bottom: 10px;
+    }
+    
+    #search-btn {
+        border-radius: 30px;
+        padding: 12px;
+    }
+    
+    .welcome-message {
+        padding: 1.5rem;
+    }
+    
+    .welcome-message h2 {
+        font-size: 1.5rem;
+    }
+    
+    .welcome-message p {
+        font-size: 1rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .search-container {
+        padding: 0.8rem;
+        margin: 0.5rem;
+    }
+    
+    .content-section {
+        padding: 1rem;
+    }
+    
+    .items-container {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+}
 /* تصميم خاص للصور العرضية في الأقسام الأخرى */
 #novels-container .item-image,
 #files-container .item-image,
