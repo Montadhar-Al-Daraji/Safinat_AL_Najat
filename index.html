@@ -29,43 +29,67 @@
     
     <nav class="main-nav">
         <ul>
-            <li><a href="#books">الكتب</a></li>
-            <li><a href="#novels">الروايات</a></li>
-            <li><a href="#files">الملفات</a></li>
-            <li><a href="#platforms">المنصات</a></li>
-            <li><a href="#apps">التطبيقات</a></li>
-            <li><a href="#servers">سيرفرات</a></li>
+            <li><a href="#" class="nav-tab active" data-tab="all">الرئيسية</a></li>
+            <li><a href="#" class="nav-tab" data-tab="books">الكتب</a></li>
+            <li><a href="#" class="nav-tab" data-tab="novels">الروايات</a></li>
+            <li><a href="#" class="nav-tab" data-tab="files">الملفات</a></li>
+            <li><a href="#" class="nav-tab" data-tab="platforms">المنصات</a></li>
+            <li><a href="#" class="nav-tab" data-tab="apps">التطبيقات</a></li>
+            <li><a href="#" class="nav-tab" data-tab="servers">سيرفرات</a></li>
             <li><a href="./admin/admin.html" class="admin-link">لوحة التحكم</a></li>
         </ul>
     </nav>
     
+    <!-- شريط البحث -->
+    <div class="search-container">
+        <div class="search-box">
+            <input type="text" id="search-input" placeholder="ابحث عن محتوى..." />
+            <button id="search-btn"><i class="fas fa-search"></i></button>
+        </div>
+        <div id="search-results" class="search-results"></div>
+    </div>
+    
     <main>
-        <section id="books" class="section">
+        <!-- قسم المحتوى العام -->
+        <section id="all-content" class="content-section active">
+            <div class="welcome-message">
+                <h2>مرحباً بكم في سفينة النجاة</h2>
+                <p>منصة شاملة للمحتوى الديني والثقافي. اختر أحد الأقسام من القائمة أعلاه لاستعراض المحتوى.</p>
+            </div>
+            
+            <div class="highlights">
+                <h3>أبرز المحتويات</h3>
+                <div class="items-container" id="highlights-container"></div>
+            </div>
+        </section>
+        
+        <!-- الأقسام الفردية -->
+        <section id="books-content" class="content-section">
             <h2>الكتب الدينية</h2>
             <div class="items-container" id="books-container"></div>
         </section>
         
-        <section id="novels" class="section">
+        <section id="novels-content" class="content-section">
             <h2>الروايات الدينية</h2>
             <div class="items-container" id="novels-container"></div>
         </section>
         
-        <section id="files" class="section">
+        <section id="files-content" class="content-section">
             <h2>الملفات الدينية</h2>
             <div class="items-container" id="files-container"></div>
         </section>
         
-        <section id="platforms" class="section">
+        <section id="platforms-content" class="content-section">
             <h2>منصاتنا</h2>
             <div class="items-container" id="platforms-container"></div>
         </section>
         
-        <section id="apps" class="section">
+        <section id="apps-content" class="content-section">
             <h2>تطبيقاتنا</h2>
             <div class="items-container" id="apps-container"></div>
         </section>
         
-        <section id="servers" class="section">
+        <section id="servers-content" class="content-section">
             <h2>سيرفراتنا</h2>
             <div class="items-container" id="servers-container"></div>
         </section>
