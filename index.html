@@ -13,7 +13,7 @@
 <body>
     <div class="video-background">
         <video autoplay muted loop id="bgVideo">
-            <source src="https://c.top4top.io/m_3544ww25t1.mp4">
+            <source src="https://b.top4top.io/m_35440fegf0.mp4">
             متصفحك لا يدعم تشغيل الفيديو
         </video>
     </div>
@@ -27,18 +27,55 @@
         </div>
     </header>
     
-    <nav class="main-nav">
-        <ul>
-            <li><a href="#" class="nav-tab active" data-tab="all">الرئيسية</a></li>
-            <li><a href="#" class="nav-tab" data-tab="books">الكتب</a></li>
-            <li><a href="#" class="nav-tab" data-tab="novels">الروايات</a></li>
-            <li><a href="#" class="nav-tab" data-tab="files">الملفات</a></li>
-            <li><a href="#" class="nav-tab" data-tab="platforms">المنصات</a></li>
-            <li><a href="#" class="nav-tab" data-tab="apps">التطبيقات</a></li>
-            <li><a href="#" class="nav-tab" data-tab="servers">سيرفرات</a></li>
-            <li><a href="./admin/admin.html" class="admin-link">لوحة التحكم</a></li>
-        </ul>
-    </nav>
+    <!-- قائمة الأقسام القابلة للسحب -->
+    <div class="categories-scroll-container">
+        <div class="categories-scroll">
+            <button class="scroll-btn scroll-left" onclick="scrollCategories(-100)">
+                <i class="fas fa-chevron-right"></i>
+            </button>
+            
+            <div class="categories-container">
+                <div class="categories-wrapper">
+                    <button class="category-tab active" data-category="all">
+                        <i class="fas fa-home"></i>
+                        <span>الرئيسية</span>
+                    </button>
+                    <button class="category-tab" data-category="books">
+                        <i class="fas fa-book"></i>
+                        <span>الكتب</span>
+                    </button>
+                    <button class="category-tab" data-category="novels">
+                        <i class="fas fa-book-open"></i>
+                        <span>الروايات</span>
+                    </button>
+                    <button class="category-tab" data-category="files">
+                        <i class="fas fa-file"></i>
+                        <span>الملفات</span>
+                    </button>
+                    <button class="category-tab" data-category="platforms">
+                        <i class="fas fa-globe"></i>
+                        <span>المنصات</span>
+                    </button>
+                    <button class="category-tab" data-category="apps">
+                        <i class="fas fa-mobile-alt"></i>
+                        <span>التطبيقات</span>
+                    </button>
+                    <button class="category-tab" data-category="servers">
+                        <i class="fas fa-server"></i>
+                        <span>سيرفرات</span>
+                    </button>
+                    <a href="./admin/admin.html" class="category-tab admin-link">
+                        <i class="fas fa-cog"></i>
+                        <span>لوحة التحكم</span>
+                    </a>
+                </div>
+            </div>
+            
+            <button class="scroll-btn scroll-right" onclick="scrollCategories(100)">
+                <i class="fas fa-chevron-left"></i>
+            </button>
+        </div>
+    </div>
     
     <!-- شريط البحث -->
     <div class="search-container">
@@ -65,32 +102,50 @@
         
         <!-- الأقسام الفردية -->
         <section id="books-content" class="content-section">
-            <h2>الكتب الدينية</h2>
+            <div class="section-header">
+                <h2>الكتب الدينية</h2>
+                <div class="items-count" id="books-count"></div>
+            </div>
             <div class="items-container" id="books-container"></div>
         </section>
         
         <section id="novels-content" class="content-section">
-            <h2>الروايات الدينية</h2>
+            <div class="section-header">
+                <h2>الروايات الدينية</h2>
+                <div class="items-count" id="novels-count"></div>
+            </div>
             <div class="items-container" id="novels-container"></div>
         </section>
         
         <section id="files-content" class="content-section">
-            <h2>الملفات الدينية</h2>
+            <div class="section-header">
+                <h2>الملفات الدينية</h2>
+                <div class="items-count" id="files-count"></div>
+            </div>
             <div class="items-container" id="files-container"></div>
         </section>
         
         <section id="platforms-content" class="content-section">
-            <h2>منصاتنا</h2>
+            <div class="section-header">
+                <h2>منصاتنا</h2>
+                <div class="items-count" id="platforms-count"></div>
+            </div>
             <div class="items-container" id="platforms-container"></div>
         </section>
         
         <section id="apps-content" class="content-section">
-            <h2>تطبيقاتنا</h2>
+            <div class="section-header">
+                <h2>تطبيقاتنا</h2>
+                <div class="items-count" id="apps-count"></div>
+            </div>
             <div class="items-container" id="apps-container"></div>
         </section>
         
         <section id="servers-content" class="content-section">
-            <h2>سيرفراتنا</h2>
+            <div class="section-header">
+                <h2>سيرفراتنا</h2>
+                <div class="items-count" id="servers-count"></div>
+            </div>
             <div class="items-container" id="servers-container"></div>
         </section>
     </main>
