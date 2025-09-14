@@ -526,7 +526,7 @@ document.addEventListener('DOMContentLoaded', initApp);
 
 // إضافة أنماط للتمييز وتحسين الروايات
 const customStyles = document.createElement('style');
-customStyles.textContent = `
+customStyles.textContent = 
     .highlight {
         animation: highlight 2s ease;
         border: 2px solid #D4AF37 !important;
@@ -589,5 +589,5 @@ customStyles.textContent = `
             height: 50px;
         }
     }
-`;
+;
 document.head.appendChild(customStyles);
