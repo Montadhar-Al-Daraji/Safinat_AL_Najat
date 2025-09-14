@@ -241,6 +241,7 @@ function renderAppItem(app) {
     return div;
 }
 
+
 // فتح صفحة تفاصيل العنصر
 function openItemDetails(itemType, itemId, event) {
     // منع الانتقال إذا كان النقر على زر التحميل أو رابط
@@ -371,6 +372,7 @@ function renderServerItem(server) {
     
     return div;
 }
+
 // دالة لتحديث الموقع الرئيسي بعد الإضافة
 async function refreshMainSite() {
     try {
