@@ -1,5 +1,4 @@
-
-
+// تعريف المتغيرات العامة
 let supabase;
 let currentAdmin = null;
 let siteData = {
@@ -27,105 +26,19 @@ function initSupabase() {
     }
 }
 
-// تهيئة الصفحة عند التحميل
-document.addEventListener('DOMContentLoaded', function() {
-    // تهيئة Supabase
-    initSupabase();
-    
-    // إعداد event listeners بعد التأكد من وجود العناصر
-    setTimeout(function() {
-        setupEventListeners();
-        checkAuth();
-    }, 100);
-});
-
-// إعداد جميع event listeners
-function setupEventListeners() {
-    const loginForm = document.getElementById('login-form');
-    if (loginForm) {
-        loginForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-            login();
-        });
-    }
-    
-    // إضافة event listeners أخرى فقط إذا كانت الصفحة موجودة
-    const addAdminForm = document.getElementById('add-admin-form');
-    if (addAdminForm) {
-        addAdminForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-            const email = document.getElementById('new-admin-email').value;
-            const password = document.getElementById('new-admin-password').value;
-            const role = document.getElementById('new-admin-role').value;
-            
-            addAdmin(email, password, role).then(success => {
-                if (success) {
-                    this.reset();
-                }
-            });
-        });
-    }
-    
-    // إضافة event listeners للنماذج الأخرى
-    const formIds = [
-        'server-form', 'book-form', 'novel-form', 
-        'file-form', 'platform-form', 'app-form'
-    ];
-    
-    formIds.forEach(formId => {
-        const form = document.getElementById(formId);
-        if (form) {
-            form.addEventListener('submit', function(e) {
-                e.preventDefault();
-                // سيتم معالجة كل نموذج بواسطة الدالة المناسبة
-            });
-        }
-    });
-    
-    // إضافة event listener لإضافة صورة رواية
-    const addImageBtn = document.getElementById('add-novel-image');
-    if (addImageBtn) {
-        addImageBtn.addEventListener('click', function() {
-            const imagesContainer = document.getElementById('novel-images-container');
-            if (imagesContainer) {
-                const newInput = document.createElement('input');
-                newInput.type = 'url';
-                newInput.className = 'novel-image-input';
-                newInput.placeholder = 'رابط الصورة';
-                imagesContainer.appendChild(newInput);
-            }
-        });
-    }
-    
-    // إعداد التبويبات
-    setupTabs();
-}
-
-// تهيئة Supabase
-function initSupabase() {
-    if (window.supabase) {
-        supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-        console.log('Supabase initialized successfully');
-        return true;
-    } else {
-        console.error('Supabase library not loaded');
-        return false;
-    }
-}
-
 // التحقق من المصادقة عند تحميل الصفحة
 function checkAuth() {
     const isAuthenticated = sessionStorage.getItem('adminAuthenticated');
     const adminData = sessionStorage.getItem('adminData');
     
     if (!isAuthenticated || !adminData) {
-        document.getElementById('login-container').classList.remove('hidden');
-        document.getElementById('admin-container').classList.add('hidden');
+        showLoginPage();
         return false;
     }
     
     try {
         currentAdmin = JSON.parse(adminData);
+        showAdminPage();
         setupAdminInterface(currentAdmin.role);
         return true;
     } catch (error) {
@@ -135,11 +48,38 @@ function checkAuth() {
     }
 }
 
+// إظهار صفحة تسجيل الدخول
+function showLoginPage() {
+    const loginContainer = document.getElementById('login-container');
+    const adminContainer = document.getElementById('admin-container');
+    
+    if (loginContainer) loginContainer.classList.remove('hidden');
+    if (adminContainer) adminContainer.classList.add('hidden');
+}
+
+// إظهار لوحة التحكم
+function showAdminPage() {
+    const loginContainer = document.getElementById('login-container');
+    const adminContainer = document.getElementById('admin-container');
+    
+    if (loginContainer) loginContainer.classList.add('hidden');
+    if (adminContainer) adminContainer.classList.remove('hidden');
+}
+
 // تسجيل الدخول
 async function login() {
-    const email = document.getElementById('email').value;
-    const password = document.getElementById('password').value;
+    const emailInput = document.getElementById('email');
+    const passwordInput = document.getElementById('password');
     const errorElement = document.getElementById('login-error');
+    const loginBtn = document.querySelector('#login-form button');
+    
+    if (!emailInput || !passwordInput || !errorElement || !loginBtn) {
+        console.error('Login elements not found');
+        return;
+    }
+    
+    const email = emailInput.value;
+    const password = passwordInput.value;
     
     errorElement.textContent = '';
     
@@ -150,7 +90,6 @@ async function login() {
     
     try {
         // إظهار تحميل
-        const loginBtn = document.querySelector('#login-form button');
         const originalText = loginBtn.textContent;
         loginBtn.textContent = 'جاري تسجيل الدخول...';
         loginBtn.disabled = true;
@@ -183,8 +122,7 @@ async function login() {
         currentAdmin = admin;
         
         // إظهار لوحة التحكم
-        document.getElementById('login-container').classList.add('hidden');
-        document.getElementById('admin-container').classList.remove('hidden');
+        showAdminPage();
         
         // تحميل البيانات وإعداد الواجهة
         await loadAdminData();
@@ -196,12 +134,15 @@ async function login() {
         
     } catch (error) {
         console.error('Login error:', error);
-        errorElement.textContent = 'حدث خطأ أثناء تسجيل الدخول';
+        if (errorElement) {
+            errorElement.textContent = 'حدث خطأ أثناء تسجيل الدخول';
+        }
         
         // إعادة تعيين الزر في حالة الخطأ
-        const loginBtn = document.querySelector('#login-form button');
-        loginBtn.textContent = 'دخول';
-        loginBtn.disabled = false;
+        if (loginBtn) {
+            loginBtn.textContent = 'دخول';
+            loginBtn.disabled = false;
+        }
     }
 }
 
@@ -211,11 +152,16 @@ function logout() {
     sessionStorage.removeItem('adminData');
     currentAdmin = null;
     
-    document.getElementById('login-container').classList.remove('hidden');
-    document.getElementById('admin-container').classList.add('hidden');
-    document.getElementById('email').value = '';
-    document.getElementById('password').value = '';
-    document.getElementById('login-error').textContent = '';
+    showLoginPage();
+    
+    // مسح الحقول
+    const emailInput = document.getElementById('email');
+    const passwordInput = document.getElementById('password');
+    const errorElement = document.getElementById('login-error');
+    
+    if (emailInput) emailInput.value = '';
+    if (passwordInput) passwordInput.value = '';
+    if (errorElement) errorElement.textContent = '';
 }
 
 // إعداد واجهة المشرفين حسب الصلاحية
@@ -223,16 +169,20 @@ function setupAdminInterface(role) {
     const adminsTab = document.getElementById('admins-tab');
     const adminsPanel = document.getElementById('admins-panel');
     
-    if (role === 'owner') {
-        adminsTab.style.display = 'block';
-        loadAdminsList();
-    } else {
-        adminsTab.style.display = 'none';
-        adminsPanel.style.display = 'none';
-        
-        // إذا كان التبويب النشط هو تبويب المشرفين، نغير إلى تبويب آخر
-        if (document.querySelector('.tab-button.active').dataset.tab === 'admins') {
-            document.querySelector('[data-tab="books"]').click();
+    if (adminsTab && adminsPanel) {
+        if (role === 'owner') {
+            adminsTab.style.display = 'block';
+            loadAdminsList();
+        } else {
+            adminsTab.style.display = 'none';
+            adminsPanel.style.display = 'none';
+            
+            // إذا كان التبويب النشط هو تبويب المشرفين، نغير إلى تبويب آخر
+            const activeTab = document.querySelector('.tab-button.active');
+            if (activeTab && activeTab.dataset.tab === 'admins') {
+                const booksTab = document.querySelector('[data-tab="books"]');
+                if (booksTab) booksTab.click();
+            }
         }
     }
 }
@@ -249,7 +199,7 @@ async function loadAdminData() {
     try {
         // إظهار تحميل في جميع الأقسام
         document.querySelectorAll('.items-list').forEach(list => {
-            list.innerHTML = '<p class="no-items">جاري تحميل البيانات...</p>';
+            if (list) list.innerHTML = '<p class="no-items">جاري تحميل البيانات...</p>';
         });
         
         // جلب البيانات من كل جدول
@@ -584,7 +534,7 @@ function setupSearchFunctionality() {
     });
 }
 
-// إدارة التبويبات
+// إعداد التبويبات
 function setupTabs() {
     const tabButtons = document.querySelectorAll('.tab-button');
     const panels = document.querySelectorAll('.admin-panel');
@@ -604,35 +554,121 @@ function setupTabs() {
             });
             
             // إظهار اللوحة المحددة
-            document.getElementById(`${tabName}-panel`).classList.add('active');
-            button.classList.add('active');
+            const targetPanel = document.getElementById(`${tabName}-panel`);
+            if (targetPanel) {
+                targetPanel.classList.add('active');
+                button.classList.add('active');
+            }
         });
     });
 }
 
 // تهيئة الصفحة عند التحميل
-
-// تهيئة الصفحة عند التحميل
 document.addEventListener('DOMContentLoaded', function() {
     // تهيئة Supabase
-    if (!initSupabase()) {
-        alert('خطأ في تحميل مكتبة Supabase');
-        return;
+    initSupabase();
+    
+    // إعداد event listeners بعد التأكد من تحميل DOM بالكامل
+    if (document.readyState === 'complete') {
+        setupEventListeners();
+    } else {
+        window.addEventListener('load', setupEventListeners);
     }
-    
-    // إعداد التبويبات
-    setupTabs();
-    
-    // إضافة event listener لنموذج تسجيل الدخول
-    document.getElementById('login-form').addEventListener('submit', function(e) {
-        e.preventDefault();
-        login();
-    });
     
     // التحقق من المصادقة
     checkAuth();
 });
 
+// إعداد جميع event listeners
+function setupEventListeners() {
+    console.log('Setting up event listeners...');
+    
+    // إعداد نموذج تسجيل الدخول
+    const loginForm = document.getElementById('login-form');
+    if (loginForm) {
+        loginForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            login();
+        });
+        
+        // إضافة event listener للزر مباشرة أيضاً
+        const loginBtn = loginForm.querySelector('button');
+        if (loginBtn) {
+            loginBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                login();
+            });
+        }
+    }
+    
+    // إعداد نموذج إضافة مشرف
+    const addAdminForm = document.getElementById('add-admin-form');
+    if (addAdminForm) {
+        addAdminForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const email = document.getElementById('new-admin-email')?.value;
+            const password = document.getElementById('new-admin-password')?.value;
+            const role = document.getElementById('new-admin-role')?.value;
+            
+            if (email && password && role) {
+                addAdmin(email, password, role).then(success => {
+                    if (success && addAdminForm.reset) {
+                        addAdminForm.reset();
+                    }
+                });
+            }
+        });
+    }
+    
+    // إعداد التبويبات
+    setupTabs();
+    
+    // إعداد النماذج الأخرى
+    setupOtherForms();
+}
+
+// إعداد النماذج الأخرى
+function setupOtherForms() {
+    const formSelectors = {
+        'server-form': handleServerSubmit,
+        'book-form': handleBookSubmit,
+        'novel-form': handleNovelSubmit,
+        'file-form': handleFileSubmit,
+        'platform-form': handlePlatformSubmit,
+        'app-form': handleAppSubmit
+    };
+    
+    Object.entries(formSelectors).forEach(([formId, handler]) => {
+        const form = document.getElementById(formId);
+        if (form) {
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                handler.call(this, e);
+            });
+        }
+    });
+    
+    // إعداد زر إضافة صورة للرواية
+    const addImageBtn = document.getElementById('add-novel-image');
+    if (addImageBtn) {
+        addImageBtn.addEventListener('click', function() {
+            const imagesContainer = document.getElementById('novel-images-container');
+            if (imagesContainer) {
+                const newInput = document.createElement('input');
+                newInput.type = 'url';
+                newInput.className = 'novel-image-input';
+                newInput.placeholder = 'رابط الصورة';
+                imagesContainer.appendChild(newInput);
+            }
+        });
+    }
+    
+    // إعداد زر تسجيل الخروج
+    const logoutBtn = document.querySelector('.logout-btn');
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', logout);
+    }
+}
 // دالة جديدة للإعداد بعد تسجيل الدخول
 function setupAfterLogin() {
     // إضافة event listener لنموذج إضافة مشرف (للمالك فقط)
