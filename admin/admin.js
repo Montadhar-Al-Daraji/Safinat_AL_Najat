@@ -8,12 +8,29 @@ let siteData = {
     apps: [],
     servers: [] // إضافة مصفوفة السيرفرات
 };
+// تهيئة Supabase
 
 // تهيئة Supabase بعد تحميل المكتبة
 function initSupabase() {
     const SUPABASE_URL = 'https://xzltdsmmolyvcmkfzedf.supabase.co';
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bHRkc21tb2x5dmNta2Z6ZWRmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc2Nzg1NzEsImV4cCI6MjA3MzI1NDU3MX0.3TJ49ctEhOT1KDIFtZXFw2jwTq57ujaWbqNNJ2Eeb1U';
-    
+
+    let supabase;
+    let currentAdmin = null;
+
+    if (window.supabase) {
+        supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        console.log('Supabase initialized successfully');
+        return true;
+    } else {
+        console.error('Supabase library not loaded');
+        return false;
+    }
+}
+
+
+// تهيئة Supabase بعد تحميل المكتبة
+function initSupabase() {
     if (window.supabase) {
         supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
         console.log('Supabase initialized successfully');
@@ -82,6 +99,70 @@ async function saveItemToSupabase(table, item) {
     return data[0];
 }
 
+
+// إعداد واجهة المشرفين حسب الصلاحية
+function setupAdminInterface(role) {
+    const adminManagement = document.getElementById('admin-management');
+    
+    if (role === 'owner') {
+        adminManagement.style.display = 'block';
+    } else {
+        adminManagement.style.display = 'none';
+    }
+}
+
+
+// تسجيل الدخول مع تشفير كلمة المرور
+async function login() {
+    const email = document.getElementById('email').value;
+    const password = document.getElementById('password').value;
+    const errorElement = document.getElementById('login-error');
+    
+    errorElement.textContent = '';
+    
+    if (!email || !password) {
+        errorElement.textContent = 'يرجى ملء جميع الحقول';
+        return;
+    }
+    
+    try {
+        // البحث عن المشرف في قاعدة البيانات
+        const { data: admin, error } = await supabase
+            .from('admins')
+            .select('*')
+            .eq('email', email)
+            .single();
+
+        if (error || !admin) {
+            errorElement.textContent = 'البريد الإلكتروني أو كلمة المرور غير صحيحة';
+            return;
+        }
+        
+        // التحقق من كلمة المرور (في الواقع، يجب استخدام مقارنة مشفرة)
+        // هذا مثال مبسط، في التطبيق الحقيقي يجب استخدام hashing مثل bcrypt
+        if (password !== atob(admin.password_hash)) {
+            errorElement.textContent = 'البريد الإلكتروني أو كلمة المرور غير صحيحة';
+            return;
+        }
+        
+        // حفظ بيانات المشرف في sessionStorage
+        sessionStorage.setItem('adminAuthenticated', 'true');
+        sessionStorage.setItem('adminData', JSON.stringify(admin));
+        currentAdmin = admin;
+        
+        // إظهار لوحة التحكم
+        document.getElementById('login-container').classList.add('hidden');
+        document.getElementById('admin-container').classList.remove('hidden');
+        
+        // تحميل البيانات وإدارة واجهة المشرفين
+        loadAdminData();
+        setupAdminInterface(admin.role);
+        
+    } catch (error) {
+        console.error('Login error:', error);
+        errorElement.textContent = 'حدث خطأ أثناء تسجيل الدخول';
+    }
+}
 // حذف عنصر من Supabase
 async function deleteItemFromSupabase(table, id) {
     if (!supabase) {
@@ -98,6 +179,108 @@ async function deleteItemFromSupabase(table, id) {
         throw error;
     }
 }
+
+
+// التحقق من صحة تسجيل الدخول عند تحميل الصفحة
+function checkAuth() {
+    const isAuthenticated = sessionStorage.getItem('adminAuthenticated');
+    const adminData = sessionStorage.getItem('adminData');
+    
+    if (!isAuthenticated || !adminData) {
+        document.getElementById('login-container').classList.remove('hidden');
+        document.getElementById('admin-container').classList.add('hidden');
+        return false;
+    }
+    
+    try {
+        currentAdmin = JSON.parse(adminData);
+        setupAdminInterface(currentAdmin.role);
+        return true;
+    } catch (error) {
+        console.error('Error parsing admin data:', error);
+        logout();
+        return false;
+    }
+}
+
+// إضافة مشرف جديد (للمالك فقط)
+async function addAdmin(email, password, role) {
+    if (!currentAdmin || currentAdmin.role !== 'owner') {
+        alert('只有所有者可以添加管理员');
+        return false;
+    }
+    
+    try {
+        // تشفير كلمة المرور (بشكل أساسي، في الواقع يجب استخدام hashing قوي)
+        const passwordHash = btoa(password);
+        
+        const { data, error } = await supabase
+            .from('admins')
+            .insert([{ 
+                email, 
+                password_hash: passwordHash, 
+                role,
+                created_at: new Date(),
+                updated_at: new Date()
+            }])
+            .select();
+            
+        if (error) {
+            console.error('Error adding admin:', error);
+            alert('حدث خطأ أثناء إضافة المشرف: ' + error.message);
+            return false;
+        }
+        
+        alert('تمت إضافة المشرف بنجاح');
+        return true;
+    } catch (error) {
+        console.error('Error adding admin:', error);
+        alert('حدث خطأ أثناء إضافة المشرف');
+        return false;
+    }
+}
+
+
+// تسجيل الخروج
+function logout() {
+    sessionStorage.removeItem('adminAuthenticated');
+    sessionStorage.removeItem('adminData');
+    currentAdmin = null;
+    
+    document.getElementById('login-container').classList.remove('hidden');
+    document.getElementById('admin-container').classList.add('hidden');
+    document.getElementById('email').value = '';
+    document.getElementById('password').value = '';
+    document.getElementById('login-error').textContent = '';
+}
+
+// تعديل事件 التحميل الأولي
+document.addEventListener('DOMContentLoaded', function() {
+    initSupabase();
+    
+    // إضافة event listener للنموذج
+    document.getElementById('login-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        login();
+    });
+    
+    // إضافة event listener للنموذج
+    document.getElementById('add-admin-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const email = document.getElementById('new-admin-email').value;
+        const password = document.getElementById('new-admin-password').value;
+        const role = document.getElementById('new-admin-role').value;
+        
+        addAdmin(email, password, role).then(success => {
+            if (success) {
+                this.reset();
+            }
+        });
+    });
+    
+    // التحقق من المصادقة
+    checkAuth();
+});
 
 // تحسين دالة الحذف
 async function deleteItem(section, id, title) {
