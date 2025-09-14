@@ -282,6 +282,21 @@ function createItemElement(category, item) {
     div.setAttribute('data-item-id', item.id);
     div.setAttribute('data-category', category);
     
+    // إضافة حدث النقر لفتح صفحة التفاصيل
+    div.addEventListener('click', () => {
+        openItemDetails(category, item.id);
+    });
+    
+    // إضافة تأثير عند التمرير
+    div.style.cursor = 'pointer';
+    div.style.transition = 'transform 0.2s ease-in-out';
+    div.addEventListener('mouseenter', () => {
+        div.style.transform = 'translateY(-5px)';
+    });
+    div.addEventListener('mouseleave', () => {
+        div.style.transform = 'translateY(0)';
+    });
+    
     let content = '';
     
     switch(category) {
@@ -309,6 +324,11 @@ function createItemElement(category, item) {
     return div;
 }
 
+// فتح صفحة تفاصيل العنصر
+function openItemDetails(category, itemId) {
+    window.location.href = `item-details.html?type=${category}&id=${itemId}`;
+}
+
 // إنشاء عنصر كتاب
 function createBookItem(item) {
     return `
@@ -319,7 +339,7 @@ function createBookItem(item) {
     `;
 }
 
-// إنشاء عنصر رواية
+// إنشاء عنصر رواية (معدّل)
 function createNovelItem(item) {
     let imagesHtml = '';
     let imagesArray = [];
@@ -336,15 +356,23 @@ function createNovelItem(item) {
         }
     }
     
+    // صورة رئيسية
+    let mainImage = '';
     if (imagesArray.length > 0) {
+        mainImage = `<img src="${imagesArray[0]}" alt="${item.title}" class="${cssClasses.itemImage}">`;
+    }
+    
+    // صور مصغرة
+    if (imagesArray.length > 1) {
         imagesHtml = `<div class="${cssClasses.novelImages}">`;
-        imagesArray.slice(0, 3).forEach(img => {
-            imagesHtml += `<img src="${img}" alt="صورة الرواية">`;
+        imagesArray.slice(1, 4).forEach((img, index) => {
+            imagesHtml += `<img src="${img}" alt="صورة ${index + 2}" class="novel-thumbnail">`;
         });
         imagesHtml += '</div>';
     }
     
     return `
+        ${mainImage}
         <h3>${item.title}</h3>
         ${imagesHtml}
         <p>${item.description || ''}</p>
@@ -496,9 +524,9 @@ function showError(message) {
 // تهيئة التطبيق عند تحميل الصفحة
 document.addEventListener('DOMContentLoaded', initApp);
 
-// إضافة أنماط للتمييز
-const highlightStyle = document.createElement('style');
-highlightStyle.textContent = `
+// إضافة أنماط للتمييز وتحسين الروايات
+const customStyles = document.createElement('style');
+customStyles.textContent = `
     .highlight {
         animation: highlight 2s ease;
         border: 2px solid #D4AF37 !important;
@@ -524,5 +552,42 @@ highlightStyle.textContent = `
         font-size: 1.2rem;
         color: #FFFFFF;
     }
+    
+    /* تحسينات لصور الروايات */
+    .novel-images {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 5px;
+        margin-top: 10px;
+    }
+    
+    .novel-thumbnail {
+        width: 100%;
+        height: 60px;
+        object-fit: cover;
+        border-radius: 5px;
+        border: 1px solid #FFFFFF;
+    }
+    
+    /* تحسينات عامة للبطاقات */
+    .item {
+        transition: all 0.3s ease;
+    }
+    
+    .item:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+    }
+    
+    /* تحسينات للاستجابة على الجوال */
+    @media (max-width: 768px) {
+        .novel-images {
+            grid-template-columns: repeat(2, 1fr);
+        }
+        
+        .novel-thumbnail {
+            height: 50px;
+        }
+    }
 `;
-document.head.appendChild(highlightStyle);
+document.head.appendChild(customStyles);
