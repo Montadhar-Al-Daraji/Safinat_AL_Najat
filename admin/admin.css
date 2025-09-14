@@ -106,7 +106,7 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 30px;
+    margin-bottom: 20px;
     padding-bottom: 15px;
     border-bottom: 2px solid #FFFFFF;
     flex-wrap: wrap;
@@ -145,34 +145,108 @@ body {
     box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
 }
 
+/* تنسيقات التبويبات */
+.tabs-container {
+    margin-bottom: 20px;
+    border-bottom: 2px solid #FFFFFF;
+}
+
+.tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: 0 10px;
+}
+
+.tab-button {
+    background: rgba(139, 0, 0, 0.6);
+    color: #FFFFFF;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 20px 20px 0 0;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-weight: 600;
+}
+
+.tab-button:hover {
+    background: rgba(139, 0, 0, 0.8);
+}
+
+.tab-button.active {
+    background: #FFFFFF;
+    color: #8B0000;
+}
+
+/* تنسيقات لوحات المحتوى */
 .admin-panels {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
-    gap: 20px;
+    position: relative;
 }
 
 .admin-panel {
+    display: none;
     background: rgba(139, 0, 0, 0.8);
     padding: 1.5rem;
     border-radius: 10px;
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    margin-bottom: 20px;
 }
 
-.admin-panel h2 {
-    color: #FFFFFF;
+.admin-panel.active {
+    display: block;
+}
+
+.panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
     margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+.panel-header h2 {
+    color: #FFFFFF;
     padding-bottom: 0.5rem;
     border-bottom: 2px solid #FFFFFF;
-    text-align: center;
+}
+
+.search-box {
+    position: relative;
+    width: 300px;
+    max-width: 100%;
+}
+
+.search-input {
+    width: 100%;
+    padding: 10px 40px 10px 15px;
+    border: 2px solid #FFFFFF;
+    border-radius: 25px;
+    background: rgba(0, 0, 0, 0.5);
+    color: #fff;
+    font-size: 0.95rem;
+}
+
+.search-input:focus {
+    outline: none;
+    border-color: #D4AF37;
+}
+
+.search-icon {
+    position: absolute;
+    right: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #FFFFFF;
 }
 
 /* أنماط إدارة المشرفين */
-#admin-management {
+#admins-panel {
     background: rgba(139, 0, 0, 0.9);
     border: 2px solid #ffd700;
 }
 
-#admin-management h2 {
+#admins-panel h2 {
     color: #ffd700;
     border-bottom: 2px solid #ffd700;
 }
@@ -182,6 +256,7 @@ body {
     display: flex;
     flex-direction: column;
     gap: 12px;
+    margin-bottom: 1.5rem;
 }
 
 .admin-form input,
@@ -224,7 +299,6 @@ body {
 
 /* تحسينات لعناصر القوائم */
 .items-list {
-    margin-top: 1.5rem;
     max-height: 400px;
     overflow-y: auto;
 }
@@ -356,6 +430,10 @@ body {
         justify-content: center;
         margin-top: 15px;
     }
+    
+    .tabs {
+        justify-content: center;
+    }
 }
 
 @media (max-width: 768px) {
@@ -379,6 +457,15 @@ body {
     
     .admin-panel {
         padding: 15px;
+    }
+    
+    .panel-header {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .search-box {
+        width: 100%;
     }
     
     .item-card {
@@ -433,7 +520,13 @@ body {
         padding: 12px;
     }
     
-    .admin-panels {
-        grid-template-columns: 1fr;
+    .tabs {
+        flex-direction: column;
+        gap: 5px;
+    }
+    
+    .tab-button {
+        border-radius: 8px;
+        text-align: center;
     }
 }
