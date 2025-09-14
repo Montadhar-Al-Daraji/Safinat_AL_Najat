@@ -240,6 +240,137 @@ function renderAppItem(app) {
     `;
     return div;
 }
+
+// فتح صفحة تفاصيل العنصر
+function openItemDetails(itemType, itemId, event) {
+    // منع الانتقال إذا كان النقر على زر التحميل أو رابط
+    if (event && (event.target.tagName === 'A' || event.target.closest('a'))) {
+        return;
+    }
+    
+    window.location.href = `item-details.html?type=${itemType}&id=${itemId}`;
+}
+
+// تعديل دوال العرض لإضافة حدث النقر
+function renderBookItem(book) {
+    const div = document.createElement('div');
+    div.className = 'item';
+    div.innerHTML = `
+        ${book.image ? `<img src="${book.image}" alt="${book.title}" class="item-image">` : ''}
+        <h3>${book.title}</h3>
+        <p>${book.description}</p>
+        <a href="${book.drive_link}" target="_blank" class="item-button">تحميل الكتاب</a>
+    `;
+    
+    // إضافة حدث النقر لفتح التفاصيل
+    div.addEventListener('click', (e) => openItemDetails('books', book.id, e));
+    
+    return div;
+}
+
+function renderNovelItem(novel) {
+    const div = document.createElement('div');
+    div.className = 'item';
+    
+    let imagesHtml = '';
+    let imagesArray = [];
+    
+    // معالجة الصور
+    if (novel.images) {
+        if (typeof novel.images === 'string') {
+            try {
+                imagesArray = JSON.parse(novel.images);
+            } catch (e) {
+                console.error('Error parsing images JSON:', e);
+                imagesArray = [novel.images];
+            }
+        } else if (Array.isArray(novel.images)) {
+            imagesArray = novel.images;
+        }
+    }
+    
+    if (imagesArray.length > 0) {
+        imagesHtml = '<div class="novel-images">';
+        imagesArray.slice(0, 3).forEach(img => {
+            imagesHtml += `<img src="${img}" alt="صورة الرواية">`;
+        });
+        imagesHtml += '</div>';
+    }
+    
+    div.innerHTML = `
+        <h3>${novel.title}</h3>
+        ${imagesHtml}
+        <p>${novel.description}</p>
+    `;
+    
+    // إضافة حدث النقر لفتح التفاصيل
+    div.addEventListener('click', (e) => openItemDetails('novels', novel.id, e));
+    
+    return div;
+}
+
+function renderFileItem(file) {
+    const div = document.createElement('div');
+    div.className = 'item';
+    div.innerHTML = `
+        ${file.image ? `<img src="${file.image}" alt="${file.title}" class="item-image">` : ''}
+        <h3>${file.title}</h3>
+        <p>${file.description}</p>
+        <a href="${file.drive_link}" target="_blank" class="item-button">تحميل الملف</a>
+    `;
+    
+    // إضافة حدث النقر لفتح التفاصيل
+    div.addEventListener('click', (e) => openItemDetails('files', file.id, e));
+    
+    return div;
+}
+
+function renderPlatformItem(platform) {
+    const div = document.createElement('div');
+    div.className = 'item platform-item';
+    div.innerHTML = `
+        <img src="${platform.image}" alt="${platform.title}" class="platform-image">
+        <h3>${platform.title}</h3>
+        <a href="${platform.link}" target="_blank" class="item-button">زيارة المنصة</a>
+    `;
+    
+    // إضافة حدث النقر لفتح التفاصيل
+    div.addEventListener('click', (e) => openItemDetails('platforms', platform.id, e));
+    
+    return div;
+}
+
+function renderAppItem(app) {
+    const div = document.createElement('div');
+    div.className = 'item';
+    div.innerHTML = `
+        ${app.image ? `<img src="${app.image}" alt="${app.title}" class="item-image">` : ''}
+        <h3>${app.title}</h3>
+        <p>${app.description}</p>
+        <a href="${app.download_link}" class="item-button">تحميل التطبيق</a>
+    `;
+    
+    // إضافة حدث النقر لفتح التفاصيل
+    div.addEventListener('click', (e) => openItemDetails('apps', app.id, e));
+    
+    return div;
+}
+
+function renderServerItem(server) {
+    const div = document.createElement('div');
+    div.className = 'item';
+    div.innerHTML = `
+        ${server.image ? `<img src="${server.image}" alt="${server.title}" class="item-image">` : ''}
+        <h3>${server.title}</h3>
+        <p>${server.description}</p>
+        <a href="${server.link}" target="_blank" class="item-button">انضم إلى السيرفر</a>
+    `;
+    
+    // إضافة حدث النقر لفتح التفاصيل
+    div.addEventListener('click', (e) => openItemDetails('servers', server.id, e));
+    
+    return div;
+}
 // دالة لتحديث الموقع الرئيسي بعد الإضافة
 async function refreshMainSite() {
     try {
