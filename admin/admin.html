@@ -14,14 +14,18 @@
     <div id="login-container" class="login-container">
         <div class="login-form">
             <h2>تسجيل الدخول</h2>
-            <input type="email" id="email" placeholder="البريد الإلكتروني" required>
-            <input type="password" id="password" placeholder="كلمة المرور" required>
-            <button onclick="login()">دخول</button>
+            <form id="login-form">
+                <input type="email" id="email" placeholder="البريد الإلكتروني" required>
+                <input type="password" id="password" placeholder="كلمة المرور" required>
+                <button type="submit">دخول</button>
+            </form>
             <p id="login-error" class="error-message"></p>
         </div>
     </div>
 
     <div id="admin-container" class="admin-container hidden">
+        <!-- باقي محتوى لوحة التحكم -->
+    
         <header class="admin-header">
             <h1>لوحة تحكم المشرف</h1>
             <div class="admin-actions">
