@@ -1,4 +1,5 @@
-// تعريف المتغيرات العامة
+
+
 let supabase;
 let currentAdmin = null;
 let siteData = {
@@ -12,7 +13,93 @@ let siteData = {
 
 // ثوابت Supabase
 const SUPABASE_URL = 'https://xzltdsmmolyvcmkfzedf.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhbmFzZSIsInJlZiI6Inh6bHRkc21tb2x5dmNta2Z6ZWRmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc2Nzg1NzEsImV4cCI6MjA3MzI1NDU3MX0.3TJ49ctEhOT1KDIFtZXFw2jwTq57ujaWbqNNJ2Eeb1U';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bHRkc21tb2x5dmNta2Z6ZWRmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc2Nzg1NzEsImV4cCI6MjA3MzI1NDU3MX0.3TJ49ctEhOT1KDIFtZXFw2jwTq57ujaWbqNNJ2Eeb1U';
+
+// تهيئة Supabase
+function initSupabase() {
+    if (window.supabase) {
+        supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        console.log('Supabase initialized successfully');
+        return true;
+    } else {
+        console.error('Supabase library not loaded');
+        return false;
+    }
+}
+
+// تهيئة الصفحة عند التحميل
+document.addEventListener('DOMContentLoaded', function() {
+    // تهيئة Supabase
+    initSupabase();
+    
+    // إعداد event listeners بعد التأكد من وجود العناصر
+    setTimeout(function() {
+        setupEventListeners();
+        checkAuth();
+    }, 100);
+});
+
+// إعداد جميع event listeners
+function setupEventListeners() {
+    const loginForm = document.getElementById('login-form');
+    if (loginForm) {
+        loginForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            login();
+        });
+    }
+    
+    // إضافة event listeners أخرى فقط إذا كانت الصفحة موجودة
+    const addAdminForm = document.getElementById('add-admin-form');
+    if (addAdminForm) {
+        addAdminForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const email = document.getElementById('new-admin-email').value;
+            const password = document.getElementById('new-admin-password').value;
+            const role = document.getElementById('new-admin-role').value;
+            
+            addAdmin(email, password, role).then(success => {
+                if (success) {
+                    this.reset();
+                }
+            });
+        });
+    }
+    
+    // إضافة event listeners للنماذج الأخرى
+    const formIds = [
+        'server-form', 'book-form', 'novel-form', 
+        'file-form', 'platform-form', 'app-form'
+    ];
+    
+    formIds.forEach(formId => {
+        const form = document.getElementById(formId);
+        if (form) {
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                // سيتم معالجة كل نموذج بواسطة الدالة المناسبة
+            });
+        }
+    });
+    
+    // إضافة event listener لإضافة صورة رواية
+    const addImageBtn = document.getElementById('add-novel-image');
+    if (addImageBtn) {
+        addImageBtn.addEventListener('click', function() {
+            const imagesContainer = document.getElementById('novel-images-container');
+            if (imagesContainer) {
+                const newInput = document.createElement('input');
+                newInput.type = 'url';
+                newInput.className = 'novel-image-input';
+                newInput.placeholder = 'رابط الصورة';
+                imagesContainer.appendChild(newInput);
+            }
+        });
+    }
+    
+    // إعداد التبويبات
+    setupTabs();
+}
 
 // تهيئة Supabase
 function initSupabase() {
