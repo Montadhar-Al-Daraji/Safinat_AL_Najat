@@ -12,7 +12,7 @@ let siteData = {
 
 // ثوابت Supabase
 const SUPABASE_URL = 'https://xzltdsmmolyvcmkfzedf.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bHRkc21tb2x5dmNta2Z6ZWRmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc2Nzg1NzEsImV4cCI6MjA3MzI1NDU3MX0.3TJ49ctEhOT1KDIFtZXFw2jwTq57ujaWbqNNJ2Eeb1U';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bHRkc21tb2x5dmNta2Z6ZWRmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc2Nzg1NzEsImV4cCI6MjA7MzI1NDU3MX0.3TJ49ctEhOT1KDIFtZXFw2jwTq57ujaWbqNNJ2Eeb1U';
 
 // تهيئة Supabase
 function initSupabase() {
@@ -114,13 +114,15 @@ function logout() {
 
 // إعداد واجهة المشرفين حسب الصلاحية
 function setupAdminInterface(role) {
-    const adminManagement = document.getElementById('admin-management');
+    const adminsTab = document.getElementById('admins-tab');
+    const adminsPanel = document.getElementById('admins-panel');
     
     if (role === 'owner') {
-        adminManagement.style.display = 'block';
-        loadAdminsList(); // تحميل قائمة المشرفين فقط للمالك
+        adminsTab.style.display = 'block';
+        loadAdminsList();
     } else {
-        adminManagement.style.display = 'none';
+        adminsTab.style.display = 'none';
+        adminsPanel.style.display = 'none';
     }
 }
 
@@ -157,6 +159,7 @@ async function loadAdminData() {
         siteData.servers = servers || [];
 
         renderAllAdminLists();
+        setupSearchFunctionality();
     } catch (error) {
         console.error('Error loading data:', error);
         alert('حدث خطأ في تحميل البيانات: ' + error.message);
@@ -399,10 +402,108 @@ function renderAdminList(section, items) {
     });
 }
 
+// إعداد وظيفة البحث
+function setupSearchFunctionality() {
+    // إعداد البحث للكتب
+    document.getElementById('books-search').addEventListener('input', function(e) {
+        const searchTerm = e.target.value.toLowerCase();
+        const filteredBooks = siteData.books.filter(book => 
+            book.title.toLowerCase().includes(searchTerm) || 
+            (book.description && book.description.toLowerCase().includes(searchTerm))
+        );
+        renderAdminList('books', filteredBooks);
+    });
+    
+    // إعداد البحث للروايات
+    document.getElementById('novels-search').addEventListener('input', function(e) {
+        const searchTerm = e.target.value.toLowerCase();
+        const filteredNovels = siteData.novels.filter(novel => 
+            novel.title.toLowerCase().includes(searchTerm) || 
+            (novel.description && novel.description.toLowerCase().includes(searchTerm))
+        );
+        renderAdminList('novels', filteredNovels);
+    });
+    
+    // إعداد البحث للملفات
+    document.getElementById('files-search').addEventListener('input', function(e) {
+        const searchTerm = e.target.value.toLowerCase();
+        const filteredFiles = siteData.files.filter(file => 
+            file.title.toLowerCase().includes(searchTerm) || 
+            (file.description && file.description.toLowerCase().includes(searchTerm))
+        );
+        renderAdminList('files', filteredFiles);
+    });
+    
+    // إعداد البحث للمنصات
+    document.getElementById('platforms-search').addEventListener('input', function(e) {
+        const searchTerm = e.target.value.toLowerCase();
+        const filteredPlatforms = siteData.platforms.filter(platform => 
+            platform.title.toLowerCase().includes(searchTerm)
+        );
+        renderAdminList('platforms', filteredPlatforms);
+    });
+    
+    // إعداد البحث للتطبيقات
+    document.getElementById('apps-search').addEventListener('input', function(e) {
+        const searchTerm = e.target.value.toLowerCase();
+        const filteredApps = siteData.apps.filter(app => 
+            app.title.toLowerCase().includes(searchTerm) || 
+            (app.description && app.description.toLowerCase().includes(searchTerm))
+        );
+        renderAdminList('apps', filteredApps);
+    });
+    
+    // إعداد البحث للسيرفرات
+    document.getElementById('servers-search').addEventListener('input', function(e) {
+        const searchTerm = e.target.value.toLowerCase();
+        const filteredServers = siteData.servers.filter(server => 
+            server.title.toLowerCase().includes(searchTerm) || 
+            (server.description && server.description.toLowerCase().includes(searchTerm))
+        );
+        renderAdminList('servers', filteredServers);
+    });
+    
+    // إعداد البحث للمشرفين
+    document.getElementById('admins-search').addEventListener('input', function(e) {
+        const searchTerm = e.target.value.toLowerCase();
+        // سيتم تطبيق البحث على المشرفين عندما يتم تحميلهم
+        // هذه الوظيفة تحتاج إلى تعديل عندما يكون هناك طريقة لجلب المشرفين
+    });
+}
+
+// إدارة التبويبات
+function setupTabs() {
+    const tabButtons = document.querySelectorAll('.tab-button');
+    const panels = document.querySelectorAll('.admin-panel');
+    
+    tabButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            const tabName = button.getAttribute('data-tab');
+            
+            // إخفاء جميع اللوحات
+            panels.forEach(panel => {
+                panel.classList.remove('active');
+            });
+            
+            // إلغاء تنشيط جميع الأزرار
+            tabButtons.forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            // إظهار اللوحة المحددة
+            document.getElementById(`${tabName}-panel`).classList.add('active');
+            button.classList.add('active');
+        });
+    });
+}
+
 // تهيئة الصفحة عند التحميل
 document.addEventListener('DOMContentLoaded', function() {
     // تهيئة Supabase
     initSupabase();
+    
+    // إعداد التبويبات
+    setupTabs();
     
     // إضافة event listener لنموذج تسجيل الدخول
     document.getElementById('login-form').addEventListener('submit', function(e) {
