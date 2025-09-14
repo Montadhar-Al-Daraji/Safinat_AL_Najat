@@ -12,10 +12,9 @@
 <body>
     <div id="login-container" class="login-container">
         <div class="login-form">
-            <span class="close-btn" onclick="closeLogin()">×</span>
             <h2>تسجيل الدخول</h2>
-            <input type="text" id="username" placeholder="اسم المستخدم" value="bahlol121212">
-            <input type="password" id="password" placeholder="كلمة المرور" value="labaik313">
+            <input type="email" id="email" placeholder="البريد الإلكتروني" required>
+            <input type="password" id="password" placeholder="كلمة المرور" required>
             <button onclick="login()">دخول</button>
             <p id="login-error" class="error-message"></p>
         </div>
@@ -35,31 +34,94 @@
             <div class="admin-panel">
                 <h2>إدارة الكتب</h2>
                 <form id="book-form" class="admin-form">
-                    <input type="text" id="book-title" placeholder="عنوان الكتاب" required="">
-                    <textarea id="book-description" placeholder="وصف الكتاب" required=""></textarea>
+                    <input type="text" id="book-title" placeholder="عنوان الكتاب" required>
+                    <textarea id="book-description" placeholder="وصف الكتاب" required></textarea>
                     <input type="url" id="book-image" placeholder="رابط صورة الكتاب">
-                    <input type="url" id="book-drive-link" placeholder="رابط Google Drive" required="">
+                    <input type="url" id="book-drive-link" placeholder="رابط Google Drive" required>
                     <button type="submit">إضافة الكتاب</button>
                 </form>
-                <div class="items-list" id="books-list"><div class="item-card">
-            <div class="item-info">
-                <h3> حِكَم النَّبي مُحَمَّد ليو تولستوي كتب مقروءة</h3>
-        <p>وضع «تولستوي» هذا الكتاب دفاعًا عن الحق في مواجهة ...</p></div>
-            <div class="item-actions">
-                <button onclick="deleteItem('books', 10)">حذف</button>
-            </div>
-        </div><div class="item-card">
-            <div class="item-info">
-                <h3>تجربة</h3>
-        <p>جاي اجررب كتاب ثاني ...</p></div>
-            <div class="item-actions">
-                <button onclick="deleteItem('books', 11)">حذف</button>
-            </div>
-        </div></div>
+                <div class="items-list" id="books-list">
+                    <p class="no-items">جاري تحميل البيانات...</p>
+                </div>
             </div>
             
             <!-- قسم الروايات -->
-           <!-- بعد قسم السيرفرات مباشرة -->
+            <div class="admin-panel">
+                <h2>إدارة الروايات</h2>
+                <form id="novel-form" class="admin-form">
+                    <input type="text" id="novel-title" placeholder="عنوان الرواية" required>
+                    <textarea id="novel-description" placeholder="وصف الرواية" required></textarea>
+                    <div id="novel-images-container">
+                        <input type="url" class="novel-image-input" placeholder="رابط الصورة">
+                    </div>
+                    <button type="button" id="add-novel-image">إضافة صورة أخرى</button>
+                    <button type="submit">إضافة الرواية</button>
+                </form>
+                <div class="items-list" id="novels-list">
+                    <p class="no-items">جاري تحميل البيانات...</p>
+                </div>
+            </div>
+            
+            <!-- قسم الملفات -->
+            <div class="admin-panel">
+                <h2>إدارة الملفات</h2>
+                <form id="file-form" class="admin-form">
+                    <input type="text" id="file-title" placeholder="عنوان الملف" required>
+                    <textarea id="file-description" placeholder="وصف الملف" required></textarea>
+                    <input type="url" id="file-image" placeholder="رابط صورة الملف">
+                    <input type="url" id="file-drive-link" placeholder="رابط Google Drive" required>
+                    <button type="submit">إضافة الملف</button>
+                </form>
+                <div class="items-list" id="files-list">
+                    <p class="no-items">جاري تحميل البيانات...</p>
+                </div>
+            </div>
+            
+            <!-- قسم المنصات -->
+            <div class="admin-panel">
+                <h2>إدارة المنصات</h2>
+                <form id="platform-form" class="admin-form">
+                    <input type="text" id="platform-title" placeholder="اسم المنصة" required>
+                    <input type="url" id="platform-image" placeholder="رابط صورة المنصة" required>
+                    <input type="url" id="platform-link" placeholder="رابط المنصة" required>
+                    <button type="submit">إضافة المنصة</button>
+                </form>
+                <div class="items-list" id="platforms-list">
+                    <p class="no-items">جاري تحميل البيانات...</p>
+                </div>
+            </div>
+            
+            <!-- قسم التطبيقات -->
+            <div class="admin-panel">
+                <h2>إدارة التطبيقات</h2>
+                <form id="app-form" class="admin-form">
+                    <input type="text" id="app-title" placeholder="اسم التطبيق" required>
+                    <textarea id="app-description" placeholder="وصف التطبيق" required></textarea>
+                    <input type="url" id="app-image" placeholder="رابط صورة التطبيق">
+                    <input type="url" id="app-download-link" placeholder="رابط التحميل" required>
+                    <button type="submit">إضافة التطبيق</button>
+                </form>
+                <div class="items-list" id="apps-list">
+                    <p class="no-items">جاري تحميل البيانات...</p>
+                </div>
+            </div>
+            
+            <!-- قسم السيرفرات -->
+            <div class="admin-panel">
+                <h2>إدارة السيرفرات</h2>
+                <form id="server-form" class="admin-form">
+                    <input type="text" id="server-title" placeholder="اسم السيرفر" required>
+                    <textarea id="server-description" placeholder="وصف السيرفر" required></textarea>
+                    <input type="url" id="server-image" placeholder="رابط صورة السيرفر">
+                    <input type="url" id="server-link" placeholder="رابط السيرفر" required>
+                    <button type="submit">إضافة السيرفر</button>
+                </form>
+                <div class="items-list" id="servers-list">
+                    <p class="no-items">جاري تحميل البيانات...</p>
+                </div>
+            </div>
+            
+            <!-- قسم إدارة المشرفين -->
             <div class="admin-panel" id="admin-management" style="display: none;">
                 <h2>إدارة المشرفين</h2>
                 <form id="add-admin-form" class="admin-form">
@@ -75,57 +137,10 @@
                     <p class="no-items">جاري تحميل قائمة المشرفين...</p>
                 </div>
             </div>
-            
-            <!-- قسم الملفات -->
-            <div class="admin-panel">
-                <h2>إدارة الملفات</h2>
-                <form id="file-form" class="admin-form">
-                    <input type="text" id="file-title" placeholder="عنوان الملف" required="">
-                    <textarea id="file-description" placeholder="وصف الملف" required=""></textarea>
-                    <input type="url" id="file-image" placeholder="رابط صورة الملف">
-                    <input type="url" id="file-drive-link" placeholder="رابط Google Drive" required="">
-                    <button type="submit">إضافة الملف</button>
-                </form>
-                <div class="items-list" id="files-list"><p class="no-items">لا توجد عناصر</p></div>
-            </div>
-            
-            <!-- قسم المنصات -->
-            <div class="admin-panel">
-                <h2>إدارة المنصات</h2>
-                <form id="platform-form" class="admin-form">
-                    <input type="text" id="platform-title" placeholder="اسم المنصة" required="">
-                    <input type="url" id="platform-image" placeholder="رابط صورة المنصة" required="">
-                    <input type="url" id="platform-link" placeholder="رابط المنصة" required="">
-                    <button type="submit">إضافة المنصة</button>
-                </form>
-                <div class="items-list" id="platforms-list"><p class="no-items">لا توجد عناصر</p></div>
-            </div>
-            
-            
-            <!-- قسم التطبيقات --><div class="admin-panel">
-                <h2>إدارة التطبيقات</h2>
-                <form id="app-form" class="admin-form">
-                    <input type="text" id="app-title" placeholder="اسم التطبيق" required="">
-                    <textarea id="app-description" placeholder="وصف التطبيق" required=""></textarea>
-                    <input type="url" id="app-image" placeholder="رابط صورة التطبيق">
-                    <input type="url" id="app-download-link" placeholder="رابط التحميل" required="">
-                    <button type="submit">إضافة التطبيق</button>
-                </form>
-                <div class="items-list" id="apps-list"><p class="no-items">لا توجد عناصر</p></div>
-            </div>
-        <!-- قسم السيرفرات--><div class="admin-panel">
-                <h2>إدارة السيرفرات</h2>
-                <form id="server-form" class="admin-form">
-                    <input type="text" id="server-title" placeholder="اسم السيرفر" required="">
-                    <textarea id="server-description" placeholder="وصف السيرفر" required=""></textarea>
-                    <input type="url" id="server-image" placeholder="رابط صورة السيرفر">
-                    <input type="url" id="server-link" placeholder="رابط السيرفر" required="">
-                    <button type="submit">إضافة التطبيق</button>
-                </form>
-                <div class="items-list" id="servers-list"><p class="no-items">لا توجد عناصر</p></div>
-            </div></div>
+        </div>
+    </div>
 
-    <!-- تحميل Supabase أولاً -->
+    <!-- تحميل Supabase -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="./admin.js"></script>
 </body>
