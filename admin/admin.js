@@ -12,7 +12,7 @@ let siteData = {
 
 // ثوابت Supabase
 const SUPABASE_URL = 'https://xzltdsmmolyvcmkfzedf.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bHRkc21tb2x5dmNta2Z6ZWRmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc2Nzg1NzEsImV4cCI6MjA7MzI1NDU3MX0.3TJ49ctEhOT1KDIFtZXFw2jwTq57ujaWbqNNJ2Eeb1U';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhbmFzZSIsInJlZiI6Inh6bHRkc21tb2x5dmNta2Z6ZWRmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc2Nzg1NzEsImV4cCI6MjA3MzI1NDU3MX0.3TJ49ctEhOT1KDIFtZXFw2jwTq57ujaWbqNNJ2Eeb1U';
 
 // تهيئة Supabase
 function initSupabase() {
@@ -62,6 +62,12 @@ async function login() {
     }
     
     try {
+        // إظهار تحميل
+        const loginBtn = document.querySelector('#login-form button');
+        const originalText = loginBtn.textContent;
+        loginBtn.textContent = 'جاري تسجيل الدخول...';
+        loginBtn.disabled = true;
+        
         // البحث عن المشرف في قاعدة البيانات
         const { data: admin, error } = await supabase
             .from('admins')
@@ -71,12 +77,16 @@ async function login() {
 
         if (error || !admin) {
             errorElement.textContent = 'البريد الإلكتروني أو كلمة المرور غير صحيحة';
+            loginBtn.textContent = originalText;
+            loginBtn.disabled = false;
             return;
         }
         
         // التحقق من كلمة المرور
         if (password !== atob(admin.password_hash)) {
             errorElement.textContent = 'البريد الإلكتروني أو كلمة المرور غير صحيحة';
+            loginBtn.textContent = originalText;
+            loginBtn.disabled = false;
             return;
         }
         
@@ -93,9 +103,18 @@ async function login() {
         await loadAdminData();
         setupAdminInterface(admin.role);
         
+        // إعادة تعيين الزر
+        loginBtn.textContent = originalText;
+        loginBtn.disabled = false;
+        
     } catch (error) {
         console.error('Login error:', error);
         errorElement.textContent = 'حدث خطأ أثناء تسجيل الدخول';
+        
+        // إعادة تعيين الزر في حالة الخطأ
+        const loginBtn = document.querySelector('#login-form button');
+        loginBtn.textContent = 'دخول';
+        loginBtn.disabled = false;
     }
 }
 
@@ -123,6 +142,11 @@ function setupAdminInterface(role) {
     } else {
         adminsTab.style.display = 'none';
         adminsPanel.style.display = 'none';
+        
+        // إذا كان التبويب النشط هو تبويب المشرفين، نغير إلى تبويب آخر
+        if (document.querySelector('.tab-button.active').dataset.tab === 'admins') {
+            document.querySelector('[data-tab="books"]').click();
+        }
     }
 }
 
@@ -136,30 +160,32 @@ async function loadAdminData() {
     }
     
     try {
+        // إظهار تحميل في جميع الأقسام
+        document.querySelectorAll('.items-list').forEach(list => {
+            list.innerHTML = '<p class="no-items">جاري تحميل البيانات...</p>';
+        });
+        
         // جلب البيانات من كل جدول
-        const { data: books, error: booksError } = await supabase.from('books').select('*');
-        const { data: novels, error: novelsError } = await supabase.from('novels').select('*');
-        const { data: files, error: filesError } = await supabase.from('files').select('*');
-        const { data: platforms, error: platformsError } = await supabase.from('platforms').select('*');
-        const { data: apps, error: appsError } = await supabase.from('apps').select('*');
-        const { data: servers, error: serversError } = await supabase.from('servers').select('*');
+        const [booksData, novelsData, filesData, platformsData, appsData, serversData] = await Promise.all([
+            supabase.from('books').select('*'),
+            supabase.from('novels').select('*'),
+            supabase.from('files').select('*'),
+            supabase.from('platforms').select('*'),
+            supabase.from('apps').select('*'),
+            supabase.from('servers').select('*')
+        ]);
 
-        if (booksError) throw booksError;
-        if (novelsError) throw novelsError;
-        if (filesError) throw filesError;
-        if (platformsError) throw platformsError;
-        if (appsError) throw appsError;
-        if (serversError) throw serversError;
-
-        siteData.books = books || [];
-        siteData.novels = novels || [];
-        siteData.files = files || [];
-        siteData.platforms = platforms || [];
-        siteData.apps = apps || [];
-        siteData.servers = servers || [];
+        // معالجة البيانات
+        siteData.books = booksData.data || [];
+        siteData.novels = novelsData.data || [];
+        siteData.files = filesData.data || [];
+        siteData.platforms = platformsData.data || [];
+        siteData.apps = appsData.data || [];
+        siteData.servers = serversData.data || [];
 
         renderAllAdminLists();
         setupSearchFunctionality();
+        
     } catch (error) {
         console.error('Error loading data:', error);
         alert('حدث خطأ في تحميل البيانات: ' + error.message);
@@ -498,9 +524,14 @@ function setupTabs() {
 }
 
 // تهيئة الصفحة عند التحميل
+
+// تهيئة الصفحة عند التحميل
 document.addEventListener('DOMContentLoaded', function() {
     // تهيئة Supabase
-    initSupabase();
+    if (!initSupabase()) {
+        alert('خطأ في تحميل مكتبة Supabase');
+        return;
+    }
     
     // إعداد التبويبات
     setupTabs();
@@ -511,19 +542,28 @@ document.addEventListener('DOMContentLoaded', function() {
         login();
     });
     
-    // إضافة event listener لنموذج إضافة مشرف
-    document.getElementById('add-admin-form').addEventListener('submit', function(e) {
-        e.preventDefault();
-        const email = document.getElementById('new-admin-email').value;
-        const password = document.getElementById('new-admin-password').value;
-        const role = document.getElementById('new-admin-role').value;
-        
-        addAdmin(email, password, role).then(success => {
-            if (success) {
-                this.reset();
-            }
+    // التحقق من المصادقة
+    checkAuth();
+});
+
+// دالة جديدة للإعداد بعد تسجيل الدخول
+function setupAfterLogin() {
+    // إضافة event listener لنموذج إضافة مشرف (للمالك فقط)
+    const addAdminForm = document.getElementById('add-admin-form');
+    if (addAdminForm && currentAdmin.role === 'owner') {
+        addAdminForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const email = document.getElementById('new-admin-email').value;
+            const password = document.getElementById('new-admin-password').value;
+            const role = document.getElementById('new-admin-role').value;
+            
+            addAdmin(email, password, role).then(success => {
+                if (success) {
+                    this.reset();
+                }
+            });
         });
-    });
+    }
     
     // إضافة event listener لأزرار النماذج الأخرى
     document.getElementById('server-form').addEventListener('submit', handleServerSubmit);
@@ -542,10 +582,7 @@ document.addEventListener('DOMContentLoaded', function() {
         newInput.placeholder = 'رابط الصورة';
         imagesContainer.appendChild(newInput);
     });
-    
-    // التحقق من المصادقة
-    checkAuth();
-});
+}
 
 // معالجة إرسال نماذج العناصر
 async function handleServerSubmit(e) {
