@@ -53,27 +53,7 @@ async function loadItemDetails(itemType, itemId) {
         showError('حدث خطأ في تحميل تفاصيل العنصر');
     }
 }
-// فتح صفحة تفاصيل العنصر
-function openItemDetails(itemType, itemId) {
-    window.location.href = `item-details.html?type=${itemType}&id=${itemId}`;
-}
 
-// تعديل دوال العرض لإضافة حدث النقر
-function renderBookItem(book) {
-    const div = document.createElement('div');
-    div.className = 'item';
-    div.innerHTML = `
-        ${book.image ? `<img src="${book.image}" alt="${book.title}" class="item-image">` : ''}
-        <h3>${book.title}</h3>
-        <p>${book.description}</p>
-        <a href="${book.drive_link}" target="_blank" class="item-button">تحميل الكتاب</a>
-    `;
-    
-    // إضافة حدث النقر لفتح التفاصيل
-    div.addEventListener('click', () => openItemDetails('books', book.id));
-    
-    return div;
-}
 // عرض تفاصيل العنصر في الصفحة
 function displayItemDetails() {
     if (!currentItem) return;
@@ -226,8 +206,6 @@ function showNextImage() {
 // إعداد زر الإجراء (تحميل/انتقال/رابط)
 function setupActionButton() {
     const actionButton = document.getElementById('action-button');
-    
-    // تحديد نوع الإجراء بناءً على نوع العنصر
     const urlParams = new URLSearchParams(window.location.search);
     const itemType = urlParams.get('type');
     
@@ -237,15 +215,19 @@ function setupActionButton() {
     
     switch(itemType) {
         case 'books':
-        case 'files':
-            buttonText = 'تحميل';
+            buttonText = 'تحميل الكتاب';
             buttonIcon = 'fas fa-download';
-            buttonUrl = currentItem.drive_link || currentItem.link || '#';
+            buttonUrl = currentItem.drive_link || '#';
             break;
         case 'novels':
-            buttonText = 'قراءة';
+            buttonText = 'قراءة الرواية';
             buttonIcon = 'fas fa-book-open';
-            buttonUrl = currentItem.read_link || currentItem.link || '#';
+            buttonUrl = currentItem.read_link || currentItem.drive_link || '#';
+            break;
+        case 'files':
+            buttonText = 'تحميل الملف';
+            buttonIcon = 'fas fa-download';
+            buttonUrl = currentItem.drive_link || '#';
             break;
         case 'platforms':
             buttonText = 'زيارة المنصة';
@@ -255,7 +237,7 @@ function setupActionButton() {
         case 'apps':
             buttonText = 'تحميل التطبيق';
             buttonIcon = 'fas fa-download';
-            buttonUrl = currentItem.download_link || currentItem.link || '#';
+            buttonUrl = currentItem.download_link || '#';
             break;
         case 'servers':
             buttonText = 'انضم إلى السيرفر';
@@ -271,6 +253,8 @@ function setupActionButton() {
     // إخفاء الزر إذا لم يكن هناك رابط
     if (buttonUrl === '#') {
         actionButton.style.display = 'none';
+    } else {
+        actionButton.style.display = 'inline-flex';
     }
 }
 
