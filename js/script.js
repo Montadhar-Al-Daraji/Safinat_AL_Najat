@@ -180,6 +180,29 @@ function renderServerItem(server) {
     `;
     return div;
 }
+
+// فتح صفحة تفاصيل العنصر
+function openItemDetails(itemType, itemId) {
+    window.location.href = `item-details.html?type=${itemType}&id=${itemId}`;
+}
+
+// تعديل دوال العرض لإضافة حدث النقر
+function renderBookItem(book) {
+    const div = document.createElement('div');
+    div.className = 'item';
+    div.innerHTML = `
+        ${book.image ? `<img src="${book.image}" alt="${book.title}" class="item-image">` : ''}
+        <h3>${book.title}</h3>
+        <p>${book.description}</p>
+        <a href="${book.drive_link}" target="_blank" class="item-button">تحميل الكتاب</a>
+    `;
+    
+    // إضافة حدث النقر لفتح التفاصيل
+    div.addEventListener('click', () => openItemDetails('books', book.id));
+    
+    return div;
+}
+
 // عرض عنصر ملف
 function renderFileItem(file) {
     const div = document.createElement('div');
