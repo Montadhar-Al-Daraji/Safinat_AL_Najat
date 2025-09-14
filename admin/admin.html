@@ -7,6 +7,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="./admin.css">
 </head>
 <body>
@@ -28,11 +29,30 @@
                 <button onclick="logout()" class="logout-btn">تسجيل الخروج</button>
             </div>
         </header>
+
+        <!-- شريط التبويبات -->
+        <div class="tabs-container">
+            <div class="tabs">
+                <button class="tab-button active" data-tab="books">الكتب</button>
+                <button class="tab-button" data-tab="novels">الروايات</button>
+                <button class="tab-button" data-tab="files">الملفات</button>
+                <button class="tab-button" data-tab="platforms">المنصات</button>
+                <button class="tab-button" data-tab="apps">التطبيقات</button>
+                <button class="tab-button" data-tab="servers">السيرفرات</button>
+                <button class="tab-button" data-tab="admins" id="admins-tab" style="display: none;">المشرفين</button>
+            </div>
+        </div>
         
         <div class="admin-panels">
             <!-- قسم الكتب -->
-            <div class="admin-panel">
-                <h2>إدارة الكتب</h2>
+            <div class="admin-panel active" id="books-panel">
+                <div class="panel-header">
+                    <h2>إدارة الكتب</h2>
+                    <div class="search-box">
+                        <input type="text" id="books-search" placeholder="ابحث عن كتاب..." class="search-input">
+                        <i class="fas fa-search search-icon"></i>
+                    </div>
+                </div>
                 <form id="book-form" class="admin-form">
                     <input type="text" id="book-title" placeholder="عنوان الكتاب" required>
                     <textarea id="book-description" placeholder="وصف الكتاب" required></textarea>
@@ -46,8 +66,14 @@
             </div>
             
             <!-- قسم الروايات -->
-            <div class="admin-panel">
-                <h2>إدارة الروايات</h2>
+            <div class="admin-panel" id="novels-panel">
+                <div class="panel-header">
+                    <h2>إدارة الروايات</h2>
+                    <div class="search-box">
+                        <input type="text" id="novels-search" placeholder="ابحث عن رواية..." class="search-input">
+                        <i class="fas fa-search search-icon"></i>
+                    </div>
+                </div>
                 <form id="novel-form" class="admin-form">
                     <input type="text" id="novel-title" placeholder="عنوان الرواية" required>
                     <textarea id="novel-description" placeholder="وصف الرواية" required></textarea>
@@ -63,8 +89,14 @@
             </div>
             
             <!-- قسم الملفات -->
-            <div class="admin-panel">
-                <h2>إدارة الملفات</h2>
+            <div class="admin-panel" id="files-panel">
+                <div class="panel-header">
+                    <h2>إدارة الملفات</h2>
+                    <div class="search-box">
+                        <input type="text" id="files-search" placeholder="ابحث عن ملف..." class="search-input">
+                        <i class="fas fa-search search-icon"></i>
+                    </div>
+                </div>
                 <form id="file-form" class="admin-form">
                     <input type="text" id="file-title" placeholder="عنوان الملف" required>
                     <textarea id="file-description" placeholder="وصف الملف" required></textarea>
@@ -78,8 +110,14 @@
             </div>
             
             <!-- قسم المنصات -->
-            <div class="admin-panel">
-                <h2>إدارة المنصات</h2>
+            <div class="admin-panel" id="platforms-panel">
+                <div class="panel-header">
+                    <h2>إدارة المنصات</h2>
+                    <div class="search-box">
+                        <input type="text" id="platforms-search" placeholder="ابحث عن منصة..." class="search-input">
+                        <i class="fas fa-search search-icon"></i>
+                    </div>
+                </div>
                 <form id="platform-form" class="admin-form">
                     <input type="text" id="platform-title" placeholder="اسم المنصة" required>
                     <input type="url" id="platform-image" placeholder="رابط صورة المنصة" required>
@@ -92,8 +130,14 @@
             </div>
             
             <!-- قسم التطبيقات -->
-            <div class="admin-panel">
-                <h2>إدارة التطبيقات</h2>
+            <div class="admin-panel" id="apps-panel">
+                <div class="panel-header">
+                    <h2>إدارة التطبيقات</h2>
+                    <div class="search-box">
+                        <input type="text" id="apps-search" placeholder="ابحث عن تطبيق..." class="search-input">
+                        <i class="fas fa-search search-icon"></i>
+                    </div>
+                </div>
                 <form id="app-form" class="admin-form">
                     <input type="text" id="app-title" placeholder="اسم التطبيق" required>
                     <textarea id="app-description" placeholder="وصف التطبيق" required></textarea>
@@ -107,8 +151,14 @@
             </div>
             
             <!-- قسم السيرفرات -->
-            <div class="admin-panel">
-                <h2>إدارة السيرفرات</h2>
+            <div class="admin-panel" id="servers-panel">
+                <div class="panel-header">
+                    <h2>إدارة السيرفرات</h2>
+                    <div class="search-box">
+                        <input type="text" id="servers-search" placeholder="ابحث عن سيرفر..." class="search-input">
+                        <i class="fas fa-search search-icon"></i>
+                    </div>
+                </div>
                 <form id="server-form" class="admin-form">
                     <input type="text" id="server-title" placeholder="اسم السيرفر" required>
                     <textarea id="server-description" placeholder="وصف السيرفر" required></textarea>
@@ -122,8 +172,14 @@
             </div>
             
             <!-- قسم إدارة المشرفين -->
-            <div class="admin-panel" id="admin-management" style="display: none;">
-                <h2>إدارة المشرفين</h2>
+            <div class="admin-panel" id="admins-panel">
+                <div class="panel-header">
+                    <h2>إدارة المشرفين</h2>
+                    <div class="search-box">
+                        <input type="text" id="admins-search" placeholder="ابحث عن مشرف..." class="search-input">
+                        <i class="fas fa-search search-icon"></i>
+                    </div>
+                </div>
                 <form id="add-admin-form" class="admin-form">
                     <input type="email" id="new-admin-email" placeholder="بريد المشرف الجديد" required>
                     <input type="password" id="new-admin-password" placeholder="كلمة المرور" required>
