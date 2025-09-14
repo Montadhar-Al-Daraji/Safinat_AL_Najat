@@ -59,18 +59,21 @@
             </div>
             
             <!-- قسم الروايات -->
-            <div class="admin-panel">
-                <h2>إدارة الروايات</h2>
-                <form id="novel-form" class="admin-form">
-                    <input type="text" id="novel-title" placeholder="عنوان الرواية" required="">
-                    <textarea id="novel-description" placeholder="وصف الرواية" required=""></textarea>
-                    <div id="novel-images-container">
-                        <input type="url" class="novel-image-input" placeholder="رابط الصورة">
-                    </div>
-                    <button type="button" id="add-novel-image">إضافة صورة أخرى</button>
-                    <button type="submit">إضافة الرواية</button>
+           <!-- بعد قسم السيرفرات مباشرة -->
+            <div class="admin-panel" id="admin-management" style="display: none;">
+                <h2>إدارة المشرفين</h2>
+                <form id="add-admin-form" class="admin-form">
+                    <input type="email" id="new-admin-email" placeholder="بريد المشرف الجديد" required>
+                    <input type="password" id="new-admin-password" placeholder="كلمة المرور" required>
+                    <select id="new-admin-role" required>
+                        <option value="admin">مشرف</option>
+                        <option value="owner">مالك</option>
+                    </select>
+                    <button type="submit">إضافة مشرف</button>
                 </form>
-                <div class="items-list" id="novels-list"><p class="no-items">لا توجد عناصر</p></div>
+                <div class="items-list" id="admins-list">
+                    <p class="no-items">جاري تحميل قائمة المشرفين...</p>
+                </div>
             </div>
             
             <!-- قسم الملفات -->
