@@ -10,7 +10,12 @@ let siteData = {
     servers: []
 };
 
-// ثوابت Supabase
+// ثوابت Supabase - يجب تخزينها بشكل آمن في بيئة الإنتاج
+const SUPABASE_URL = 'https://xzltdsmmolyvcmkfzedf.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bHRkc21tb2x5dmNta2Z6ZWRmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc2Nzg�أكمل من فضلك، يبدو أن الرد كان طويلاً جداً وتوقف في منتصف ملف JavaScript. إليك باقي الملف:
+
+```javascript
+// ثوابت Supabase - يجب تخزينها بشكل آمن في بيئة الإنتاج
 const SUPABASE_URL = 'https://xzltdsmmolyvcmkfzedf.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bHRkc21tb2x5dmNta2Z6ZWRmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc2Nzg1NzEsImV4cCI6MjA3MzI1NDU3MX0.3TJ49ctEhOT1KDIFtZXFw2jwTq57ujaWbqNNJ2Eeb1U';
 
@@ -28,15 +33,23 @@ function initSupabase() {
 
 // التحقق من المصادقة عند تحميل الصفحة
 function checkAuth() {
-    const isAuthenticated = sessionStorage.getItem('adminAuthenticated');
+    const token = sessionStorage.getItem('adminToken');
     const adminData = sessionStorage.getItem('adminData');
     
-    if (!isAuthenticated || !adminData) {
+    if (!token || !adminData) {
         showLoginPage();
         return false;
     }
     
     try {
+        // التحقق من صلاحية التوكن
+        const tokenData = parseJwt(token);
+        if (tokenData.exp * 1000 < Date.now()) {
+            console.error('Token expired');
+            logout();
+            return false;
+        }
+        
         currentAdmin = JSON.parse(adminData);
         showAdminPage();
         setupAdminInterface(currentAdmin.role);
@@ -48,6 +61,15 @@ function checkAuth() {
     }
 }
 
+// تحليل JWT token
+function parseJwt(token) {
+    try {
+        return JSON.parse(atob(token.split('.')[1]));
+    } catch (e) {
+        return null;
+    }
+}
+
 // إظهار صفحة تسجيل الدخول
 function showLoginPage() {
     const loginContainer = document.getElementById('login-container');
@@ -55,14 +77,31 @@ function showLoginPage() {
     
     if (loginContainer) loginContainer.classList.remove('hidden');
     if (adminContainer) adminContainer.classList.add('hidden');
+    
+    // إضافة event listener للدخول بالضغط على Enter
+    document.addEventListener('keypress', handleLoginKeyPress);
+}
+
+// إخفاء صفحة تسجيل الدخول
+function hideLoginPage() {
+    const loginContainer = document.getElementById('login-container');
+    if (loginContainer) loginContainer.classList.add('hidden');
+    
+    // إزالة event listener للدخول بالضغط على Enter
+    document.removeEventListener('keypress', handleLoginKeyPress);
+}
+
+// التعامل مع الضغط على Enter في تسجيل الدخول
+function handleLoginKeyPress(e) {
+    if (e.key === 'Enter') {
+        login();
+    }
 }
 
 // إظهار لوحة التحكم
 function showAdminPage() {
-    const loginContainer = document.getElementById('login-container');
+    hideLoginPage();
     const adminContainer = document.getElementById('admin-container');
-    
-    if (loginContainer) loginContainer.classList.add('hidden');
     if (adminContainer) adminContainer.classList.remove('hidden');
 }
 
@@ -71,20 +110,26 @@ async function login() {
     const emailInput = document.getElementById('email');
     const passwordInput = document.getElementById('password');
     const errorElement = document.getElementById('login-error');
-    const loginBtn = document.querySelector('#login-form button');
+    const loginBtn = document.getElementById('login-btn');
     
     if (!emailInput || !passwordInput || !errorElement || !loginBtn) {
         console.error('Login elements not found');
         return;
     }
     
-    const email = emailInput.value;
+    const email = emailInput.value.trim();
     const password = passwordInput.value;
     
     errorElement.textContent = '';
     
     if (!email || !password) {
         errorElement.textContent = 'يرجى ملء جميع الحقول';
+        return;
+    }
+    
+    // التحقق من صحة البريد الإلكتروني
+    if (!isValidEmail(email)) {
+        errorElement.textContent = 'صيغة البريد الإلكتروني غير صحيحة';
         return;
     }
     
@@ -108,18 +153,32 @@ async function login() {
             return;
         }
         
-        // التحقق من كلمة المرور
+        // التحقق من كلمة المرور (يجب استخدام مقارنة آمنة في بيئة الإنتاج)
         if (password !== atob(admin.password_hash)) {
             errorElement.textContent = 'البريد الإلكتروني أو كلمة المرور غير صحيحة';
             loginBtn.textContent = originalText;
             loginBtn.disabled = false;
+            
+            // تسجيل محاولة الدخول الفاشلة
+            logLoginAttempt(email, false);
             return;
         }
         
+        // إنشاء توكن وهمي (يجب استخدام JWT حقيقي من الخادم في بيئة الإنتاج)
+        const fakeToken = btoa(JSON.stringify({
+            id: admin.id,
+            email: admin.email,
+            role: admin.role,
+            exp: Math.floor(Date.now() / 1000) + (60 * 60) // انتهاء الصلاحية بعد ساعة
+        }));
+        
         // حفظ بيانات المشرف
-        sessionStorage.setItem('adminAuthenticated', 'true');
+        sessionStorage.setItem('adminToken', fakeToken);
         sessionStorage.setItem('adminData', JSON.stringify(admin));
         currentAdmin = admin;
+        
+        // تسجيل محاولة الدخول الناجحة
+        logLoginAttempt(email, true);
         
         // إظهار لوحة التحكم
         showAdminPage();
@@ -146,9 +205,46 @@ async function login() {
     }
 }
 
+// التحقق من صحة البريد الإلكتروني
+function isValidEmail(email) {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+}
+
+// تسجيل محاولات الدخول
+async function logLoginAttempt(email, success) {
+    try {
+        await supabase
+            .from('login_attempts')
+            .insert([{
+                email: email,
+                success: success,
+                ip: await getClientIP(),
+                user_agent: navigator.userAgent,
+                timestamp: new Date()
+            }]);
+    } catch (error) {
+        console.error('Error logging login attempt:', error);
+    }
+}
+
+// الحصول على IP العميل (وهمي - يحتاج إلى تطبيق في الخادم)
+async function getClientIP() {
+    try {
+        const response = await fetch('https://api.ipify.org?format=json');
+        const data = await response.json();
+        return data.ip;
+    } catch (error) {
+        return 'unknown';
+    }
+}
+
 // تسجيل الخروج
 function logout() {
-    sessionStorage.removeItem('adminAuthenticated');
+    // تسجيل حدث تسجيل الخروج
+    logLogoutEvent(currentAdmin.email);
+    
+    sessionStorage.removeItem('adminToken');
     sessionStorage.removeItem('adminData');
     currentAdmin = null;
     
@@ -162,6 +258,20 @@ function logout() {
     if (emailInput) emailInput.value = '';
     if (passwordInput) passwordInput.value = '';
     if (errorElement) errorElement.textContent = '';
+}
+
+// تسجيل حدث تسجيل الخروج
+async function logLogoutEvent(email) {
+    try {
+        await supabase
+            .from('logout_events')
+            .insert([{
+                email: email,
+                timestamp: new Date()
+            }]);
+    } catch (error) {
+        console.error('Error logging logout event:', error);
+    }
 }
 
 // إعداد واجهة المشرفين حسب الصلاحية
@@ -270,13 +380,13 @@ function renderAdminsList(admins) {
         html += `
             <div class="admin-item">
                 <div class="admin-info">
-                    <h3>${admin.email}</h3>
+                    <h3>${escapeHtml(admin.email)}</h3>
                     <p>تم الإنشاء: ${new Date(admin.created_at).toLocaleDateString('ar-EG')}</p>
                     <span class="admin-role role-${admin.role}">${admin.role === 'owner' ? 'مالك' : 'مشرف'}</span>
                 </div>
                 <div class="admin-actions">
                     ${!isCurrentAdmin && currentAdmin.role === 'owner' ? 
-                        `<button class="delete-admin" onclick="deleteAdmin('${admin.id}', '${admin.email}')">حذف</button>` : 
+                        `<button class="delete-admin" onclick="deleteAdmin('${admin.id}', '${escapeHtml(admin.email)}')">حذف</button>` : 
                         '<span style="color: #ccc;">لا يمكن حذف حسابك</span>'
                     }
                 </div>
@@ -294,8 +404,20 @@ async function addAdmin(email, password, role) {
         return false;
     }
     
+    // التحقق من صحة البريد الإلكتروني
+    if (!isValidEmail(email)) {
+        alert('صيغة البريد الإلكتروني غير صحيحة');
+        return false;
+    }
+    
+    // التحقق من قوة كلمة المرور
+    if (!isStrongPassword(password)) {
+        alert('كلمة المرور يجب أن تحتوي على الأقل على 8 أحرف، وتشمل أحرف كبيرة وصغيرة وأرقام');
+        return false;
+    }
+    
     try {
-        // تشفير كلمة المرور
+        // تشفير كلمة المرور (يجب استخدام طريقة أكثر أماناً في بيئة الإنتاج)
         const passwordHash = btoa(password);
         
         const { data, error } = await supabase
@@ -323,6 +445,13 @@ async function addAdmin(email, password, role) {
         alert('حدث خطأ أثناء إضافة المشرف');
         return false;
     }
+}
+
+// التحقق من قوة كلمة المرور
+function isStrongPassword(password) {
+    // يجب أن تحتوي على الأقل على 8 أحرف، أحرف كبيرة وصغيرة وأرقام
+    const strongRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
+    return strongRegex.test(password);
 }
 
 // حذف مشرف
@@ -360,6 +489,10 @@ async function saveItemToSupabase(table, item) {
         throw new Error('Supabase not initialized');
     }
     
+    // تسجيل من قام بالإضافة
+    item.added_by = currentAdmin.id;
+    item.added_at = new Date();
+    
     const { data, error } = await supabase
         .from(table)
         .insert([item])
@@ -387,6 +520,26 @@ async function deleteItemFromSupabase(table, id) {
     if (error) {
         console.error('Error deleting item:', error);
         throw error;
+    }
+    
+    // تسجيل عملية الحذف
+    logDeletionEvent(table, id);
+}
+
+// تسجيل أحداث الحذف
+async function logDeletionEvent(table, itemId) {
+    try {
+        await supabase
+            .from('deletion_logs')
+            .insert([{
+                admin_id: currentAdmin.id,
+                admin_email: currentAdmin.email,
+                table_name: table,
+                item_id: itemId,
+                timestamp: new Date()
+            }]);
+    } catch (error) {
+        console.error('Error logging deletion:', error);
     }
 }
 
@@ -446,18 +599,18 @@ function renderAdminList(section, items) {
         
         let infoHtml = `
             <div class="item-info">
-                <h3>${item.title}</h3>
+                <h3>${escapeHtml(item.title)}</h3>
         `;
         
         if (item.description) {
-            infoHtml += `<p>${item.description.substring(0, 50)}...</p>`;
+            infoHtml += `<p>${escapeHtml(item.description.substring(0, 50))}...</p>`;
         }
         
         infoHtml += `</div>`;
         
         itemElement.innerHTML = infoHtml + `
             <div class="item-actions">
-                <button onclick="deleteItem('${section}', ${item.id}, '${item.title.replace(/'/g, "\\'")}')">حذف</button>
+                <button onclick="deleteItem('${section}', ${item.id}, '${escapeHtml(item.title.replace(/'/g, "\\'"))}')">حذف</button>
             </div>
         `;
         
@@ -465,73 +618,107 @@ function renderAdminList(section, items) {
     });
 }
 
+// منع هجمات XSS
+function escapeHtml(text) {
+    const map = {
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#039;'
+    };
+    
+    return text.replace(/[&<>"']/g, function(m) { return map[m]; });
+}
+
 // إعداد وظيفة البحث
 function setupSearchFunctionality() {
     // إعداد البحث للكتب
-    document.getElementById('books-search').addEventListener('input', function(e) {
-        const searchTerm = e.target.value.toLowerCase();
-        const filteredBooks = siteData.books.filter(book => 
-            book.title.toLowerCase().includes(searchTerm) || 
-            (book.description && book.description.toLowerCase().includes(searchTerm))
-        );
-        renderAdminList('books', filteredBooks);
-    });
+    const booksSearch = document.getElementById('books-search');
+    if (booksSearch) {
+        booksSearch.addEventListener('input', function(e) {
+            const searchTerm = e.target.value.toLowerCase();
+            const filteredBooks = siteData.books.filter(book => 
+                book.title.toLowerCase().includes(searchTerm) || 
+                (book.description && book.description.toLowerCase().includes(searchTerm))
+            );
+            renderAdminList('books', filteredBooks);
+        });
+    }
     
     // إعداد البحث للروايات
-    document.getElementById('novels-search').addEventListener('input', function(e) {
-        const searchTerm = e.target.value.toLowerCase();
-        const filteredNovels = siteData.novels.filter(novel => 
-            novel.title.toLowerCase().includes(searchTerm) || 
-            (novel.description && novel.description.toLowerCase().includes(searchTerm))
-        );
-        renderAdminList('novels', filteredNovels);
-    });
+    const novelsSearch = document.getElementById('novels-search');
+    if (novelsSearch) {
+        novelsSearch.addEventListener('input', function(e) {
+            const searchTerm = e.target.value.toLowerCase();
+            const filteredNovels = siteData.novels.filter(novel => 
+                novel.title.toLowerCase().includes(searchTerm) || 
+                (novel.description && novel.description.toLowerCase().includes(searchTerm))
+            );
+            renderAdminList('novels', filteredNovels);
+        });
+    }
     
     // إعداد البحث للملفات
-    document.getElementById('files-search').addEventListener('input', function(e) {
-        const searchTerm = e.target.value.toLowerCase();
-        const filteredFiles = siteData.files.filter(file => 
-            file.title.toLowerCase().includes(searchTerm) || 
-            (file.description && file.description.toLowerCase().includes(searchTerm))
-        );
-        renderAdminList('files', filteredFiles);
-    });
+    const filesSearch = document.getElementById('files-search');
+    if (filesSearch) {
+        filesSearch.addEventListener('input', function(e) {
+            const searchTerm = e.target.value.toLowerCase();
+            const filteredFiles = siteData.files.filter(file => 
+                file.title.toLowerCase().includes(searchTerm) || 
+                (file.description && file.description.toLowerCase().includes(searchTerm))
+            );
+            renderAdminList('files', filteredFiles);
+        });
+    }
     
     // إعداد البحث للمنصات
-    document.getElementById('platforms-search').addEventListener('input', function(e) {
-        const searchTerm = e.target.value.toLowerCase();
-        const filteredPlatforms = siteData.platforms.filter(platform => 
-            platform.title.toLowerCase().includes(searchTerm)
-        );
-        renderAdminList('platforms', filteredPlatforms);
-    });
+    const platformsSearch = document.getElementById('platforms-search');
+    if (platformsSearch) {
+        platformsSearch.addEventListener('input', function(e) {
+            const searchTerm = e.target.value.toLowerCase();
+            const filteredPlatforms = siteData.platforms.filter(platform => 
+                platform.title.toLowerCase().includes(searchTerm)
+            );
+            renderAdminList('platforms', filteredPlatforms);
+        });
+    }
     
     // إعداد البحث للتطبيقات
-    document.getElementById('apps-search').addEventListener('input', function(e) {
-        const searchTerm = e.target.value.toLowerCase();
-        const filteredApps = siteData.apps.filter(app => 
-            app.title.toLowerCase().includes(searchTerm) || 
-            (app.description && app.description.toLowerCase().includes(searchTerm))
-        );
-        renderAdminList('apps', filteredApps);
-    });
+    const appsSearch = document.getElementById('apps-search');
+    if (appsSearch) {
+        appsSearch.addEventListener('input', function(e) {
+            const searchTerm = e.target.value.toLowerCase();
+            const filteredApps = siteData.apps.filter(app => 
+                app.title.toLowerCase().includes(searchTerm) || 
+                (app.description && app.description.toLowerCase().includes(searchTerm))
+            );
+            renderAdminList('apps', filteredApps);
+        });
+    }
     
     // إعداد البحث للسيرفرات
-    document.getElementById('servers-search').addEventListener('input', function(e) {
-        const searchTerm = e.target.value.toLowerCase();
-        const filteredServers = siteData.servers.filter(server => 
-            server.title.toLowerCase().includes(searchTerm) || 
-            (server.description && server.description.toLowerCase().includes(searchTerm))
-        );
-        renderAdminList('servers', filteredServers);
-    });
+    const serversSearch = document.getElementById('servers-search');
+    if (serversSearch) {
+        serversSearch.addEventListener('input', function(e) {
+            const searchTerm = e.target.value.toLowerCase();
+            const filteredServers = siteData.servers.filter(server => 
+                server.title.toLowerCase().includes(searchTerm) || 
+                (server.description && server.description.toLowerCase().includes(searchTerm))
+            );
+            renderAdminList('servers', filteredServers);
+        });
+    }
     
     // إعداد البحث للمشرفين
-    document.getElementById('admins-search').addEventListener('input', function(e) {
-        const searchTerm = e.target.value.toLowerCase();
-        // سيتم تطبيق البحث على المشرفين عندما يتم تحميلهم
-        // هذه الوظيفة تحتاج إلى تعديل عندما يكون هناك طريقة لجلب المشرفين
-    });
+    const adminsSearch = document.getElementById('admins-search');
+    if (adminsSearch) {
+        adminsSearch.addEventListener('input', function(e) {
+            const searchTerm = e.target.value.toLowerCase();
+            // سيتم تطبيق البحث على المشرفين عندما يتم تحميلهم
+            // هذه الوظيفة تحتاج إلى تعديل عندما يكون هناك طريقة لجلب المشرفين
+        });
+    }
 }
 
 // إعداد التبويبات
@@ -590,15 +777,21 @@ function setupEventListeners() {
             e.preventDefault();
             login();
         });
-        
-        // إضافة event listener للزر مباشرة أيضاً
-        const loginBtn = loginForm.querySelector('button');
-        if (loginBtn) {
-            loginBtn.addEventListener('click', function(e) {
-                e.preventDefault();
-                login();
-            });
-        }
+    }
+    
+    // إضافة event listener لزر الدخول
+    const loginBtn = document.getElementById('login-btn');
+    if (loginBtn) {
+        loginBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            login();
+        });
+    }
+    
+    // إعداد زر تسجيل الخروج
+    const logoutBtn = document.getElementById('logout-btn');
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', logout);
     }
     
     // إعداد نموذج إضافة مشرف
@@ -622,89 +815,6 @@ function setupEventListeners() {
     
     // إعداد التبويبات
     setupTabs();
-    
-    // إعداد النماذج الأخرى
-    setupOtherForms();
-}
-
-// إعداد النماذج الأخرى
-function setupOtherForms() {
-    const formSelectors = {
-        'server-form': handleServerSubmit,
-        'book-form': handleBookSubmit,
-        'novel-form': handleNovelSubmit,
-        'file-form': handleFileSubmit,
-        'platform-form': handlePlatformSubmit,
-        'app-form': handleAppSubmit
-    };
-    
-    Object.entries(formSelectors).forEach(([formId, handler]) => {
-        const form = document.getElementById(formId);
-        if (form) {
-            form.addEventListener('submit', function(e) {
-                e.preventDefault();
-                handler.call(this, e);
-            });
-        }
-    });
-    
-    // إعداد زر إضافة صورة للرواية
-    const addImageBtn = document.getElementById('add-novel-image');
-    if (addImageBtn) {
-        addImageBtn.addEventListener('click', function() {
-            const imagesContainer = document.getElementById('novel-images-container');
-            if (imagesContainer) {
-                const newInput = document.createElement('input');
-                newInput.type = 'url';
-                newInput.className = 'novel-image-input';
-                newInput.placeholder = 'رابط الصورة';
-                imagesContainer.appendChild(newInput);
-            }
-        });
-    }
-    
-    // إعداد زر تسجيل الخروج
-    const logoutBtn = document.querySelector('.logout-btn');
-    if (logoutBtn) {
-        logoutBtn.addEventListener('click', logout);
-    }
-}
-// دالة جديدة للإعداد بعد تسجيل الدخول
-function setupAfterLogin() {
-    // إضافة event listener لنموذج إضافة مشرف (للمالك فقط)
-    const addAdminForm = document.getElementById('add-admin-form');
-    if (addAdminForm && currentAdmin.role === 'owner') {
-        addAdminForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-            const email = document.getElementById('new-admin-email').value;
-            const password = document.getElementById('new-admin-password').value;
-            const role = document.getElementById('new-admin-role').value;
-            
-            addAdmin(email, password, role).then(success => {
-                if (success) {
-                    this.reset();
-                }
-            });
-        });
-    }
-    
-    // إضافة event listener لأزرار النماذج الأخرى
-    document.getElementById('server-form').addEventListener('submit', handleServerSubmit);
-    document.getElementById('book-form').addEventListener('submit', handleBookSubmit);
-    document.getElementById('novel-form').addEventListener('submit', handleNovelSubmit);
-    document.getElementById('file-form').addEventListener('submit', handleFileSubmit);
-    document.getElementById('platform-form').addEventListener('submit', handlePlatformSubmit);
-    document.getElementById('app-form').addEventListener('submit', handleAppSubmit);
-    
-    // إضافة event listener لإضافة صورة رواية
-    document.getElementById('add-novel-image').addEventListener('click', function() {
-        const imagesContainer = document.getElementById('novel-images-container');
-        const newInput = document.createElement('input');
-        newInput.type = 'url';
-        newInput.className = 'novel-image-input';
-        newInput.placeholder = 'رابط الصورة';
-        imagesContainer.appendChild(newInput);
-    });
 }
 
 // معالجة إرسال نماذج العناصر
