@@ -243,6 +243,9 @@ function renderSection(sectionId) {
         const itemElement = createItemElement(sectionId, item);
         container.appendChild(itemElement);
     });
+    
+    // تحديث العداد
+    updateItemsCount(sectionId, items.length);
 }
 
 // عرض المحتوى البارز على الصفحة الرئيسية
@@ -418,6 +421,14 @@ function createServerItem(item) {
     `;
 }
 
+// تحديث عداد العناصر
+function updateItemsCount(category, count) {
+    const countElement = document.getElementById(`${category}-count`);
+    if (countElement) {
+        countElement.textContent = `(${count})`;
+    }
+}
+
 // إجراء البحث
 function performSearch() {
     const searchTerm = domElements.searchInput.value.trim().toLowerCase();
@@ -521,12 +532,18 @@ function showError(message) {
     }, 5000);
 }
 
+// وظيفة تمرير الأقسام
+function scrollCategories(direction) {
+    const container = document.querySelector('.categories-wrapper');
+    container.scrollBy({ left: direction, behavior: 'smooth' });
+}
+
 // تهيئة التطبيق عند تحميل الصفحة
 document.addEventListener('DOMContentLoaded', initApp);
 
 // إضافة أنماط للتمييز وتحسين الروايات
 const customStyles = document.createElement('style');
-customStyles.textContent = 
+customStyles.textContent = `
     .highlight {
         animation: highlight 2s ease;
         border: 2px solid #D4AF37 !important;
@@ -589,5 +606,5 @@ customStyles.textContent =
             height: 50px;
         }
     }
-;
+`;
 document.head.appendChild(customStyles);
