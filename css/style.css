@@ -1034,7 +1034,42 @@ footer p {
 .item-button:hover::after {
     opacity: 0;
 }
+/* تحسينات للعناصر الافتراضية */
+.placeholder-image .fa-question {
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 2.5rem;
+}
 
+/* تحسينات للعناصر التي ليس لها صور */
+.no-items {
+    text-align: center;
+    padding: 2rem;
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 1.1rem;
+    grid-column: 1 / -1;
+}
+
+/* تحسينات للشعارات */
+.item-badge {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: #D4AF37;
+    color: #8B0000;
+    padding: 5px 10px;
+    border-radius: 15px;
+    font-size: 0.8rem;
+    font-weight: bold;
+    z-index: 2;
+}
+
+/* تحسينات للاستجابة على الجوال */
+@media (max-width: 768px) {
+    .item-badge {
+        font-size: 0.7rem;
+        padding: 3px 8px;
+    }
+}
 /* شارات العناصر المميزة */
 .item-badge {
     position: absolute;
