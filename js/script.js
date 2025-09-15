@@ -312,6 +312,25 @@ function createItemElement(category, item) {
     }
     
     div.innerHTML = content;
+    
+    // إضافة مستمع حدث للنقر على العنصر (باستثناء الأزرار)
+    div.addEventListener('click', (e) => {
+        // منع فتح التفاصيل إذا تم النقر على زر
+        if (!e.target.closest('.item-button')) {
+            openItemDetails(category, item.id);
+        }
+    });
+    
+    // إضافة تأثيرات التمرير
+    div.style.cursor = 'pointer';
+    div.style.transition = 'transform 0.2s ease-in-out';
+    div.addEventListener('mouseenter', () => {
+        div.style.transform = 'translateY(-5px)';
+    });
+    div.addEventListener('mouseleave', () => {
+        div.style.transform = 'translateY(0)';
+    });
+    
     return div;
 }
 
@@ -352,6 +371,25 @@ function createHighlightElement(category, item) {
     `;
     
     div.innerHTML = content;
+    
+    // إضافة مستمع حدث للنقر على العنصر (باستثناء الأزرار)
+    div.addEventListener('click', (e) => {
+        // منع فتح التفاصيل إذا تم النقر على زر
+        if (!e.target.closest('.item-button')) {
+            openItemDetails(category, item.id);
+        }
+    });
+    
+    // إضافة تأثيرات التمرير
+    div.style.cursor = 'pointer';
+    div.style.transition = 'transform 0.2s ease-in-out';
+    div.addEventListener('mouseenter', () => {
+        div.style.transform = 'translateY(-5px)';
+    });
+    div.addEventListener('mouseleave', () => {
+        div.style.transform = 'translateY(0)';
+    });
+    
     return div;
 }
 
