@@ -355,6 +355,8 @@ function createItemElement(category, item) {
 }
 
 // إنشاء عنصر مميز للصفحة الرئيسية
+
+// إنشاء عنصر مميز للصفحة الرئيسية (معدّل)
 function createHighlightElement(category, item) {
     const div = document.createElement('div');
     div.className = cssClasses.item;
@@ -382,69 +384,21 @@ function createHighlightElement(category, item) {
         case 'servers':
             content = createServerItem(item);
             break;
+        default:
+            // عنصر افتراضي في حالة وجود نوع غير معروف
+            content = `
+                <div class="item-image-container">
+                    <div class="placeholder-image"><i class="fas fa-question"></i></div>
+                </div>
+                <h3>${item.title || 'عنصر بدون عنوان'}</h3>
+                <p>${item.description || 'لا يوجد وصف متاح'}</p>
+                <a href="#" class="${cssClasses.itemButton}">عرض التفاصيل</a>
+            `;
     }
     
     // إضافة شارة توضح نوع المحتوى
     content = `
-        <div class="item-badge">${categoryNames[category]}</div>
-        ${content}
-    `;
-    
-    div.innerHTML = content;
-    
-    // إضافة مستمع حدث للنقر على العنصر (باستثناء الأزرار)
-    div.addEventListener('click', (e) => {
-        // منع فتح التفاصيل إذا تم النقر على زر
-        if (!e.target.closest('.item-button')) {
-            openItemDetails(category, item.id);
-        }
-    });
-    
-    // إضافة تأثيرات التمرير
-    div.style.cursor = 'pointer';
-    div.style.transition = 'transform 0.2s ease-in-out';
-    div.addEventListener('mouseenter', () => {
-        div.style.transform = 'translateY(-5px)';
-    });
-    div.addEventListener('mouseleave', () => {
-        div.style.transform = 'translateY(0)';
-    });
-    
-    return div;
-}
-// إنشاء عنصر مميز للصفحة الرئيسية
-function createHighlightElement(category, item) {
-    const div = document.createElement('div');
-    div.className = cssClasses.item;
-    div.setAttribute('data-item-id', item.id);
-    div.setAttribute('data-category', category);
-    
-    let content = '';
-    
-    switch(category) {
-        case 'books':
-            content = createBookItem(item);
-            break;
-        case 'novels':
-            content = createNovelItem(item);
-            break;
-        case 'files':
-            content = createFileItem(item);
-            break;
-        case 'platforms':
-            content = createPlatformItem(item);
-            break;
-        case 'apps':
-            content = createAppItem(item);
-            break;
-        case 'servers':
-            content = createServerItem(item);
-            break;
-    }
-    
-    // إضافة شارة توضح نوع المحتوى
-    content = `
-        <div class="item-badge">${categoryNames[category]}</div>
+        <div class="item-badge">${categoryNames[category] || 'غير معروف'}</div>
         ${content}
     `;
     
