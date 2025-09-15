@@ -425,28 +425,59 @@ function renderAdminsList(admins) {
         return;
     }
     
-    let html = '';
+    // استخدام DocumentFragment لتحسين الأداء
+    const fragment = document.createDocumentFragment();
+    
     admins.forEach(admin => {
         const isCurrentAdmin = currentAdmin && admin.id === currentAdmin.id;
         
-        html += `
-            <div class="admin-item">
-                <div class="admin-info">
-                    <h3>${escapeHtml(admin.email)}</h3>
-                    <p>تم الإنشاء: ${new Date(admin.created_at).toLocaleDateString('ar-EG')}</p>
-                    <span class="admin-role role-${admin.role}">${admin.role === 'owner' ? 'مالك' : 'مشرف'}</span>
-                </div>
-                <div class="admin-actions">
-                    ${!isCurrentAdmin && currentAdmin.role === 'owner' ? 
-                        `<button class="delete-admin" onclick="deleteAdmin('${admin.id}', '${escapeHtml(admin.email)}')">حذف</button>` : 
-                        '<span style="color: #ccc;">لا يمكن حذف حسابك</span>'
-                    }
-                </div>
-            </div>
-        `;
+        const adminItem = document.createElement('div');
+        adminItem.className = 'admin-item';
+        
+        const adminInfo = document.createElement('div');
+        adminInfo.className = 'admin-info';
+        
+        const emailHeading = document.createElement('h3');
+        emailHeading.textContent = escapeHtml(admin.email);
+        
+        const createdAt = document.createElement('p');
+        createdAt.textContent = `تم الإنشاء: ${new Date(admin.created_at).toLocaleDateString('ar-EG')}`;
+        
+        const roleSpan = document.createElement('span');
+        roleSpan.className = `admin-role role-${admin.role}`;
+        roleSpan.textContent = admin.role === 'owner' ? 'مالك' : 'مشرف';
+        
+        adminInfo.appendChild(emailHeading);
+        adminInfo.appendChild(createdAt);
+        adminInfo.appendChild(roleSpan);
+        
+        const adminActions = document.createElement('div');
+        adminActions.className = 'admin-actions';
+        
+        if (!isCurrentAdmin && currentAdmin.role === 'owner') {
+            const deleteButton = document.createElement('button');
+            deleteButton.className = 'delete-admin';
+            deleteButton.textContent = 'حذف';
+            deleteButton.addEventListener('click', () => {
+                deleteAdmin(admin.id, admin.email);
+            });
+            adminActions.appendChild(deleteButton);
+        } else {
+            const noDeleteSpan = document.createElement('span');
+            noDeleteSpan.style.color = '#ccc';
+            noDeleteSpan.textContent = 'لا يمكن حذف حسابك';
+            adminActions.appendChild(noDeleteSpan);
+        }
+        
+        adminItem.appendChild(adminInfo);
+        adminItem.appendChild(adminActions);
+        
+        fragment.appendChild(adminItem);
     });
     
-    listElement.innerHTML = html;
+    // مسح المحتوى القديم وإضافة الجديد
+    listElement.innerHTML = '';
+    listElement.appendChild(fragment);
 }
 
 // إضافة مشرف جديد
