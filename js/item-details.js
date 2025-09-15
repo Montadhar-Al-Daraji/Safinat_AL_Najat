@@ -475,9 +475,10 @@ function copyToClipboard(text) {
     });
 }
 
-// الرجوع إلى الصفحة السابقة
+// الرجوع إلى الصفحة الرئيسية
 function goBack() {
-    window.history.back();
+    // استخدام window.location للانتقال إلى index.html
+    window.location.href = 'index.html';
 }
 
 // إظهار مؤشر التحميل
