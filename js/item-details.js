@@ -375,3 +375,10 @@ function scrollCategories(direction) {
     const container = document.querySelector('.categories-wrapper');
     container.scrollBy({ left: direction, behavior: 'smooth' });
 }
+
+// تهيئة التطبيق عند تحميل الصفحة
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOM loaded, initializing...');
+    loadItemDetails();
+    setupEventListeners();
+});
