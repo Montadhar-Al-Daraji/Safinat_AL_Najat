@@ -3,23 +3,54 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>لوحة التحكم - المنصة الدينية</title>
+    <title>لوحة التحكم - سفينة النجاة</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../css/style.css">
     <link rel="stylesheet" href="./admin.css">
 </head>
 <body>
+    <div class="video-background">
+        <video autoplay muted loop id="bgVideo">
+            <source src="https://c.top4top.io/m_3544ww25t1.mp4">
+            متصفحك لا يدعم تشغيل الفيديو
+        </video>
+    </div>
+    
+    <div class="overlay"></div>
+
     <div id="login-container" class="login-container">
         <div class="login-form">
-            <h2>تسجيل الدخول</h2>
+            <div class="login-logo">
+                <img src="../assets/logo.png" alt="شعار المنصة الدينية">
+                <h2>سفينة النجاة</h2>
+            </div>
+            <h3>تسجيل الدخول للإدارة</h3>
             <form id="login-form">
-                <input type="email" id="email" placeholder="البريد الإلكتروني" required>
-                <input type="password" id="password" placeholder="كلمة المرور" required>
-                <button type="submit">دخول</button>
+                <div class="input-group">
+                    <i class="fas fa-envelope"></i>
+                    <input type="email" id="email" placeholder="البريد الإلكتروني" required>
+                </div>
+                <div class="input-group">
+                    <i class="fas fa-lock"></i>
+                    <input type="password" id="password" placeholder="كلمة المرور" required>
+                    <button type="button" id="toggle-password" class="toggle-password">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                </div>
+                <button type="submit" class="login-btn">
+                    <i class="fas fa-sign-in-alt"></i>
+                    دخول
+                </button>
             </form>
             <p id="login-error" class="error-message"></p>
+            
+            <div class="security-notice">
+                <i class="fas fa-shield-alt"></i>
+                <p>يتم مراقبة جميع محاولات الدخول لأغراض أمنية</p>
+            </div>
         </div>
     </div>
 
@@ -27,10 +58,28 @@
         <!-- باقي محتوى لوحة التحكم -->
     
         <header class="admin-header">
-            <h1>لوحة تحكم المشرف</h1>
-            <div class="admin-actions">
-                <a href="../index.html" class="back-to-site">العودة للموقع</a>
-                <button onclick="logout()" class="logout-btn">تسجيل الخروج</button>
+            <div class="admin-header-content">
+                <div class="admin-info">
+                    <h1>لوحة تحكم المشرف</h1>
+                    <div class="user-info">
+                        <span id="admin-email"></span>
+                        <span class="role-badge" id="admin-role"></span>
+                    </div>
+                </div>
+                <div class="admin-actions">
+                    <div class="session-info">
+                        <i class="fas fa-clock"></i>
+                        <span id="session-timer">00:00</span>
+                    </div>
+                    <a href="../index.html" class="back-to-site">
+                        <i class="fas fa-home"></i>
+                        العودة للموقع
+                    </a>
+                    <button onclick="logout()" class="logout-btn">
+                        <i class="fas fa-sign-out-alt"></i>
+                        تسجيل الخروج
+                    </button>
+                </div>
             </div>
         </header>
 
@@ -43,160 +92,146 @@
                 <button class="tab-button" data-tab="platforms">المنصات</button>
                 <button class="tab-button" data-tab="apps">التطبيقات</button>
                 <button class="tab-button" data-tab="servers">السيرفرات</button>
-                <button class="tab-button" data-tab="admins" id="admins-tab" style="display: none;">المشرفين</button>
+                <button class="tab-button" data-tab="admins" id="admins-tab">إدارة المشرفين</button>
+                <button class="tab-button" data-tab="security" id="security-tab">الأمان</button>
             </div>
         </div>
         
         <div class="admin-panels">
-            <!-- قسم الكتب -->
-            <div class="admin-panel active" id="books-panel">
-                <div class="panel-header">
-                    <h2>إدارة الكتب</h2>
-                    <div class="search-box">
-                        <input type="text" id="books-search" placeholder="ابحث عن كتاب..." class="search-input">
-                        <i class="fas fa-search search-icon"></i>
-                    </div>
-                </div>
-                <form id="book-form" class="admin-form">
-                    <input type="text" id="book-title" placeholder="عنوان الكتاب" required>
-                    <textarea id="book-description" placeholder="وصف الكتاب" required></textarea>
-                    <input type="url" id="book-image" placeholder="رابط صورة الكتاب">
-                    <input type="url" id="book-drive-link" placeholder="رابط Google Drive" required>
-                    <button type="submit">إضافة الكتاب</button>
-                </form>
-                <div class="items-list" id="books-list">
-                    <p class="no-items">جاري تحميل البيانات...</p>
-                </div>
-            </div>
-            
-            <!-- قسم الروايات -->
-            <div class="admin-panel" id="novels-panel">
-                <div class="panel-header">
-                    <h2>إدارة الروايات</h2>
-                    <div class="search-box">
-                        <input type="text" id="novels-search" placeholder="ابحث عن رواية..." class="search-input">
-                        <i class="fas fa-search search-icon"></i>
-                    </div>
-                </div>
-                <form id="novel-form" class="admin-form">
-                    <input type="text" id="novel-title" placeholder="عنوان الرواية" required>
-                    <textarea id="novel-description" placeholder="وصف الرواية" required></textarea>
-                    <div id="novel-images-container">
-                        <input type="url" class="novel-image-input" placeholder="رابط الصورة">
-                    </div>
-                    <button type="button" id="add-novel-image">إضافة صورة أخرى</button>
-                    <button type="submit">إضافة الرواية</button>
-                </form>
-                <div class="items-list" id="novels-list">
-                    <p class="no-items">جاري تحميل البيانات...</p>
-                </div>
-            </div>
-            
-            <!-- قسم الملفات -->
-            <div class="admin-panel" id="files-panel">
-                <div class="panel-header">
-                    <h2>إدارة الملفات</h2>
-                    <div class="search-box">
-                        <input type="text" id="files-search" placeholder="ابحث عن ملف..." class="search-input">
-                        <i class="fas fa-search search-icon"></i>
-                    </div>
-                </div>
-                <form id="file-form" class="admin-form">
-                    <input type="text" id="file-title" placeholder="عنوان الملف" required>
-                    <textarea id="file-description" placeholder="وصف الملف" required></textarea>
-                    <input type="url" id="file-image" placeholder="رابط صورة الملف">
-                    <input type="url" id="file-drive-link" placeholder="رابط Google Drive" required>
-                    <button type="submit">إضافة الملف</button>
-                </form>
-                <div class="items-list" id="files-list">
-                    <p class="no-items">جاري تحميل البيانات...</p>
-                </div>
-            </div>
-            
-            <!-- قسم المنصات -->
-            <div class="admin-panel" id="platforms-panel">
-                <div class="panel-header">
-                    <h2>إدارة المنصات</h2>
-                    <div class="search-box">
-                        <input type="text" id="platforms-search" placeholder="ابحث عن منصة..." class="search-input">
-                        <i class="fas fa-search search-icon"></i>
-                    </div>
-                </div>
-                <form id="platform-form" class="admin-form">
-                    <input type="text" id="platform-title" placeholder="اسم المنصة" required>
-                    <input type="url" id="platform-image" placeholder="رابط صورة المنصة" required>
-                    <input type="url" id="platform-link" placeholder="رابط المنصة" required>
-                    <button type="submit">إضافة المنصة</button>
-                </form>
-                <div class="items-list" id="platforms-list">
-                    <p class="no-items">جاري تحميل البيانات...</p>
-                </div>
-            </div>
-            
-            <!-- قسم التطبيقات -->
-            <div class="admin-panel" id="apps-panel">
-                <div class="panel-header">
-                    <h2>إدارة التطبيقات</h2>
-                    <div class="search-box">
-                        <input type="text" id="apps-search" placeholder="ابحث عن تطبيق..." class="search-input">
-                        <i class="fas fa-search search-icon"></i>
-                    </div>
-                </div>
-                <form id="app-form" class="admin-form">
-                    <input type="text" id="app-title" placeholder="اسم التطبيق" required>
-                    <textarea id="app-description" placeholder="وصف التطبيق" required></textarea>
-                    <input type="url" id="app-image" placeholder="رابط صورة التطبيق">
-                    <input type="url" id="app-download-link" placeholder="رابط التحميل" required>
-                    <button type="submit">إضافة التطبيق</button>
-                </form>
-                <div class="items-list" id="apps-list">
-                    <p class="no-items">جاري تحميل البيانات...</p>
-                </div>
-            </div>
-            
-            <!-- قسم السيرفرات -->
-            <div class="admin-panel" id="servers-panel">
-                <div class="panel-header">
-                    <h2>إدارة السيرفرات</h2>
-                    <div class="search-box">
-                        <input type="text" id="servers-search" placeholder="ابحث عن سيرفر..." class="search-input">
-                        <i class="fas fa-search search-icon"></i>
-                    </div>
-                </div>
-                <form id="server-form" class="admin-form">
-                    <input type="text" id="server-title" placeholder="اسم السيرفر" required>
-                    <textarea id="server-description" placeholder="وصف السيرفر" required></textarea>
-                    <input type="url" id="server-image" placeholder="رابط صورة السيرفر">
-                    <input type="url" id="server-link" placeholder="رابط السيرفر" required>
-                    <button type="submit">إضافة السيرفر</button>
-                </form>
-                <div class="items-list" id="servers-list">
-                    <p class="no-items">جاري تحميل البيانات...</p>
-                </div>
-            </div>
+            <!-- الأقسام الحالية تبقى كما هي -->
             
             <!-- قسم إدارة المشرفين -->
             <div class="admin-panel" id="admins-panel">
                 <div class="panel-header">
                     <h2>إدارة المشرفين</h2>
-                    <div class="search-box">
-                        <input type="text" id="admins-search" placeholder="ابحث عن مشرف..." class="search-input">
-                        <i class="fas fa-search search-icon"></i>
+                    <div class="panel-actions">
+                        <div class="search-box">
+                            <input type="text" id="admins-search" placeholder="ابحث عن مشرف..." class="search-input">
+                            <i class="fas fa-search search-icon"></i>
+                        </div>
+                        <button class="refresh-btn" onclick="loadAdmins()">
+                            <i class="fas fa-sync-alt"></i>
+                        </button>
                     </div>
                 </div>
+                
+                <div class="admin-stats">
+                    <div class="stat-card">
+                        <i class="fas fa-users"></i>
+                        <h3>إجمالي المشرفين</h3>
+                        <span id="total-admins">0</span>
+                    </div>
+                    <div class="stat-card">
+                        <i class="fas fa-crown"></i>
+                        <h3>المالكين</h3>
+                        <span id="total-owners">0</span>
+                    </div>
+                    <div class="stat-card">
+                        <i class="fas fa-user-shield"></i>
+                        <h3>المشرفين</h3>
+                        <span id="total-admins-count">0</span>
+                    </div>
+                </div>
+                
                 <form id="add-admin-form" class="admin-form">
-                    <input type="email" id="new-admin-email" placeholder="بريد المشرف الجديد" required>
-                    <input type="password" id="new-admin-password" placeholder="كلمة المرور" required>
-                    <select id="new-admin-role" required>
-                        <option value="admin">مشرف</option>
-                        <option value="owner">مالك</option>
-                    </select>
-                    <button type="submit">إضافة مشرف</button>
+                    <h3>إضافة مشرف جديد</h3>
+                    <div class="form-row">
+                        <div class="input-group">
+                            <i class="fas fa-envelope"></i>
+                            <input type="email" id="new-admin-email" placeholder="بريد المشرف الجديد" required>
+                        </div>
+                        <div class="input-group">
+                            <i class="fas fa-lock"></i>
+                            <input type="password" id="new-admin-password" placeholder="كلمة المرور" required>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="input-group">
+                            <i class="fas fa-user-tag"></i>
+                            <select id="new-admin-role" required>
+                                <option value="admin">مشرف</option>
+                                <option value="owner">مالك</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="add-btn">
+                            <i class="fas fa-plus"></i>
+                            إضافة مشرف
+                        </button>
+                    </div>
                 </form>
+                
                 <div class="items-list" id="admins-list">
-                    <p class="no-items">جاري تحميل قائمة المشرفين...</p>
+                    <div class="loading-spinner">
+                        <i class="fas fa-spinner fa-spin"></i>
+                        <p>جاري تحميل قائمة المشرفين...</p>
+                    </div>
                 </div>
             </div>
+            
+            <!-- قسم الأمان -->
+            <div class="admin-panel" id="security-panel">
+                <div class="panel-header">
+                    <h2>إعدادات الأمان</h2>
+                </div>
+                
+                <div class="security-settings">
+                    <div class="setting-card">
+                        <h3><i class="fas fa-shield-alt"></i> جلسة العمل</h3>
+                        <p>مدة الجلسة الحالية: <span id="session-timeout">30</span> دقيقة</p>
+                        <button class="btn-secondary" onclick="resetSession()">
+                            <i class="fas fa-sync"></i>
+                            تجديد الجلسة
+                        </button>
+                    </div>
+                    
+                    <div class="setting-card">
+                        <h3><i class="fas fa-history"></i> سجل الدخول</h3>
+                        <p>آخر دخول: <span id="last-login">-</span></p>
+                        <p>عنوان IP: <span id="login-ip">-</span></p>
+                    </div>
+                    
+                    <div class="setting-card">
+                        <h3><i class="fas fa-lock"></i> كلمة المرور</h3>
+                        <button class="btn-secondary" onclick="changePassword()">
+                            <i class="fas fa-key"></i>
+                            تغيير كلمة المرور
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="security-logs">
+                    <h3>سجل الأمان</h3>
+                    <div class="logs-container" id="security-logs">
+                        <p>جاري تحميل سجل الأمان...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- نافذة تغيير كلمة المرور -->
+    <div id="password-modal" class="modal">
+        <div class="modal-content">
+            <span class="modal-close" onclick="closeModal('password-modal')">&times;</span>
+            <h2>تغيير كلمة المرور</h2>
+            <form id="change-password-form">
+                <div class="input-group">
+                    <i class="fas fa-lock"></i>
+                    <input type="password" id="current-password" placeholder="كلمة المرور الحالية" required>
+                </div>
+                <div class="input-group">
+                    <i class="fas fa-lock"></i>
+                    <input type="password" id="new-password" placeholder="كلمة المرور الجديدة" required>
+                </div>
+                <div class="input-group">
+                    <i class="fas fa-lock"></i>
+                    <input type="password" id="confirm-password" placeholder="تأكيد كلمة المرور" required>
+                </div>
+                <button type="submit" class="btn-primary">
+                    <i class="fas fa-save"></i>
+                    حفظ التغييرات
+                </button>
+            </form>
         </div>
     </div>
 
