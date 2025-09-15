@@ -15,7 +15,7 @@ let siteData = {
 
 // ثوابت Supabase - يجب تخزينها بشكل آمن في بيئة الإنتاج
 const SUPABASE_URL = 'https://xzltdsmmolyvcmkfzedf.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bHRkc21tb2x5dmNta2Z6ZWRmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc2Nzg1NzEsImV4cCI6MjA3MzI1NDU3MX0.3TJ49ctEhOT1KDIFtZXFw2jwTq57ujaWbqNNJ2Eeb1U';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhbmFzZSIsInJlZiI6Inh6bHRkc21tb2x5dmNta2Z6ZWRmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc2Nzg1NzEsImV4cCI6MjA3MzI1NDU3MX0.3TJ49ctEhOT1KDIFtZXFw2jwTq57ujaWbqNNJ2Eeb1U';
 
 // تهيئة Supabase
 function initSupabase() {
@@ -416,7 +416,7 @@ async function loadAdminsList() {
     }
 }
 
-// عرض قائمة المشرفين
+// عرض قائمة المشرفين (الدالة المصححة)
 function renderAdminsList(admins) {
     const listElement = document.getElementById('admins-list');
     
@@ -705,7 +705,7 @@ function renderAdminList(section, items) {
     });
 }
 
-// منع هجمات XSS
+// منع هجمات XSS (نسخة محسنة)
 function escapeHtml(text) {
     if (typeof text !== 'string') {
         return text;
@@ -713,18 +713,7 @@ function escapeHtml(text) {
     
     const div = document.createElement('div');
     div.textContent = text;
-    
     return div.innerHTML;
-    
-    const map = {
-        '&': '&amp;',
-        '<': '&lt;',
-        '>': '&gt;',
-        '"': '&quot;',
-        "'": '&#039;'
-    };
-    
-    return text.replace(/[&<>"']/g, function(m) { return map[m]; });
 }
 
 // إعداد وظيفة البحث
