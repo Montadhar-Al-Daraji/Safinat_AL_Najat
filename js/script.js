@@ -280,8 +280,12 @@ function renderHighlights() {
         container.appendChild(itemElement);
     });
 }
+// فتح صفحة تفاصيل العنصر
+function openItemDetails(category, itemId) {
+    window.location.href = `item-details.html?type=${category}&id=${itemId}`;
+}
 
-// إنشاء عنصر لعرضه
+// إنشاء عنصر لعرضه (معدّل)
 function createItemElement(category, item) {
     const div = document.createElement('div');
     div.className = cssClasses.item;
@@ -334,6 +338,64 @@ function createItemElement(category, item) {
     return div;
 }
 
+// إنشاء عنصر مميز للصفحة الرئيسية
+function createHighlightElement(category, item) {
+    const div = document.createElement('div');
+    div.className = cssClasses.item;
+    div.setAttribute('data-item-id', item.id);
+    div.setAttribute('data-category', category);
+    
+    let content = '';
+    
+    switch(category) {
+        case 'books':
+            content = createBookItem(item);
+            break;
+        case 'novels':
+            content = createNovelItem(item);
+            break;
+        case 'files':
+            content = createFileItem(item);
+            break;
+        case 'platforms':
+            content = createPlatformItem(item);
+            break;
+        case 'apps':
+            content = createAppItem(item);
+            break;
+        case 'servers':
+            content = createServerItem(item);
+            break;
+    }
+    
+    // إضافة شارة توضح نوع المحتوى
+    content = `
+        <div class="item-badge">${categoryNames[category]}</div>
+        ${content}
+    `;
+    
+    div.innerHTML = content;
+    
+    // إضافة مستمع حدث للنقر على العنصر (باستثناء الأزرار)
+    div.addEventListener('click', (e) => {
+        // منع فتح التفاصيل إذا تم النقر على زر
+        if (!e.target.closest('.item-button')) {
+            openItemDetails(category, item.id);
+        }
+    });
+    
+    // إضافة تأثيرات التمرير
+    div.style.cursor = 'pointer';
+    div.style.transition = 'transform 0.2s ease-in-out';
+    div.addEventListener('mouseenter', () => {
+        div.style.transform = 'translateY(-5px)';
+    });
+    div.addEventListener('mouseleave', () => {
+        div.style.transform = 'translateY(0)';
+    });
+    
+    return div;
+}
 // إنشاء عنصر مميز للصفحة الرئيسية
 function createHighlightElement(category, item) {
     const div = document.createElement('div');
