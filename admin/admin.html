@@ -9,7 +9,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="../css/style.css">
-    <link rel="stylesheet" href="./admin.css">
+    <link rel="stylesheet" href="admin.css">
 </head>
 <body>
     <div class="video-background">
@@ -55,8 +55,6 @@
     </div>
 
     <div id="admin-container" class="admin-container hidden">
-        <!-- باقي محتوى لوحة التحكم -->
-    
         <header class="admin-header">
             <div class="admin-header-content">
                 <div class="admin-info">
@@ -75,7 +73,7 @@
                         <i class="fas fa-home"></i>
                         العودة للموقع
                     </a>
-                    <button onclick="logout()" class="logout-btn">
+                    <button id="logout-btn" class="logout-btn">
                         <i class="fas fa-sign-out-alt"></i>
                         تسجيل الخروج
                     </button>
@@ -83,7 +81,6 @@
             </div>
         </header>
 
-        <!-- شريط التبويبات -->
         <div class="tabs-container">
             <div class="tabs">
                 <button class="tab-button active" data-tab="books">الكتب</button>
@@ -98,7 +95,143 @@
         </div>
         
         <div class="admin-panels">
-            <!-- الأقسام الحالية تبقى كما هي -->
+            <!-- لوحة الكتب -->
+            <div class="admin-panel active" id="books-panel">
+                <div class="panel-header">
+                    <h2>إدارة الكتب</h2>
+                    <div class="panel-actions">
+                        <div class="search-box">
+                            <input type="text" id="books-search" placeholder="ابحث في الكتب..." class="search-input">
+                            <i class="fas fa-search search-icon"></i>
+                        </div>
+                        <button class="add-btn" id="add-book-btn">
+                            <i class="fas fa-plus"></i>
+                            إضافة كتاب
+                        </button>
+                    </div>
+                </div>
+                <div class="items-list" id="books-list">
+                    <div class="loading-spinner">
+                        <i class="fas fa-spinner fa-spin"></i>
+                        <p>جاري تحميل البيانات...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- لوحة الروايات -->
+            <div class="admin-panel" id="novels-panel">
+                <div class="panel-header">
+                    <h2>إدارة الروايات</h2>
+                    <div class="panel-actions">
+                        <div class="search-box">
+                            <input type="text" id="novels-search" placeholder="ابحث في الروايات..." class="search-input">
+                            <i class="fas fa-search search-icon"></i>
+                        </div>
+                        <button class="add-btn" id="add-novel-btn">
+                            <i class="fas fa-plus"></i>
+                            إضافة رواية
+                        </button>
+                    </div>
+                </div>
+                <div class="items-list" id="novels-list">
+                    <div class="loading-spinner">
+                        <i class="fas fa-spinner fa-spin"></i>
+                        <p>جاري تحميل البيانات...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- لوحة الملفات -->
+            <div class="admin-panel" id="files-panel">
+                <div class="panel-header">
+                    <h2>إدارة الملفات</h2>
+                    <div class="panel-actions">
+                        <div class="search-box">
+                            <input type="text" id="files-search" placeholder="ابحث في الملفات..." class="search-input">
+                            <i class="fas fa-search search-icon"></i>
+                        </div>
+                        <button class="add-btn" id="add-file-btn">
+                            <i class="fas fa-plus"></i>
+                            إضافة ملف
+                        </button>
+                    </div>
+                </div>
+                <div class="items-list" id="files-list">
+                    <div class="loading-spinner">
+                        <i class="fas fa-spinner fa-spin"></i>
+                        <p>جاري تحميل البيانات...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- لوحة المنصات -->
+            <div class="admin-panel" id="platforms-panel">
+                <div class="panel-header">
+                    <h2>إدارة المنصات</h2>
+                    <div class="panel-actions">
+                        <div class="search-box">
+                            <input type="text" id="platforms-search" placeholder="ابحث في المنصات..." class="search-input">
+                            <i class="fas fa-search search-icon"></i>
+                        </div>
+                        <button class="add-btn" id="add-platform-btn">
+                            <i class="fas fa-plus"></i>
+                            إضافة منصة
+                        </button>
+                    </div>
+                </div>
+                <div class="items-list" id="platforms-list">
+                    <div class="loading-spinner">
+                        <i class="fas fa-spinner fa-spin"></i>
+                        <p>جاري تحميل البيانات...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- لوحة التطبيقات -->
+            <div class="admin-panel" id="apps-panel">
+                <div class="panel-header">
+                    <h2>إدارة التطبيقات</h2>
+                    <div class="panel-actions">
+                        <div class="search-box">
+                            <input type="text" id="apps-search" placeholder="ابحث في التطبيقات..." class="search-input">
+                            <i class="fas fa-search search-icon"></i>
+                        </div>
+                        <button class="add-btn" id="add-app-btn">
+                            <i class="fas fa-plus"></i>
+                            إضافة تطبيق
+                        </button>
+                    </div>
+                </div>
+                <div class="items-list" id="apps-list">
+                    <div class="loading-spinner">
+                        <i class="fas fa-spinner fa-spin"></i>
+                        <p>جاري تحميل البيانات...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- لوحة السيرفرات -->
+            <div class="admin-panel" id="servers-panel">
+                <div class="panel-header">
+                    <h2>إدارة السيرفرات</h2>
+                    <div class="panel-actions">
+                        <div class="search-box">
+                            <input type="text" id="servers-search" placeholder="ابحث في السيرفرات..." class="search-input">
+                            <i class="fas fa-search search-icon"></i>
+                        </div>
+                        <button class="add-btn" id="add-server-btn">
+                            <i class="fas fa-plus"></i>
+                            إضافة سيرفر
+                        </button>
+                    </div>
+                </div>
+                <div class="items-list" id="servers-list">
+                    <div class="loading-spinner">
+                        <i class="fas fa-spinner fa-spin"></i>
+                        <p>جاري تحميل البيانات...</p>
+                    </div>
+                </div>
+            </div>
             
             <!-- قسم إدارة المشرفين -->
             <div class="admin-panel" id="admins-panel">
@@ -109,7 +242,7 @@
                             <input type="text" id="admins-search" placeholder="ابحث عن مشرف..." class="search-input">
                             <i class="fas fa-search search-icon"></i>
                         </div>
-                        <button class="refresh-btn" onclick="loadAdmins()">
+                        <button class="refresh-btn" id="refresh-admins-btn">
                             <i class="fas fa-sync-alt"></i>
                         </button>
                     </div>
@@ -178,7 +311,7 @@
                     <div class="setting-card">
                         <h3><i class="fas fa-shield-alt"></i> جلسة العمل</h3>
                         <p>مدة الجلسة الحالية: <span id="session-timeout">30</span> دقيقة</p>
-                        <button class="btn-secondary" onclick="resetSession()">
+                        <button class="btn-secondary" id="reset-session-btn">
                             <i class="fas fa-sync"></i>
                             تجديد الجلسة
                         </button>
@@ -192,7 +325,7 @@
                     
                     <div class="setting-card">
                         <h3><i class="fas fa-lock"></i> كلمة المرور</h3>
-                        <button class="btn-secondary" onclick="changePassword()">
+                        <button class="btn-secondary" id="change-password-btn">
                             <i class="fas fa-key"></i>
                             تغيير كلمة المرور
                         </button>
@@ -212,7 +345,7 @@
     <!-- نافذة تغيير كلمة المرور -->
     <div id="password-modal" class="modal">
         <div class="modal-content">
-            <span class="modal-close" onclick="closeModal('password-modal')">&times;</span>
+            <span class="modal-close" id="close-password-modal">&times;</span>
             <h2>تغيير كلمة المرور</h2>
             <form id="change-password-form">
                 <div class="input-group">
@@ -237,6 +370,6 @@
 
     <!-- تحميل Supabase -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="./admin.js"></script>
+    <script src="admin.js"></script>
 </body>
 </html>
