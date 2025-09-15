@@ -9,6 +9,20 @@ const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_
 let currentItem = null;
 let currentImages = [];
 let currentImageIndex = 0;
+// متغيرات الـ modal
+let modal = null;
+let modalImg = null;
+let modalCaption = null;
+let modalClose = null;
+
+// تهيئة التطبيق عند تحميل الصفحة
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('صفحة التفاصيل محملة');
+    loadItemDetails();
+    setupEventListeners();
+    initModal();
+});
+
 
 // أسماء الأقسام بالعربية
 const categoryNames = {
@@ -159,8 +173,60 @@ function displayItemDetails(type, item) {
         itemDetails.style.display = 'flex';
     }
 }
+// فتح الـ modal لعرض صورة محددة
+function openModal(imageSrc, caption) {
+    if (!modal || !modalImg || !modalCaption) return;
+    
+    modalImg.src = imageSrc;
+    modalCaption.innerHTML = caption || 'صورة العنصر';
+    modal.style.display = 'block';
+    
+    // منع التمرير عند فتح الـ modal
+    document.body.style.overflow = 'hidden';
+}
 
-// معالجة الصور
+// تهيئة نافذة معاينة الصورة
+function initModal() {
+    modal = document.getElementById('image-modal');
+    modalImg = document.getElementById('modal-image');
+    modalCaption = document.getElementById('modal-caption');
+    modalClose = document.getElementsByClassName('modal-close')[0];
+    
+    if (!modal || !modalImg || !modalCaption || !modalClose) {
+        console.error('عناصر الـ modal غير موجودة');
+        return;
+    }
+    
+    // إغلاق الـ modal عند النقر على الزر
+    modalClose.onclick = function() {
+        closeModal();
+    };
+    
+    // إغلاق الـ modal عند النقر خارج الصورة
+    modal.onclick = function(event) {
+        if (event.target === modal) {
+            closeModal();
+        }
+    };
+    
+    // إغلاق الـ modal بالزر Escape
+    document.addEventListener('keydown', function(event) {
+        if (event.key === 'Escape') {
+            closeModal();
+        }
+    });
+}
+// إغلاق الـ modal
+function closeModal() {
+    if (!modal) return;
+    
+    modal.style.display = 'none';
+    
+    // إعادة تمكين التمرير
+    document.body.style.overflow = 'auto';
+}
+
+// تعديل دالة processImages لإضافة معاينة الصور
 function processImages(type, item) {
     currentImages = [];
     const thumbnailsContainer = document.getElementById('thumbnails-container');
@@ -211,6 +277,13 @@ function processImages(type, item) {
     // عرض الصورة الأولى
     showImage(0);
     
+    // إضافة event listener للصورة الرئيسية
+    if (mainImage) {
+        mainImage.addEventListener('click', function() {
+            openModal(this.src, item.title);
+        });
+    }
+    
     // إنشاء الصور المصغرة
     if (thumbnailsContainer) {
         currentImages.forEach((img, index) => {
@@ -218,9 +291,22 @@ function processImages(type, item) {
             thumbnail.className = 'thumbnail';
             if (index === 0) thumbnail.classList.add('active');
             
-            thumbnail.innerHTML = `<img src="${img}" alt="صورة مصغرة ${index + 1}">`;
-            thumbnail.addEventListener('click', () => showImage(index));
+            const thumbnailImg = document.createElement('img');
+            thumbnailImg.src = img;
+            thumbnailImg.alt = `صورة مصغرة ${index + 1}`;
             
+            // إضافة event listener للصورة المصغرة
+            thumbnailImg.addEventListener('click', function(e) {
+                e.stopPropagation(); // منع تنفيذ event الـ parent
+                showImage(index);
+            });
+            
+            // إضافة event listener للنقر المزدوج للصورة المصغرة
+            thumbnailImg.addEventListener('dblclick', function() {
+                openModal(img, item.title);
+            });
+            
+            thumbnail.appendChild(thumbnailImg);
             thumbnailsContainer.appendChild(thumbnail);
         });
     }
@@ -235,7 +321,6 @@ function processImages(type, item) {
         }
     }
 }
-
 // عرض صورة محددة
 function showImage(index) {
     if (index < 0 || index >= currentImages.length) return;
@@ -431,5 +516,23 @@ function scrollCategories(direction) {
     const container = document.querySelector('.categories-wrapper');
     if (container) {
         container.scrollBy({ left: direction, behavior: 'smooth' });
+    }
+}
+// إظهار تفاصيل العنصر
+function displayItemDetails(type, item) {
+    // ... الكود الحالي
+    
+    // إضافة event listener للصورة الرئيسية للفتح في نافذة معاينة
+    const mainImage = document.getElementById('main-image');
+    if (mainImage && currentImages.length > 0) {
+        mainImage.addEventListener('click', function() {
+            openModal(this.src, item.title);
+        });
+    }
+    
+    // إظهار تفاصيل العنصر
+    const itemDetails = document.getElementById('item-details');
+    if (itemDetails) {
+        itemDetails.style.display = 'flex';
     }
 }
