@@ -172,6 +172,19 @@ function displayItemDetails(type, item) {
     if (itemDetails) {
         itemDetails.style.display = 'flex';
     }
+    // إضافة event listener للصورة الرئيسية للفتح في نافذة معاينة
+    const mainImage = document.getElementById('main-image');
+    if (mainImage && currentImages.length > 0) {
+        mainImage.addEventListener('click', function() {
+            openModal(this.src, item.title);
+        });
+    }
+    
+    // إظهار تفاصيل العنصر
+    const itemDetails = document.getElementById('item-details');
+    if (itemDetails) {
+        itemDetails.style.display = 'flex';
+    }
 }
 // فتح الـ modal لعرض صورة محددة
 function openModal(imageSrc, caption) {
@@ -516,23 +529,5 @@ function scrollCategories(direction) {
     const container = document.querySelector('.categories-wrapper');
     if (container) {
         container.scrollBy({ left: direction, behavior: 'smooth' });
-    }
-}
-// إظهار تفاصيل العنصر
-function displayItemDetails(type, item) {
-    // ... الكود الحالي
-    
-    // إضافة event listener للصورة الرئيسية للفتح في نافذة معاينة
-    const mainImage = document.getElementById('main-image');
-    if (mainImage && currentImages.length > 0) {
-        mainImage.addEventListener('click', function() {
-            openModal(this.src, item.title);
-        });
-    }
-    
-    // إظهار تفاصيل العنصر
-    const itemDetails = document.getElementById('item-details');
-    if (itemDetails) {
-        itemDetails.style.display = 'flex';
     }
 }
