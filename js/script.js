@@ -1,9 +1,7 @@
-// تهيئة Supabase
-const SUPABASE_URL = 'https://xzltdsmmolyvcmkfzedf.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bHRkc21tb2x5dmNta2Z6ZWRmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc2Nzg1NzEsImV4cCI6MjA3MzI1NDU3MX0.3TJ49ctEhOT1KDIFtZXFw2jwTq57ujaWbqNNJ2Eeb1U';
-
-// إنشاء عميل Supabase
-const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+// تهيئة Supabase - يتم الآن تحميل المفاتيح بشكل آمن
+let SUPABASE_URL = '';
+let SUPABASE_ANON_KEY = '';
+let supabaseClient = null;
 
 // حالة التطبيق
 const appState = {
@@ -19,6 +17,78 @@ const appState = {
     searchTerm: '',
     renderedSections: new Set(['all']),
     isLoading: false
+};
+
+// فئات CSS للعناصر
+const cssClasses = {
+    active: 'active',
+    hidden: 'hidden',
+    loading: 'loading',
+    item: 'item',
+    itemImage: 'item-image',
+    novelImages: 'novel-images',
+    platformImage: 'platform-image',
+    itemButton: 'item-button',
+    noItems: 'no-items',
+    searchResults: 'search-results',
+    searchItem: 'search-item',
+    contentSection: 'content-section',
+    highlightsContainer: 'highlights-container'
+};
+
+// تهيئة التطبيق
+async function initApp() {
+    try {
+        // تحميل المفاتيح بشكل آمن من ملف البيئة
+        await loadEnvironmentVariables();
+        
+        // إنشاء عميل Supabase بعد تحميل المفاتيح
+        supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        
+        initializeDOMElements();
+        setupEventListeners();
+        await loadData();
+    } catch (error) {
+        console.error('Error initializing app:', error);
+        showError('حدث خطأ في تهيئة التطبيق');
+    }
+}
+
+// تحميل متغيرات البيئة بشكل آمن
+async function loadEnvironmentVariables() {
+    try {
+        // في بيئة الإنتاج، سيتم تعيين هذه المتغيرات من خلال نظام البيئة
+        // في بيئة التطوير، يمكن استخدام ملف بيئة آمن
+        if (typeof process !== 'undefined' && process.env) {
+            // بيئة Node.js
+            SUPABASE_URL = process.env.SUPABASE_URL;
+            SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY;
+        } else if (window.__ENV__) {
+            // متغيرات معينة مسبقًا في النافذة
+            SUPABASE_URL = window.__ENV__.SUPABASE_URL;
+            SUPABASE_ANON_KEY = window.__ENV__.SUPABASE_ANON_KEY;
+        } else {
+            // للاستخدام المحلي فقط - لا يجب استخدامه في الإنتاج
+            // يمكن تحميل من ملف خارجي آمن
+            const response = await fetch('/api/config');
+            const config = await response.json();
+            SUPABASE_URL = config.SUPABASE_URL;
+            SUPABASE_ANON_KEY = config.SUPABASE_ANON_KEY;
+        }
+    } catch (error) {
+        console.error('Error loading environment variables:', error);
+        throw new Error('تعذر تحميل إعدادات التطبيق');
+    }
+}
+
+// أسماء الأقسام بالعربية
+const categoryNames = {
+    books: 'كتاب',
+    novels: 'رواية',
+    files: 'ملف',
+    platforms: 'منصة',
+    apps: 'تطبيق',
+    servers: 'سيرفر'
 };
 
 // عناصر DOM الرئيسية
@@ -107,9 +177,16 @@ function setupEventListeners() {
 }
 
 // تحميل البيانات من Supabase
+
+// تحميل البيانات من Supabase
 async function loadData() {
     try {
         setLoadingState(true);
+        
+        // التحقق من صلاحية العميل
+        if (!supabaseClient) {
+            throw new Error('عميل Supabase غير مهيأ');
+        }
         
         // جلب البيانات من جميع الجداول بشكل متوازي
         const [
@@ -152,8 +229,27 @@ function handleDataResponse(category, response) {
         console.error(`Error loading ${category}:`, response.error);
         appState.data[category] = [];
     } else {
-        appState.data[category] = response.data || [];
+        // تنظيف البيانات لمنع هجمات XSS
+        appState.data[category] = sanitizeData(response.data || []);
     }
+}
+
+// تنظيف البيانات لمنع هجمات XSS
+function sanitizeData(data) {
+    return data.map(item => {
+        const cleanItem = {};
+        for (const key in item) {
+            if (Object.prototype.hasOwnProperty.call(item, key)) {
+                // تنظيف القيم النصية فقط
+                if (typeof item[key] === 'string') {
+                    cleanItem[key] = sanitizeString(item[key]);
+                } else {
+                    cleanItem[key] = item[key];
+                }
+            }
+        }
+        return cleanItem;
+    });
 }
 
 // تعيين حالة التحميل
@@ -222,6 +318,7 @@ function renderAllSections() {
     });
 }
 
+
 // عرض قسم معين
 function renderSection(sectionId) {
     const container = domElements.containers[sectionId];
@@ -234,7 +331,12 @@ function renderSection(sectionId) {
     
     const items = appState.data[sectionId];
     if (!items || items.length === 0) {
-        container.innerHTML = `<p class="${cssClasses.noItems}">لا توجد عناصر لعرضها</p>`;
+        // استخدام textContent بدلاً من innerHTML لمنع XSS
+        const noItems = document.createElement('p');
+        noItems.className = cssClasses.noItems;
+        noItems.textContent = 'لا توجد عناصر لعرضها';
+        container.innerHTML = '';
+        container.appendChild(noItems);
         return;
     }
     
@@ -248,7 +350,7 @@ function renderSection(sectionId) {
     updateItemsCount(sectionId, items.length);
 }
 
-// عرض المحتوى البارز على الصفحة الرئيسية
+
 // عرض المحتوى البارز على الصفحة الرئيسية (معدّل)
 function renderHighlights() {
     const container = domElements.containers.highlights;
@@ -297,11 +399,26 @@ function renderHighlights() {
     });
 }
 // فتح صفحة تفاصيل العنصر
+
+// فتح صفحة تفاصيل العنصر
 function openItemDetails(category, itemId) {
-    window.location.href = `item-details.html?type=${category}&id=${itemId}`;
+    // التحقق من صحة المدخلات
+    const validCategories = ['books', 'novels', 'files', 'platforms', 'apps', 'servers'];
+    if (!validCategories.includes(category) || !isValidId(itemId)) {
+        showError('طلب غير صالح');
+        return;
+    }
+    
+    window.location.href = `item-details.html?type=${encodeURIComponent(category)}&id=${encodeURIComponent(itemId)}`;
 }
 
-// إنشاء عنصر لعرضه (معدّل)
+
+// التحقق من صحة المعرف
+function isValidId(id) {
+    return /^[a-zA-Z0-9\-_]+$/.test(id);
+}
+
+// إنشاء عنصر لعرضه
 function createItemElement(category, item) {
     const div = document.createElement('div');
     div.className = cssClasses.item;
@@ -331,6 +448,7 @@ function createItemElement(category, item) {
             break;
     }
     
+    // استخدام innerHTML بحذر بعد تنظيف البيانات
     div.innerHTML = content;
     
     // إضافة مستمع حدث للنقر على العنصر (باستثناء الأزرار)
@@ -354,7 +472,6 @@ function createItemElement(category, item) {
     return div;
 }
 
-// إنشاء عنصر مميز للصفحة الرئيسية
 
 // إنشاء عنصر مميز للصفحة الرئيسية (معدّل)
 function createHighlightElement(category, item) {
@@ -432,17 +549,17 @@ function openItemDetails(category, itemId) {
 
 // إنشاء عنصر كتاب
 function createBookItem(item) {
+    // استخدام template literals مع التأكد من تنظيف البيانات مسبقًا
     return `
         <div class="item-image-container">
-            ${item.image ? `<img src="${item.image}" alt="${item.title}" class="${cssClasses.itemImage}">` : 
+            ${item.image ? `<img src="${item.image}" alt="${item.title}" class="${cssClasses.itemImage}" onerror="this.style.display='none'">` : 
             `<div class="placeholder-image"><i class="fas fa-book"></i></div>`}
         </div>
         <h3>${item.title}</h3>
         <p>${item.description || 'لا يوجد وصف متاح'}</p>
-        <a href="${item.drive_link || '#'}" target="_blank" class="${cssClasses.itemButton}">تحميل الكتاب</a>
+        <a href="${item.drive_link || '#'}" target="_blank" rel="noopener noreferrer" class="${cssClasses.itemButton}">تحميل الكتاب</a>
     `;
 }
-
 // إنشاء عنصر رواية (معدّل)
 function createNovelItem(item) {
     let imagesHtml = '';
@@ -547,6 +664,7 @@ function updateItemsCount(category, count) {
     }
 }
 
+
 // إجراء البحث
 function performSearch() {
     const searchTerm = domElements.searchInput.value.trim().toLowerCase();
@@ -633,14 +751,21 @@ function highlightElement(element) {
     }, 2000);
 }
 
+
 // عرض رسالة خطأ
 function showError(message) {
+    // استخدام إنشاء العناصر بدلاً من innerHTML
     const errorDiv = document.createElement('div');
     errorDiv.className = 'error-message';
-    errorDiv.innerHTML = `
-        <i class="fas fa-exclamation-triangle"></i>
-        <p>${message}</p>
-    `;
+    
+    const icon = document.createElement('i');
+    icon.className = 'fas fa-exclamation-triangle';
+    
+    const paragraph = document.createElement('p');
+    paragraph.textContent = message;
+    
+    errorDiv.appendChild(icon);
+    errorDiv.appendChild(paragraph);
     
     document.querySelector('main').prepend(errorDiv);
     
