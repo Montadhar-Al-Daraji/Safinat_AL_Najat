@@ -343,3 +343,94 @@
         gap: 1rem;
     }
 }
+/* نافذة معاينة الصورة */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    padding-top: 50px;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0, 0, 0, 0.9);
+    animation: fadeIn 0.3s ease;
+}
+
+.modal-content {
+    margin: auto;
+    display: block;
+    width: auto;
+    max-width: 90%;
+    max-height: 80vh;
+    animation: zoom 0.3s ease;
+}
+
+@keyframes zoom {
+    from {transform: scale(0.8); opacity: 0;}
+    to {transform: scale(1); opacity: 1;}
+}
+
+.modal-caption {
+    margin: auto;
+    display: block;
+    width: 80%;
+    max-width: 700px;
+    text-align: center;
+    color: #ccc;
+    padding: 10px 0;
+    height: auto;
+    font-size: 1.1rem;
+}
+
+.modal-close {
+    position: absolute;
+    top: 15px;
+    right: 35px;
+    color: #f1f1f1;
+    font-size: 40px;
+    font-weight: bold;
+    transition: 0.3s;
+    cursor: pointer;
+    z-index: 1001;
+}
+
+.modal-close:hover,
+.modal-close:focus {
+    color: #bbb;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+/* تحسينات للاستجابة على الشاشات الصغيرة */
+@media only screen and (max-width: 768px){
+    .modal-content {
+        max-width: 95%;
+    }
+    
+    .modal-caption {
+        width: 95%;
+        font-size: 1rem;
+    }
+    
+    .modal-close {
+        right: 15px;
+        font-size: 30px;
+        top: 10px;
+    }
+}
+
+/* تحسينات للصورة الرئيسية */
+.main-image {
+    cursor: zoom-in;
+    transition: transform 0.3s ease;
+}
+
+.main-image:hover {
+    transform: scale(1.02);
+}
+
+.thumbnail {
+    cursor: pointer;
+}
