@@ -1,6 +1,6 @@
 // تهيئة Supabase
 const SUPABASE_URL = 'https://xzltdsmmolyvcmkfzedf.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhbmFzZSIsInJlZiI6Inh6bHRkc21tb2x5dmNta2Z6ZWRmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc2Nzg1NzEsImV4cCI6MjA3MzI1NDU3MX0.3TJ49ctEhOT1KDIFtZXFw2jwTq57ujaWbqNNJ2Eeb1U';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bHRkc21tb2x5dmNta2Z6ZWRmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc2Nzg1NzEsImV4cCI6MjA3MzI1NDU3MX0.3TJ49ctEhOT1KDIFtZXFw2jwTq57ujaWbqNNJ2Eeb1U';
 
 // إنشاء عميل Supabase
 const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -259,10 +259,13 @@ function renderHighlights() {
     const highlights = [];
     Object.keys(appState.data).forEach(category => {
         if (appState.data[category].length > 0) {
-            const randomIndex = Math.floor(Math.random() * appState.data[category].length);
-            highlights.push({
-                category: category,
-                item: appState.data[category][randomIndex]
+            // عرض عنصرين من كل قسم بدلاً من عنصر واحد عشوائي
+            const itemsToShow = appState.data[category].slice(0, 2);
+            itemsToShow.forEach(item => {
+                highlights.push({
+                    category: category,
+                    item: item
+                });
             });
         }
     });
@@ -273,7 +276,7 @@ function renderHighlights() {
     }
     
     highlights.forEach(highlight => {
-        const itemElement = createItemElement(highlight.category, highlight.item);
+        const itemElement = createHighlightElement(highlight.category, highlight.item);
         container.appendChild(itemElement);
     });
 }
@@ -284,21 +287,6 @@ function createItemElement(category, item) {
     div.className = cssClasses.item;
     div.setAttribute('data-item-id', item.id);
     div.setAttribute('data-category', category);
-    
-    // إضافة حدث النقر لفتح صفحة التفاصيل
-    div.addEventListener('click', () => {
-        openItemDetails(category, item.id);
-    });
-    
-    // إضافة تأثير عند التمرير
-    div.style.cursor = 'pointer';
-    div.style.transition = 'transform 0.2s ease-in-out';
-    div.addEventListener('mouseenter', () => {
-        div.style.transform = 'translateY(-5px)';
-    });
-    div.addEventListener('mouseleave', () => {
-        div.style.transform = 'translateY(0)';
-    });
     
     let content = '';
     
@@ -327,6 +315,46 @@ function createItemElement(category, item) {
     return div;
 }
 
+// إنشاء عنصر مميز للصفحة الرئيسية
+function createHighlightElement(category, item) {
+    const div = document.createElement('div');
+    div.className = cssClasses.item;
+    div.setAttribute('data-item-id', item.id);
+    div.setAttribute('data-category', category);
+    
+    let content = '';
+    
+    switch(category) {
+        case 'books':
+            content = createBookItem(item);
+            break;
+        case 'novels':
+            content = createNovelItem(item);
+            break;
+        case 'files':
+            content = createFileItem(item);
+            break;
+        case 'platforms':
+            content = createPlatformItem(item);
+            break;
+        case 'apps':
+            content = createAppItem(item);
+            break;
+        case 'servers':
+            content = createServerItem(item);
+            break;
+    }
+    
+    // إضافة شارة توضح نوع المحتوى
+    content = `
+        <div class="item-badge">${categoryNames[category]}</div>
+        ${content}
+    `;
+    
+    div.innerHTML = content;
+    return div;
+}
+
 // فتح صفحة تفاصيل العنصر
 function openItemDetails(category, itemId) {
     window.location.href = `item-details.html?type=${category}&id=${itemId}`;
@@ -335,10 +363,13 @@ function openItemDetails(category, itemId) {
 // إنشاء عنصر كتاب
 function createBookItem(item) {
     return `
-        ${item.image ? `<img src="${item.image}" alt="${item.title}" class="${cssClasses.itemImage}">` : ''}
+        <div class="item-image-container">
+            ${item.image ? `<img src="${item.image}" alt="${item.title}" class="${cssClasses.itemImage}">` : 
+            `<div class="placeholder-image"><i class="fas fa-book"></i></div>`}
+        </div>
         <h3>${item.title}</h3>
-        <p>${item.description || ''}</p>
-        <a href="${item.drive_link}" target="_blank" class="${cssClasses.itemButton}">تحميل الكتاب</a>
+        <p>${item.description || 'لا يوجد وصف متاح'}</p>
+        <a href="${item.drive_link || '#'}" target="_blank" class="${cssClasses.itemButton}">تحميل الكتاب</a>
     `;
 }
 
@@ -363,6 +394,8 @@ function createNovelItem(item) {
     let mainImage = '';
     if (imagesArray.length > 0) {
         mainImage = `<img src="${imagesArray[0]}" alt="${item.title}" class="${cssClasses.itemImage}">`;
+    } else {
+        mainImage = `<div class="placeholder-image"><i class="fas fa-book-open"></i></div>`;
     }
     
     // صور مصغرة
@@ -375,49 +408,64 @@ function createNovelItem(item) {
     }
     
     return `
-        ${mainImage}
+        <div class="item-image-container">
+            ${mainImage}
+        </div>
         <h3>${item.title}</h3>
         ${imagesHtml}
-        <p>${item.description || ''}</p>
+        <p>${item.description || 'لا يوجد وصف متاح'}</p>
+        <a href="${item.drive_link || '#'}" target="_blank" class="${cssClasses.itemButton}">قراءة الرواية</a>
     `;
 }
 
 // إنشاء عنصر ملف
 function createFileItem(item) {
     return `
-        ${item.image ? `<img src="${item.image}" alt="${item.title}" class="${cssClasses.itemImage}">` : ''}
+        <div class="item-image-container">
+            ${item.image ? `<img src="${item.image}" alt="${item.title}" class="${cssClasses.itemImage}">` : 
+            `<div class="placeholder-image"><i class="fas fa-file"></i></div>`}
+        </div>
         <h3>${item.title}</h3>
-        <p>${item.description || ''}</p>
-        <a href="${item.drive_link}" target="_blank" class="${cssClasses.itemButton}">تحميل الملف</a>
+        <p>${item.description || 'لا يوجد وصف متاح'}</p>
+        <a href="${item.drive_link || '#'}" target="_blank" class="${cssClasses.itemButton}">تحميل الملف</a>
     `;
 }
 
 // إنشاء عنصر منصة
 function createPlatformItem(item) {
     return `
-        <img src="${item.image}" alt="${item.title}" class="${cssClasses.platformImage}">
+        <div class="item-image-container platform-image-container">
+            ${item.image ? `<img src="${item.image}" alt="${item.title}" class="${cssClasses.platformImage}">` : 
+            `<div class="placeholder-image"><i class="fas fa-globe"></i></div>`}
+        </div>
         <h3>${item.title}</h3>
-        <a href="${item.link}" target="_blank" class="${cssClasses.itemButton}">زيارة المنصة</a>
+        <a href="${item.link || '#'}" target="_blank" class="${cssClasses.itemButton}">زيارة المنصة</a>
     `;
 }
 
 // إنشاء عنصر تطبيق
 function createAppItem(item) {
     return `
-        ${item.image ? `<img src="${item.image}" alt="${item.title}" class="${cssClasses.itemImage}">` : ''}
+        <div class="item-image-container">
+            ${item.image ? `<img src="${item.image}" alt="${item.title}" class="${cssClasses.itemImage}">` : 
+            `<div class="placeholder-image"><i class="fas fa-mobile-alt"></i></div>`}
+        </div>
         <h3>${item.title}</h3>
-        <p>${item.description || ''}</p>
-        <a href="${item.download_link}" class="${cssClasses.itemButton}">تحميل التطبيق</a>
+        <p>${item.description || 'لا يوجد وصف متاح'}</p>
+        <a href="${item.download_link || '#'}" class="${cssClasses.itemButton}">تحميل التطبيق</a>
     `;
 }
 
 // إنشاء عنصر سيرفر
 function createServerItem(item) {
     return `
-        ${item.image ? `<img src="${item.image}" alt="${item.title}" class="${cssClasses.itemImage}">` : ''}
+        <div class="item-image-container">
+            ${item.image ? `<img src="${item.image}" alt="${item.title}" class="${cssClasses.itemImage}">` : 
+            `<div class="placeholder-image"><i class="fas fa-server"></i></div>`}
+        </div>
         <h3>${item.title}</h3>
-        <p>${item.description || ''}</p>
-        <a href="${item.link}" target="_blank" class="${cssClasses.itemButton}">انضم إلى السيرفر</a>
+        <p>${item.description || 'لا يوجد وصف متاح'}</p>
+        <a href="${item.link || '#'}" target="_blank" class="${cssClasses.itemButton}">انضم إلى السيرفر</a>
     `;
 }
 
@@ -540,71 +588,3 @@ function scrollCategories(direction) {
 
 // تهيئة التطبيق عند تحميل الصفحة
 document.addEventListener('DOMContentLoaded', initApp);
-
-// إضافة أنماط للتمييز وتحسين الروايات
-const customStyles = document.createElement('style');
-customStyles.textContent = 
-    .highlight {
-        animation: highlight 2s ease;
-        border: 2px solid #D4AF37 !important;
-    }
-    
-    @keyframes highlight {
-        0% { box-shadow: 0 0 0 0 rgba(212, 175, 55, 0.7); }
-        70% { box-shadow: 0 0 0 10px rgba(212, 175, 55, 0); }
-        100% { box-shadow: 0 0 0 0 rgba(212, 175, 55, 0); }
-    }
-    
-    .loading {
-        opacity: 0.7;
-        pointer-events: none;
-    }
-    
-    .loading::after {
-        content: 'جاري التحميل...';
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        font-size: 1.2rem;
-        color: #FFFFFF;
-    }
-    
-    /* تحسينات لصور الروايات */
-    .novel-images {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 5px;
-        margin-top: 10px;
-    }
-    
-    .novel-thumbnail {
-        width: 100%;
-        height: 60px;
-        object-fit: cover;
-        border-radius: 5px;
-        border: 1px solid #FFFFFF;
-    }
-    
-    /* تحسينات عامة للبطاقات */
-    .item {
-        transition: all 0.3s ease;
-    }
-    
-    .item:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
-    }
-    
-    /* تحسينات للاستجابة على الجوال */
-    @media (max-width: 768px) {
-        .novel-images {
-            grid-template-columns: repeat(2, 1fr);
-        }
-        
-        .novel-thumbnail {
-            height: 50px;
-        }
-    }
-;
-document.head.appendChild(customStyles);
