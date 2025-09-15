@@ -32,6 +32,7 @@ const categoryIcons = {
 
 // تهيئة التطبيق عند تحميل الصفحة
 document.addEventListener('DOMContentLoaded', function() {
+    console.log('صفحة التفاصيل محملة');
     loadItemDetails();
     setupEventListeners();
 });
@@ -42,11 +43,15 @@ function setupEventListeners() {
     document.getElementById('back-button').addEventListener('click', goBack);
     
     // أزرار التنقل بين الصور
-    document.getElementById('prev-image').addEventListener('click', showPrevImage);
-    document.getElementById('next-image').addEventListener('click', showNextImage);
+    const prevButton = document.getElementById('prev-image');
+    const nextButton = document.getElementById('next-image');
+    
+    if (prevButton) prevButton.addEventListener('click', showPrevImage);
+    if (nextButton) nextButton.addEventListener('click', showNextImage);
     
     // زر المشاركة
-    document.getElementById('share-button').addEventListener('click', shareItem);
+    const shareButton = document.getElementById('share-button');
+    if (shareButton) shareButton.addEventListener('click', shareItem);
 }
 
 // تحميل تفاصيل العنصر
@@ -59,6 +64,8 @@ async function loadItemDetails() {
         const urlParams = new URLSearchParams(window.location.search);
         const type = urlParams.get('type');
         const id = urlParams.get('id');
+        
+        console.log('معاملات URL:', { type, id });
         
         if (!type || !id) {
             throw new Error('لم يتم تحديد نوع العنصر أو المعرّف');
@@ -101,18 +108,22 @@ function displayItemDetails(type, item) {
     
     // تعيين شارة النوع
     const categoryBadge = document.getElementById('item-category-badge');
-    categoryBadge.innerHTML = `
-        <i class="${categoryIcons[type]}"></i>
-        ${categoryNames[type]}
-    `;
+    if (categoryBadge) {
+        categoryBadge.innerHTML = `
+            <i class="${categoryIcons[type]}"></i>
+            ${categoryNames[type]}
+        `;
+    }
     
     // تعيين التاريخ إذا كان متوفراً
     const dateElement = document.getElementById('item-date');
-    if (item.created_at) {
-        const date = new Date(item.created_at);
-        dateElement.textContent = date.toLocaleDateString('ar-SA');
-    } else {
-        dateElement.textContent = 'غير معروف';
+    if (dateElement) {
+        if (item.created_at) {
+            const date = new Date(item.created_at);
+            dateElement.textContent = date.toLocaleDateString('ar-SA');
+        } else {
+            dateElement.textContent = 'غير معروف';
+        }
     }
     
     // معالجة الصور
@@ -120,17 +131,19 @@ function displayItemDetails(type, item) {
     
     // تعيين رابط التحميل/الزيارة
     const actionButton = document.getElementById('action-button');
-    if (type === 'platforms' || type === 'servers') {
-        actionButton.innerHTML = '<i class="fas fa-external-link-alt"></i> زيارة';
-        actionButton.href = item.link || item.drive_link || '#';
-    } else {
-        actionButton.innerHTML = '<i class="fas fa-download"></i> تحميل';
-        actionButton.href = item.drive_link || item.download_link || item.link || '#';
+    if (actionButton) {
+        if (type === 'platforms' || type === 'servers') {
+            actionButton.innerHTML = '<i class="fas fa-external-link-alt"></i> زيارة';
+            actionButton.href = item.link || item.drive_link || '#';
+        } else {
+            actionButton.innerHTML = '<i class="fas fa-download"></i> تحميل';
+            actionButton.href = item.drive_link || item.download_link || item.link || '#';
+        }
     }
     
     // إظهار زر عرض الأصل إذا كان هناك رابط مختلف
     const viewOriginalButton = document.getElementById('view-original-button');
-    if (item.link && (item.drive_link || item.download_link)) {
+    if (viewOriginalButton && item.link && (item.drive_link || item.download_link)) {
         viewOriginalButton.style.display = 'block';
         viewOriginalButton.onclick = function() {
             window.open(item.link, '_blank');
@@ -141,14 +154,19 @@ function displayItemDetails(type, item) {
     processAdditionalInfo(type, item);
     
     // إظهار تفاصيل العنصر
-    document.getElementById('item-details').style.display = 'flex';
+    const itemDetails = document.getElementById('item-details');
+    if (itemDetails) {
+        itemDetails.style.display = 'flex';
+    }
 }
 
 // معالجة الصور
 function processImages(type, item) {
     currentImages = [];
     const thumbnailsContainer = document.getElementById('thumbnails-container');
-    thumbnailsContainer.innerHTML = '';
+    if (thumbnailsContainer) {
+        thumbnailsContainer.innerHTML = '';
+    }
     
     // جمع جميع الصور المتاحة
     if (item.image) {
@@ -175,38 +193,46 @@ function processImages(type, item) {
     }
     
     // إذا لم توجد صور، نستخدم صورة افتراضية
+    const imagePlaceholder = document.getElementById('image-placeholder');
+    const mainImage = document.getElementById('main-image');
+    const imageNav = document.getElementById('image-nav');
+    
     if (currentImages.length === 0) {
-        document.getElementById('image-placeholder').style.display = 'flex';
-        document.getElementById('main-image').style.display = 'none';
-        document.getElementById('image-nav').style.display = 'none';
+        if (imagePlaceholder) imagePlaceholder.style.display = 'flex';
+        if (mainImage) mainImage.style.display = 'none';
+        if (imageNav) imageNav.style.display = 'none';
         return;
     }
     
     // إظهار الصور
-    document.getElementById('image-placeholder').style.display = 'none';
-    document.getElementById('main-image').style.display = 'block';
+    if (imagePlaceholder) imagePlaceholder.style.display = 'none';
+    if (mainImage) mainImage.style.display = 'block';
     
     // عرض الصورة الأولى
     showImage(0);
     
     // إنشاء الصور المصغرة
-    currentImages.forEach((img, index) => {
-        const thumbnail = document.createElement('div');
-        thumbnail.className = 'thumbnail';
-        if (index === 0) thumbnail.classList.add('active');
-        
-        thumbnail.innerHTML = `<img src="${img}" alt="صورة مصغرة ${index + 1}">`;
-        thumbnail.addEventListener('click', () => showImage(index));
-        
-        thumbnailsContainer.appendChild(thumbnail);
-    });
+    if (thumbnailsContainer) {
+        currentImages.forEach((img, index) => {
+            const thumbnail = document.createElement('div');
+            thumbnail.className = 'thumbnail';
+            if (index === 0) thumbnail.classList.add('active');
+            
+            thumbnail.innerHTML = `<img src="${img}" alt="صورة مصغرة ${index + 1}">`;
+            thumbnail.addEventListener('click', () => showImage(index));
+            
+            thumbnailsContainer.appendChild(thumbnail);
+        });
+    }
     
     // إظهار أزرار التنقل إذا كان هناك أكثر من صورة
-    if (currentImages.length > 1) {
-        document.getElementById('image-nav').style.display = 'flex';
-        updateImageCounter();
-    } else {
-        document.getElementById('image-nav').style.display = 'none';
+    if (imageNav) {
+        if (currentImages.length > 1) {
+            imageNav.style.display = 'flex';
+            updateImageCounter();
+        } else {
+            imageNav.style.display = 'none';
+        }
     }
 }
 
@@ -215,7 +241,10 @@ function showImage(index) {
     if (index < 0 || index >= currentImages.length) return;
     
     currentImageIndex = index;
-    document.getElementById('main-image').src = currentImages[index];
+    const mainImage = document.getElementById('main-image');
+    if (mainImage) {
+        mainImage.src = currentImages[index];
+    }
     
     // تحديث الصورة المصغرة النشطة
     document.querySelectorAll('.thumbnail').forEach((thumb, i) => {
@@ -245,14 +274,19 @@ function showPrevImage() {
 
 // تحديث عداد الصور
 function updateImageCounter() {
-    document.getElementById('image-counter').textContent = 
-        `${currentImageIndex + 1}/${currentImages.length}`;
+    const imageCounter = document.getElementById('image-counter');
+    if (imageCounter) {
+        imageCounter.textContent = `${currentImageIndex + 1}/${currentImages.length}`;
+    }
 }
 
 // معالجة المعلومات الإضافية
 function processAdditionalInfo(type, item) {
     const additionalInfo = document.getElementById('additional-info');
     const additionalInfoContent = document.getElementById('additional-info-content');
+    
+    if (!additionalInfo || !additionalInfoContent) return;
+    
     additionalInfoContent.innerHTML = '';
     
     let hasAdditionalInfo = false;
@@ -287,12 +321,20 @@ function processAdditionalInfo(type, item) {
             
         case 'files':
             if (item.format) {
-                document.getElementById('item-format-container').style.display = 'flex';
-                document.getElementById('item-format').textContent = item.format;
+                const formatContainer = document.getElementById('item-format-container');
+                const formatElement = document.getElementById('item-format');
+                if (formatContainer && formatElement) {
+                    formatContainer.style.display = 'flex';
+                    formatElement.textContent = item.format;
+                }
             }
             if (item.size) {
-                document.getElementById('item-size-container').style.display = 'flex';
-                document.getElementById('item-size').textContent = item.size;
+                const sizeContainer = document.getElementById('item-size-container');
+                const sizeElement = document.getElementById('item-size');
+                if (sizeContainer && sizeElement) {
+                    sizeContainer.style.display = 'flex';
+                    sizeElement.textContent = item.size;
+                }
             }
             break;
             
@@ -351,34 +393,43 @@ function goBack() {
 
 // إظهار مؤشر التحميل
 function showLoading() {
-    document.getElementById('loading-spinner').style.display = 'flex';
+    const loadingSpinner = document.getElementById('loading-spinner');
+    if (loadingSpinner) {
+        loadingSpinner.style.display = 'flex';
+    }
 }
 
 // إخفاء مؤشر التحميل
 function hideLoading() {
-    document.getElementById('loading-spinner').style.display = 'none';
+    const loadingSpinner = document.getElementById('loading-spinner');
+    if (loadingSpinner) {
+        loadingSpinner.style.display = 'none';
+    }
 }
 
 // إظهار رسالة الخطأ
 function showError(message) {
-    document.getElementById('error-text').textContent = message;
-    document.getElementById('error-message').style.display = 'block';
+    const errorMessage = document.getElementById('error-message');
+    const errorText = document.getElementById('error-text');
+    
+    if (errorMessage && errorText) {
+        errorText.textContent = message;
+        errorMessage.style.display = 'block';
+    }
 }
 
 // إخفاء رسالة الخطأ
 function hideError() {
-    document.getElementById('error-message').style.display = 'none';
+    const errorMessage = document.getElementById('error-message');
+    if (errorMessage) {
+        errorMessage.style.display = 'none';
+    }
 }
 
 // وظيفة تمرير الأقسام
 function scrollCategories(direction) {
     const container = document.querySelector('.categories-wrapper');
-    container.scrollBy({ left: direction, behavior: 'smooth' });
+    if (container) {
+        container.scrollBy({ left: direction, behavior: 'smooth' });
+    }
 }
-
-// تهيئة التطبيق عند تحميل الصفحة
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('DOM loaded, initializing...');
-    loadItemDetails();
-    setupEventListeners();
-});
