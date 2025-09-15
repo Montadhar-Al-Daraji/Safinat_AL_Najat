@@ -1,171 +1,246 @@
 // تهيئة Supabase
 const SUPABASE_URL = 'https://xzltdsmmolyvcmkfzedf.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bHRkc21tb2x5dmNta2Z6ZWRmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc2Nzg1NzEsImV4cCI6MjA3MzI1NDU3MX0.3TJ49ctEhOT1KDIFtZXFw2jwTq57ujaWbqNNJ2Eeb1U';
+
+// إنشاء عميل Supabase
 const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-// بيانات العنصر الحالي
+// حالة التطبيق
 let currentItem = null;
 let currentImages = [];
 let currentImageIndex = 0;
 
-// تهيئة الصفحة عند التحميل
+// أسماء الأقسام بالعربية
+const categoryNames = {
+    books: 'كتاب',
+    novels: 'رواية',
+    files: 'ملف',
+    platforms: 'منصة',
+    apps: 'تطبيق',
+    servers: 'سيرفر'
+};
+
+// رموز الأقسام
+const categoryIcons = {
+    books: 'fas fa-book',
+    novels: 'fas fa-book-open',
+    files: 'fas fa-file',
+    platforms: 'fas fa-globe',
+    apps: 'fas fa-mobile-alt',
+    servers: 'fas fa-server'
+};
+
+// تهيئة التطبيق عند تحميل الصفحة
 document.addEventListener('DOMContentLoaded', function() {
-    // إضافة معالج حدث لزر الرجوع
-    document.getElementById('back-button').addEventListener('click', function() {
-        window.history.back();
-    });
-    
-    // جلب معاملات URL
-    const urlParams = new URLSearchParams(window.location.search);
-    const itemType = urlParams.get('type');
-    const itemId = urlParams.get('id');
-    
-    if (itemType && itemId) {
-        loadItemDetails(itemType, itemId);
-    } else {
-        showError('لم يتم تحديد عنصر للعرض');
-    }
-    
-    // إضافة معالجي الأحداث لأزرار التنقل بين الصور
-    document.getElementById('prev-image').addEventListener('click', showPreviousImage);
-    document.getElementById('next-image').addEventListener('click', showNextImage);
-    
-    // إضافة معالج حدث لمشاركة العنصر
-    document.getElementById('share-button').addEventListener('click', shareItem);
+    loadItemDetails();
+    setupEventListeners();
 });
 
-// تحميل تفاصيل العنصر من Supabase
-async function loadItemDetails(itemType, itemId) {
-    try {
-        // جلب البيانات من الجدول المناسب
-        const { data, error } = await supabaseClient
-            .from(itemType)
-            .select('*')
-            .eq('id', itemId)
-            .single();
+// إعداد مستمعي الأحداث
+function setupEventListeners() {
+    // زر الرجوع
+    document.getElementById('back-button').addEventListener('click', goBack);
+    
+    // أزرار التنقل بين الصور
+    document.getElementById('prev-image').addEventListener('click', showPrevImage);
+    document.getElementById('next-image').addEventListener('click', showNextImage);
+    
+    // زر المشاركة
+    document.getElementById('share-button').addEventListener('click', shareItem);
+}
 
-        if (error) throw error;
+// تحميل تفاصيل العنصر
+async function loadItemDetails() {
+    try {
+        showLoading();
+        hideError();
+        
+        // الحصول على المعاملات من URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const type = urlParams.get('type');
+        const id = urlParams.get('id');
+        
+        if (!type || !id) {
+            throw new Error('لم يتم تحديد نوع العنصر أو المعرّف');
+        }
+        
+        // جلب البيانات من Supabase
+        const { data, error } = await supabaseClient
+            .from(type)
+            .select('*')
+            .eq('id', id)
+            .single();
+        
+        if (error) {
+            throw error;
+        }
+        
+        if (!data) {
+            throw new Error('العنصر غير موجود');
+        }
         
         currentItem = data;
-        displayItemDetails();
+        displayItemDetails(type, data);
+        hideLoading();
+        
     } catch (error) {
         console.error('Error loading item details:', error);
-        showError('حدث خطأ في تحميل تفاصيل العنصر');
+        showError('حدث خطأ في تحميل البيانات: ' + error.message);
+        hideLoading();
     }
 }
 
-// عرض تفاصيل العنصر في الصفحة
-function displayItemDetails() {
-    if (!currentItem) return;
+// عرض تفاصيل العنصر
+function displayItemDetails(type, item) {
+    // تعيين العنوان
+    document.title = `${item.title} - سفينة النجاة`;
+    document.getElementById('item-title').textContent = item.title;
     
-    // تعيين العنوان والوصف
-    document.getElementById('item-title').textContent = currentItem.title || 'بدون عنوان';
-    document.getElementById('item-description').textContent = currentItem.description || 'لا يوجد وصف';
+    // تعيين الوصف
+    document.getElementById('item-description').textContent = item.description || 'لا يوجد وصف متاح';
     
-    // تعيين نوع العنصر
-    const typeNames = {
-        'books': 'كتاب',
-        'novels': 'رواية',
-        'files': 'ملف',
-        'platforms': 'منصة',
-        'apps': 'تطبيق',
-        'servers': 'سيرفر'
-    };
-    
-    const urlParams = new URLSearchParams(window.location.search);
-    const itemType = urlParams.get('type');
-    document.getElementById('item-type').textContent = typeNames[itemType] || 'عنصر';
+    // تعيين شارة النوع
+    const categoryBadge = document.getElementById('item-category-badge');
+    categoryBadge.innerHTML = `
+        <i class="${categoryIcons[type]}"></i>
+        ${categoryNames[type]}
+    `;
     
     // تعيين التاريخ إذا كان متوفراً
-    const dateContainer = document.getElementById('item-date-container');
-    if (currentItem.created_at) {
-        const date = new Date(currentItem.created_at);
-        document.getElementById('item-date').textContent = date.toLocaleDateString('ar-EG');
-        dateContainer.style.display = 'flex';
+    const dateElement = document.getElementById('item-date');
+    if (item.created_at) {
+        const date = new Date(item.created_at);
+        dateElement.textContent = date.toLocaleDateString('ar-SA');
     } else {
-        dateContainer.style.display = 'none';
+        dateElement.textContent = 'غير معروف';
     }
     
     // معالجة الصور
-    processItemImages();
+    processImages(type, item);
     
-    // تعيين زر الإجراء
-    setupActionButton();
+    // تعيين رابط التحميل/الزيارة
+    const actionButton = document.getElementById('action-button');
+    if (type === 'platforms' || type === 'servers') {
+        actionButton.innerHTML = '<i class="fas fa-external-link-alt"></i> زيارة';
+        actionButton.href = item.link || item.drive_link || '#';
+    } else {
+        actionButton.innerHTML = '<i class="fas fa-download"></i> تحميل';
+        actionButton.href = item.drive_link || item.download_link || item.link || '#';
+    }
+    
+    // إظهار زر عرض الأصل إذا كان هناك رابط مختلف
+    const viewOriginalButton = document.getElementById('view-original-button');
+    if (item.link && (item.drive_link || item.download_link)) {
+        viewOriginalButton.style.display = 'block';
+        viewOriginalButton.onclick = function() {
+            window.open(item.link, '_blank');
+        };
+    }
+    
+    // معالجة المعلومات الإضافية
+    processAdditionalInfo(type, item);
+    
+    // إظهار تفاصيل العنصر
+    document.getElementById('item-details').style.display = 'flex';
 }
 
-// معالجة صور العنصر
-function processItemImages() {
+// معالجة الصور
+function processImages(type, item) {
     currentImages = [];
-    
-    // جمع كل الصور المتاحة للعنصر
-    if (currentItem.image) {
-        if (typeof currentItem.image === 'string') {
-            currentImages.push(currentItem.image);
-        } else if (Array.isArray(currentItem.image)) {
-            currentImages = [...currentItem.image];
-        }
-    }
-    
-    if (currentItem.images) {
-        let additionalImages = [];
-        
-        if (typeof currentItem.images === 'string') {
-            try {
-                additionalImages = JSON.parse(currentItem.images);
-            } catch (e) {
-                console.error('Error parsing images JSON:', e);
-                additionalImages = [currentItem.images];
-            }
-        } else if (Array.isArray(currentItem.images)) {
-            additionalImages = [...currentItem.images];
-        }
-        
-        currentImages = [...currentImages, ...additionalImages];
-    }
-    
-    // إذا لم يكن هناك صور، نستخدم صورة افتراضية
-    if (currentImages.length === 0) {
-        currentImages.push('./assets/placeholder-image.jpg');
-    }
-    
-    // عرض الصور
-    displayImages();
-}
-
-// عرض الصور في المعرض
-function displayImages() {
-    const mainImage = document.getElementById('main-image');
     const thumbnailsContainer = document.getElementById('thumbnails-container');
-    const imageCounter = document.getElementById('image-counter');
-    
-    // مسح الصور السابقة
     thumbnailsContainer.innerHTML = '';
     
-    // عرض الصورة الرئيسية الأولى
-    mainImage.src = currentImages[0];
-    mainImage.alt = currentItem.title || 'صورة العنصر';
-    
-    // تحديث العداد
-    updateImageCounter();
-    
-    // إنشاء الصور المصغرة إذا كان هناك أكثر من صورة
-    if (currentImages.length > 1) {
-        currentImages.forEach((image, index) => {
-            const thumbnail = document.createElement('div');
-            thumbnail.className = 'thumbnail' + (index === 0 ? ' active' : '');
-            thumbnail.innerHTML = `<img src="${image}" alt="صورة ${index + 1}">`;
-            thumbnail.addEventListener('click', () => selectImage(index));
-            thumbnailsContainer.appendChild(thumbnail);
-        });
-        
-        // إظهار أزرار التنقل
-        document.getElementById('prev-image').style.display = 'flex';
-        document.getElementById('next-image').style.display = 'flex';
-    } else {
-        // إخفاء أزرار التنقل إذا كان هناك صورة واحدة فقط
-        document.getElementById('prev-image').style.display = 'none';
-        document.getElementById('next-image').style.display = 'none';
+    // جمع جميع الصور المتاحة
+    if (item.image) {
+        currentImages.push(item.image);
     }
+    
+    if (item.images) {
+        let imagesArray = [];
+        if (typeof item.images === 'string') {
+            try {
+                imagesArray = JSON.parse(item.images);
+            } catch (e) {
+                imagesArray = [item.images];
+            }
+        } else if (Array.isArray(item.images)) {
+            imagesArray = item.images;
+        }
+        
+        imagesArray.forEach(img => {
+            if (!currentImages.includes(img)) {
+                currentImages.push(img);
+            }
+        });
+    }
+    
+    // إذا لم توجد صور، نستخدم صورة افتراضية
+    if (currentImages.length === 0) {
+        document.getElementById('image-placeholder').style.display = 'flex';
+        document.getElementById('main-image').style.display = 'none';
+        document.getElementById('image-nav').style.display = 'none';
+        return;
+    }
+    
+    // إظهار الصور
+    document.getElementById('image-placeholder').style.display = 'none';
+    document.getElementById('main-image').style.display = 'block';
+    
+    // عرض الصورة الأولى
+    showImage(0);
+    
+    // إنشاء الصور المصغرة
+    currentImages.forEach((img, index) => {
+        const thumbnail = document.createElement('div');
+        thumbnail.className = 'thumbnail';
+        if (index === 0) thumbnail.classList.add('active');
+        
+        thumbnail.innerHTML = `<img src="${img}" alt="صورة مصغرة ${index + 1}">`;
+        thumbnail.addEventListener('click', () => showImage(index));
+        
+        thumbnailsContainer.appendChild(thumbnail);
+    });
+    
+    // إظهار أزرار التنقل إذا كان هناك أكثر من صورة
+    if (currentImages.length > 1) {
+        document.getElementById('image-nav').style.display = 'flex';
+        updateImageCounter();
+    } else {
+        document.getElementById('image-nav').style.display = 'none';
+    }
+}
+
+// عرض صورة محددة
+function showImage(index) {
+    if (index < 0 || index >= currentImages.length) return;
+    
+    currentImageIndex = index;
+    document.getElementById('main-image').src = currentImages[index];
+    
+    // تحديث الصورة المصغرة النشطة
+    document.querySelectorAll('.thumbnail').forEach((thumb, i) => {
+        if (i === index) {
+            thumb.classList.add('active');
+        } else {
+            thumb.classList.remove('active');
+        }
+    });
+    
+    updateImageCounter();
+}
+
+// عرض الصورة التالية
+function showNextImage() {
+    let nextIndex = currentImageIndex + 1;
+    if (nextIndex >= currentImages.length) nextIndex = 0;
+    showImage(nextIndex);
+}
+
+// عرض الصورة السابقة
+function showPrevImage() {
+    let prevIndex = currentImageIndex - 1;
+    if (prevIndex < 0) prevIndex = currentImages.length - 1;
+    showImage(prevIndex);
 }
 
 // تحديث عداد الصور
@@ -174,127 +249,129 @@ function updateImageCounter() {
         `${currentImageIndex + 1}/${currentImages.length}`;
 }
 
-// اختيار صورة محددة
-function selectImage(index) {
-    if (index < 0 || index >= currentImages.length) return;
+// معالجة المعلومات الإضافية
+function processAdditionalInfo(type, item) {
+    const additionalInfo = document.getElementById('additional-info');
+    const additionalInfoContent = document.getElementById('additional-info-content');
+    additionalInfoContent.innerHTML = '';
     
-    currentImageIndex = index;
-    document.getElementById('main-image').src = currentImages[index];
+    let hasAdditionalInfo = false;
     
-    // تحديث الصور المصغرة النشطة
-    document.querySelectorAll('.thumbnail').forEach((thumb, i) => {
-        thumb.classList.toggle('active', i === index);
-    });
-    
-    updateImageCounter();
-}
-
-// عرض الصورة السابقة
-function showPreviousImage() {
-    let newIndex = currentImageIndex - 1;
-    if (newIndex < 0) newIndex = currentImages.length - 1;
-    selectImage(newIndex);
-}
-
-// عرض الصورة التالية
-function showNextImage() {
-    let newIndex = currentImageIndex + 1;
-    if (newIndex >= currentImages.length) newIndex = 0;
-    selectImage(newIndex);
-}
-
-// إعداد زر الإجراء (تحميل/انتقال/رابط)
-function setupActionButton() {
-    const actionButton = document.getElementById('action-button');
-    const urlParams = new URLSearchParams(window.location.search);
-    const itemType = urlParams.get('type');
-    
-    let buttonText = 'فتح';
-    let buttonUrl = '#';
-    let buttonIcon = 'fas fa-external-link-alt';
-    
-    switch(itemType) {
+    // إضافة معلومات إضافية حسب نوع العنصر
+    switch(type) {
         case 'books':
-            buttonText = 'تحميل الكتاب';
-            buttonIcon = 'fas fa-download';
-            buttonUrl = currentItem.drive_link || '#';
+            if (item.author) {
+                additionalInfoContent.innerHTML += `<p><strong>المؤلف:</strong> ${item.author}</p>`;
+                hasAdditionalInfo = true;
+            }
+            if (item.pages) {
+                additionalInfoContent.innerHTML += `<p><strong>عدد الصفحات:</strong> ${item.pages}</p>`;
+                hasAdditionalInfo = true;
+            }
+            if (item.publisher) {
+                additionalInfoContent.innerHTML += `<p><strong>الناشر:</strong> ${item.publisher}</p>`;
+                hasAdditionalInfo = true;
+            }
             break;
+            
         case 'novels':
-            buttonText = 'قراءة الرواية';
-            buttonIcon = 'fas fa-book-open';
-            buttonUrl = currentItem.read_link || currentItem.drive_link || '#';
+            if (item.author) {
+                additionalInfoContent.innerHTML += `<p><strong>المؤلف:</strong> ${item.author}</p>`;
+                hasAdditionalInfo = true;
+            }
+            if (item.chapters) {
+                additionalInfoContent.innerHTML += `<p><strong>عدد الفصول:</strong> ${item.chapters}</p>`;
+                hasAdditionalInfo = true;
+            }
             break;
+            
         case 'files':
-            buttonText = 'تحميل الملف';
-            buttonIcon = 'fas fa-download';
-            buttonUrl = currentItem.drive_link || '#';
+            if (item.format) {
+                document.getElementById('item-format-container').style.display = 'flex';
+                document.getElementById('item-format').textContent = item.format;
+            }
+            if (item.size) {
+                document.getElementById('item-size-container').style.display = 'flex';
+                document.getElementById('item-size').textContent = item.size;
+            }
             break;
-        case 'platforms':
-            buttonText = 'زيارة المنصة';
-            buttonIcon = 'fas fa-external-link-alt';
-            buttonUrl = currentItem.link || '#';
-            break;
+            
         case 'apps':
-            buttonText = 'تحميل التطبيق';
-            buttonIcon = 'fas fa-download';
-            buttonUrl = currentItem.download_link || '#';
-            break;
-        case 'servers':
-            buttonText = 'انضم إلى السيرفر';
-            buttonIcon = 'fas fa-users';
-            buttonUrl = currentItem.link || '#';
+            if (item.version) {
+                additionalInfoContent.innerHTML += `<p><strong>الإصدار:</strong> ${item.version}</p>`;
+                hasAdditionalInfo = true;
+            }
+            if (item.developer) {
+                additionalInfoContent.innerHTML += `<p><strong>المطور:</strong> ${item.developer}</p>`;
+                hasAdditionalInfo = true;
+            }
             break;
     }
     
-    // تحديث الزر
-    actionButton.innerHTML = `<i class="${buttonIcon}"></i> ${buttonText}`;
-    actionButton.href = buttonUrl;
-    
-    // إخفاء الزر إذا لم يكن هناك رابط
-    if (buttonUrl === '#') {
-        actionButton.style.display = 'none';
+    // إظهار قسم المعلومات الإضافية إذا كان هناك معلومات
+    if (hasAdditionalInfo) {
+        additionalInfo.style.display = 'block';
     } else {
-        actionButton.style.display = 'inline-flex';
+        additionalInfo.style.display = 'none';
     }
 }
 
 // مشاركة العنصر
 function shareItem() {
+    const title = currentItem.title;
+    const url = window.location.href;
+    
     if (navigator.share) {
         navigator.share({
-            title: currentItem.title,
-            text: currentItem.description,
-            url: window.location.href
-        })
-        .catch(error => {
-            console.log('Error sharing:', error);
-            copyToClipboard(window.location.href);
+            title: title,
+            url: url
+        }).catch(error => {
+            console.error('Error sharing:', error);
+            copyToClipboard(url);
         });
     } else {
-        copyToClipboard(window.location.href);
+        copyToClipboard(url);
     }
 }
 
 // نسخ النص إلى الحافظة
 function copyToClipboard(text) {
     navigator.clipboard.writeText(text).then(() => {
-        alert('تم نسخ رابط العنصر إلى الحافظة');
-    }).catch(err => {
-        console.error('Failed to copy: ', err);
-        alert('تعذر نسخ الرابط، يرجى المحاولة مرة أخرى');
+        alert('تم نسخ الرابط إلى الحافظة: ' + text);
+    }).catch(error => {
+        console.error('Error copying to clipboard:', error);
+        alert('لم يتمكن المتصفح من نسخ الرابط. يرجى نسخه يدوياً: ' + text);
     });
 }
 
-// عرض رسالة خطأ
+// الرجوع إلى الصفحة السابقة
+function goBack() {
+    window.history.back();
+}
+
+// إظهار مؤشر التحميل
+function showLoading() {
+    document.getElementById('loading-spinner').style.display = 'flex';
+}
+
+// إخفاء مؤشر التحميل
+function hideLoading() {
+    document.getElementById('loading-spinner').style.display = 'none';
+}
+
+// إظهار رسالة الخطأ
 function showError(message) {
-    const container = document.querySelector('.item-details-container');
-    container.innerHTML = `
-        <div class="error-message">
-            <i class="fas fa-exclamation-triangle"></i>
-            <h2>${message}</h2>
-            <button onclick="window.history.back()" class="back-button">
-                <i class="fas fa-arrow-right"></i> العودة
-            </button>
-        </div>
-    `;
+    document.getElementById('error-text').textContent = message;
+    document.getElementById('error-message').style.display = 'block';
+}
+
+// إخفاء رسالة الخطأ
+function hideError() {
+    document.getElementById('error-message').style.display = 'none';
+}
+
+// وظيفة تمرير الأقسام
+function scrollCategories(direction) {
+    const container = document.querySelector('.categories-wrapper');
+    container.scrollBy({ left: direction, behavior: 'smooth' });
 }
