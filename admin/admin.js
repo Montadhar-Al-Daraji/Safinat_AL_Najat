@@ -1,22 +1,21 @@
 // تعريف المتغيرات العامة
 let supabase;
 let currentAdmin = null;
+let sessionTimer;
+let sessionTimeout = 30 * 60; // 30 دقيقة بالثواني
 let siteData = {
     books: [],
     novels: [],
     files: [],
     platforms: [],
     apps: [],
-    servers: []
+    servers: [],
+    admins: []
 };
 
 // ثوابت Supabase - يجب تخزينها بشكل آمن في بيئة الإنتاج
 const SUPABASE_URL = 'https://xzltdsmmolyvcmkfzedf.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bHRkc21tb2x5dmNta2Z6ZWRmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc2Nzg1NzEsImV4cCI6MjA3MzI1NDU3MX0.3TJ49ctEhOT1KDIFtZXFw2jwTq57ujaWbqNNJ2Eeb1U';
-
-```javascript
-// ثوابت Supabase - يجب تخزينها بشكل آمن في بيئة الإنتاج
-const SUPABASE_URL = 'https://xzltdsmmolyvcmkfzedf.supabase.co';
 
 // تهيئة Supabase
 function initSupabase() {
@@ -52,6 +51,7 @@ function checkAuth() {
         currentAdmin = JSON.parse(adminData);
         showAdminPage();
         setupAdminInterface(currentAdmin.role);
+        startSessionTimer();
         return true;
     } catch (error) {
         console.error('Error parsing admin data:', error);
@@ -102,6 +102,41 @@ function showAdminPage() {
     hideLoginPage();
     const adminContainer = document.getElementById('admin-container');
     if (adminContainer) adminContainer.classList.remove('hidden');
+    
+    // تحديث معلومات المستخدم
+    document.getElementById('admin-email').textContent = currentAdmin.email;
+    document.getElementById('admin-role').textContent = currentAdmin.role === 'owner' ? 'مالك' : 'مشرف';
+    
+    // تحميل البيانات
+    loadAdminData();
+}
+
+// بدء مؤقت الجلسة
+function startSessionTimer() {
+    clearInterval(sessionTimer);
+    let timeLeft = sessionTimeout;
+    
+    sessionTimer = setInterval(() => {
+        timeLeft--;
+        
+        const minutes = Math.floor(timeLeft / 60);
+        const seconds = timeLeft % 60;
+        
+        document.getElementById('session-timer').textContent = 
+            `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        
+        if (timeLeft <= 0) {
+            clearInterval(sessionTimer);
+            alert('انتهت مدة الجلسة، يرجى تسجيل الدخول مرة أخرى');
+            logout();
+        }
+    }, 1000);
+}
+
+// إعادة تعيين مؤقت الجلسة
+function resetSession() {
+    startSessionTimer();
+    alert('تم تجديد الجلسة بنجاح');
 }
 
 // تسجيل الدخول
@@ -109,7 +144,7 @@ async function login() {
     const emailInput = document.getElementById('email');
     const passwordInput = document.getElementById('password');
     const errorElement = document.getElementById('login-error');
-    const loginBtn = document.getElementById('login-btn');
+    const loginBtn = document.querySelector('.login-btn');
     
     if (!emailInput || !passwordInput || !errorElement || !loginBtn) {
         console.error('Login elements not found');
@@ -134,8 +169,8 @@ async function login() {
     
     try {
         // إظهار تحميل
-        const originalText = loginBtn.textContent;
-        loginBtn.textContent = 'جاري تسجيل الدخول...';
+        const originalText = loginBtn.innerHTML;
+        loginBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري تسجيل الدخول...';
         loginBtn.disabled = true;
         
         // البحث عن المشرف في قاعدة البيانات
@@ -147,7 +182,7 @@ async function login() {
 
         if (error || !admin) {
             errorElement.textContent = 'البريد الإلكتروني أو كلمة المرور غير صحيحة';
-            loginBtn.textContent = originalText;
+            loginBtn.innerHTML = originalText;
             loginBtn.disabled = false;
             return;
         }
@@ -155,7 +190,7 @@ async function login() {
         // التحقق من كلمة المرور (يجب استخدام مقارنة آمنة في بيئة الإنتاج)
         if (password !== atob(admin.password_hash)) {
             errorElement.textContent = 'البريد الإلكتروني أو كلمة المرور غير صحيحة';
-            loginBtn.textContent = originalText;
+            loginBtn.innerHTML = originalText;
             loginBtn.disabled = false;
             
             // تسجيل محاولة الدخول الفاشلة
@@ -182,12 +217,8 @@ async function login() {
         // إظهار لوحة التحكم
         showAdminPage();
         
-        // تحميل البيانات وإعداد الواجهة
-        await loadAdminData();
-        setupAdminInterface(admin.role);
-        
         // إعادة تعيين الزر
-        loginBtn.textContent = originalText;
+        loginBtn.innerHTML = originalText;
         loginBtn.disabled = false;
         
     } catch (error) {
@@ -198,7 +229,7 @@ async function login() {
         
         // إعادة تعيين الزر في حالة الخطأ
         if (loginBtn) {
-            loginBtn.textContent = 'دخول';
+            loginBtn.innerHTML = '<i class="fas fa-sign-in-alt"></i> دخول';
             loginBtn.disabled = false;
         }
     }
@@ -241,8 +272,11 @@ async function getClientIP() {
 // تسجيل الخروج
 function logout() {
     // تسجيل حدث تسجيل الخروج
-    logLogoutEvent(currentAdmin.email);
+    if (currentAdmin) {
+        logLogoutEvent(currentAdmin.email);
+    }
     
+    clearInterval(sessionTimer);
     sessionStorage.removeItem('adminToken');
     sessionStorage.removeItem('adminData');
     currentAdmin = null;
@@ -276,22 +310,21 @@ async function logLogoutEvent(email) {
 // إعداد واجهة المشرفين حسب الصلاحية
 function setupAdminInterface(role) {
     const adminsTab = document.getElementById('admins-tab');
-    const adminsPanel = document.getElementById('admins-panel');
+    const securityTab = document.getElementById('security-tab');
     
-    if (adminsTab && adminsPanel) {
+    if (adminsTab) {
         if (role === 'owner') {
             adminsTab.style.display = 'block';
-            loadAdminsList();
         } else {
             adminsTab.style.display = 'none';
-            adminsPanel.style.display = 'none';
-            
-            // إذا كان التبويب النشط هو تبويب المشرفين، نغير إلى تبويب آخر
-            const activeTab = document.querySelector('.tab-button.active');
-            if (activeTab && activeTab.dataset.tab === 'admins') {
-                const booksTab = document.querySelector('[data-tab="books"]');
-                if (booksTab) booksTab.click();
-            }
+        }
+    }
+    
+    if (securityTab) {
+        if (role === 'owner') {
+            securityTab.style.display = 'block';
+        } else {
+            securityTab.style.display = 'none';
         }
     }
 }
@@ -308,17 +341,18 @@ async function loadAdminData() {
     try {
         // إظهار تحميل في جميع الأقسام
         document.querySelectorAll('.items-list').forEach(list => {
-            if (list) list.innerHTML = '<p class="no-items">جاري تحميل البيانات...</p>';
+            if (list) list.innerHTML = '<div class="loading-spinner"><i class="fas fa-spinner fa-spin"></i><p>جاري تحميل البيانات...</p></div>';
         });
         
         // جلب البيانات من كل جدول
-        const [booksData, novelsData, filesData, platformsData, appsData, serversData] = await Promise.all([
+        const [booksData, novelsData, filesData, platformsData, appsData, serversData, adminsData] = await Promise.all([
             supabase.from('books').select('*'),
             supabase.from('novels').select('*'),
             supabase.from('files').select('*'),
             supabase.from('platforms').select('*'),
             supabase.from('apps').select('*'),
-            supabase.from('servers').select('*')
+            supabase.from('servers').select('*'),
+            currentAdmin.role === 'owner' ? supabase.from('admins').select('*') : { data: [] }
         ]);
 
         // معالجة البيانات
@@ -328,14 +362,31 @@ async function loadAdminData() {
         siteData.platforms = platformsData.data || [];
         siteData.apps = appsData.data || [];
         siteData.servers = serversData.data || [];
+        siteData.admins = adminsData.data || [];
 
         renderAllAdminLists();
         setupSearchFunctionality();
+        
+        // تحديث إحصائيات المشرفين
+        if (currentAdmin.role === 'owner') {
+            updateAdminStats();
+        }
         
     } catch (error) {
         console.error('Error loading data:', error);
         alert('حدث خطأ في تحميل البيانات: ' + error.message);
     }
+}
+
+// تحديث إحصائيات المشرفين
+function updateAdminStats() {
+    const totalAdmins = siteData.admins.length;
+    const totalOwners = siteData.admins.filter(admin => admin.role === 'owner').length;
+    const totalAdminsCount = siteData.admins.filter(admin => admin.role === 'admin').length;
+    
+    document.getElementById('total-admins').textContent = totalAdmins;
+    document.getElementById('total-owners').textContent = totalOwners;
+    document.getElementById('total-admins-count').textContent = totalAdminsCount;
 }
 
 // تحميل قائمة المشرفين
@@ -356,7 +407,9 @@ async function loadAdminsList() {
             return;
         }
         
+        siteData.admins = admins || [];
         renderAdminsList(admins);
+        updateAdminStats();
     } catch (error) {
         console.error('Error loading admins:', error);
         document.getElementById('admins-list').innerHTML = '<p class="no-items">خطأ في تحميل قائمة المشرفين</p>';
@@ -578,6 +631,10 @@ function renderAllAdminLists() {
     renderAdminList('platforms', siteData.platforms);
     renderAdminList('apps', siteData.apps);
     renderAdminList('servers', siteData.servers);
+    
+    if (currentAdmin.role === 'owner') {
+        renderAdminsList(siteData.admins);
+    }
 }
 
 // عرض قائمة العناصر في لوحة التحكم
@@ -714,8 +771,10 @@ function setupSearchFunctionality() {
     if (adminsSearch) {
         adminsSearch.addEventListener('input', function(e) {
             const searchTerm = e.target.value.toLowerCase();
-            // سيتم تطبيق البحث على المشرفين عندما يتم تحميلهم
-            // هذه الوظيفة تحتاج إلى تعديل عندما يكون هناك طريقة لجلب المشرفين
+            const filteredAdmins = siteData.admins.filter(admin => 
+                admin.email.toLowerCase().includes(searchTerm)
+            );
+            renderAdminsList(filteredAdmins);
         });
     }
 }
@@ -744,9 +803,24 @@ function setupTabs() {
             if (targetPanel) {
                 targetPanel.classList.add('active');
                 button.classList.add('active');
+                
+                // تحميل البيانات الخاصة باللوحة إذا لزم الأمر
+                if (tabName === 'admins' && currentAdmin.role === 'owner') {
+                    loadAdminsList();
+                }
             }
         });
     });
+}
+
+// تغيير كلمة المرور
+function changePassword() {
+    document.getElementById('password-modal').style.display = 'block';
+}
+
+// إغلاق النافذة المنبثقة
+function closeModal(modalId) {
+    document.getElementById(modalId).style.display = 'none';
 }
 
 // تهيئة الصفحة عند التحميل
@@ -754,12 +828,8 @@ document.addEventListener('DOMContentLoaded', function() {
     // تهيئة Supabase
     initSupabase();
     
-    // إعداد event listeners بعد التأكد من تحميل DOM بالكامل
-    if (document.readyState === 'complete') {
-        setupEventListeners();
-    } else {
-        window.addEventListener('load', setupEventListeners);
-    }
+    // إعداد event listeners
+    setupEventListeners();
     
     // التحقق من المصادقة
     checkAuth();
@@ -778,12 +848,18 @@ function setupEventListeners() {
         });
     }
     
-    // إضافة event listener لزر الدخول
-    const loginBtn = document.getElementById('login-btn');
-    if (loginBtn) {
-        loginBtn.addEventListener('click', function(e) {
-            e.preventDefault();
-            login();
+    // إعداد زر إظهار/إخفاء كلمة المرور
+    const togglePasswordBtn = document.getElementById('toggle-password');
+    if (togglePasswordBtn) {
+        togglePasswordBtn.addEventListener('click', function() {
+            const passwordInput = document.getElementById('password');
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                this.innerHTML = '<i class="fas fa-eye-slash"></i>';
+            } else {
+                passwordInput.type = 'password';
+                this.innerHTML = '<i class="fas fa-eye"></i>';
+            }
         });
     }
     
@@ -798,164 +874,67 @@ function setupEventListeners() {
     if (addAdminForm) {
         addAdminForm.addEventListener('submit', function(e) {
             e.preventDefault();
-            const email = document.getElementById('new-admin-email')?.value;
-            const password = document.getElementById('new-admin-password')?.value;
-            const role = document.getElementById('new-admin-role')?.value;
+            const email = document.getElementById('new-admin-email').value;
+            const password = document.getElementById('new-admin-password').value;
+            const role = document.getElementById('new-admin-role').value;
             
             if (email && password && role) {
                 addAdmin(email, password, role).then(success => {
-                    if (success && addAdminForm.reset) {
-                        addAdminForm.reset();
+                    if (success) {
+                        this.reset();
                     }
                 });
             }
         });
     }
     
+    // إعداد زر تحديث المشرفين
+    const refreshAdminsBtn = document.getElementById('refresh-admins-btn');
+    if (refreshAdminsBtn) {
+        refreshAdminsBtn.addEventListener('click', function() {
+            loadAdminsList();
+        });
+    }
+    
+    // إعداد زر تجديد الجلسة
+    const resetSessionBtn = document.getElementById('reset-session-btn');
+    if (resetSessionBtn) {
+        resetSessionBtn.addEventListener('click', resetSession);
+    }
+    
+    // إعداد زر تغيير كلمة المرور
+    const changePasswordBtn = document.getElementById('change-password-btn');
+    if (changePasswordBtn) {
+        changePasswordBtn.addEventListener('click', changePassword);
+    }
+    
+    // إعداد زر إغلاق نافذة كلمة المرور
+    const closePasswordModal = document.getElementById('close-password-modal');
+    if (closePasswordModal) {
+        closePasswordModal.addEventListener('click', function() {
+            closeModal('password-modal');
+        });
+    }
+    
+    // إعداد نموذج تغيير كلمة المرور
+    const changePasswordForm = document.getElementById('change-password-form');
+    if (changePasswordForm) {
+        changePasswordForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            // هنا سيتم إضافة منطق تغيير كلمة المرور
+            alert('سيتم تنفيذ تغيير كلمة المرور هنا');
+            closeModal('password-modal');
+        });
+    }
+    
     // إعداد التبويبات
     setupTabs();
-}
-
-// معالجة إرسال نماذج العناصر
-async function handleServerSubmit(e) {
-    e.preventDefault();
     
-    const newServer = {
-        title: document.getElementById('server-title').value,
-        description: document.getElementById('server-description').value,
-        image: document.getElementById('server-image').value,
-        link: document.getElementById('server-link').value
-    };
-    
-    try {
-        const savedServer = await saveItemToSupabase('servers', newServer);
-        siteData.servers.push(savedServer);
-        renderAdminList('servers', siteData.servers);
-        this.reset();
-        alert('تم إضافة السيرفر بنجاح!');
-    } catch (error) {
-        console.error('Error adding server:', error);
-        alert('حدث خطأ أثناء إضافة السيرفر: ' + error.message);
-    }
-}
-
-async function handleBookSubmit(e) {
-    e.preventDefault();
-    
-    const newBook = {
-        title: document.getElementById('book-title').value,
-        description: document.getElementById('book-description').value,
-        image: document.getElementById('book-image').value,
-        drive_link: document.getElementById('book-drive-link').value
-    };
-    
-    try {
-        const savedBook = await saveItemToSupabase('books', newBook);
-        siteData.books.push(savedBook);
-        renderAdminList('books', siteData.books);
-        this.reset();
-        alert('تم إضافة الكتاب بنجاح!');
-    } catch (error) {
-        console.error('Error adding book:', error);
-        alert('حدث خطأ أثناء إضافة الكتاب: ' + error.message);
-    }
-}
-
-async function handleNovelSubmit(e) {
-    e.preventDefault();
-    
-    const imageInputs = document.querySelectorAll('.novel-image-input');
-    const images = [];
-    
-    imageInputs.forEach(input => {
-        if (input.value.trim() !== '') {
-            images.push(input.value);
+    // النقر خارج النافذة المنبثقة يغلقها
+    window.addEventListener('click', function(event) {
+        const passwordModal = document.getElementById('password-modal');
+        if (event.target === passwordModal) {
+            closeModal('password-modal');
         }
     });
-    
-    const newNovel = {
-        title: document.getElementById('novel-title').value,
-        description: document.getElementById('novel-description').value,
-        images: images
-    };
-    
-    try {
-        const savedNovel = await saveItemToSupabase('novels', newNovel);
-        siteData.novels.push(savedNovel);
-        renderAdminList('novels', siteData.novels);
-        this.reset();
-        
-        // إعادة تعيين حقل الصور
-        const imagesContainer = document.getElementById('novel-images-container');
-        imagesContainer.innerHTML = '<input type="url" class="novel-image-input" placeholder="رابط الصورة">';
-        alert('تم إضافة الرواية بنجاح!');
-    } catch (error) {
-        console.error('Error adding novel:', error);
-        alert('حدث خطأ أثناء إضافة الرواية: ' + error.message);
-    }
-}
-
-async function handleFileSubmit(e) {
-    e.preventDefault();
-    
-    const newFile = {
-        title: document.getElementById('file-title').value,
-        description: document.getElementById('file-description').value,
-        image: document.getElementById('file-image').value,
-        drive_link: document.getElementById('file-drive-link').value
-    };
-    
-    try {
-        const savedFile = await saveItemToSupabase('files', newFile);
-        siteData.files.push(savedFile);
-        renderAdminList('files', siteData.files);
-        this.reset();
-        alert('تم إضافة الملف بنجاح!');
-    } catch (error) {
-        console.error('Error adding file:', error);
-        alert('حدث خطأ أثناء إضافة الملف: ' + error.message);
-    }
-}
-
-async function handlePlatformSubmit(e) {
-    e.preventDefault();
-    
-    const newPlatform = {
-        title: document.getElementById('platform-title').value,
-        image: document.getElementById('platform-image').value,
-        link: document.getElementById('platform-link').value
-    };
-    
-    try {
-        const savedPlatform = await saveItemToSupabase('platforms', newPlatform);
-        siteData.platforms.push(savedPlatform);
-        renderAdminList('platforms', siteData.platforms);
-        this.reset();
-        alert('تم إضافة المنصة بنجاح!');
-    } catch (error) {
-        console.error('Error adding platform:', error);
-        alert('حدث خطأ أثناء إضافة المنصة: ' + error.message);
-    }
-}
-
-async function handleAppSubmit(e) {
-    e.preventDefault();
-    
-    const newApp = {
-        title: document.getElementById('app-title').value,
-        description: document.getElementById('app-description').value,
-        image: document.getElementById('app-image').value,
-        download_link: document.getElementById('app-download-link').value
-    };
-    
-    try {
-        const savedApp = await saveItemToSupabase('apps', newApp);
-        siteData.apps.push(savedApp);
-        renderAdminList('apps', siteData.apps);
-        this.reset();
-        alert('تم إضافة التطبيق بنجاح!');
-    } catch (error) {
-        console.error('Error adding app:', error);
-        alert('حدث خطأ أثناء إضافة التطبيق: ' + error.message);
-    }
 }
