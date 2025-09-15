@@ -249,20 +249,19 @@ function renderSection(sectionId) {
 }
 
 // عرض المحتوى البارز على الصفحة الرئيسية
+// عرض المحتوى البارز على الصفحة الرئيسية (معدّل)
 function renderHighlights() {
     const container = domElements.containers.highlights;
     if (!container) return;
     
     container.innerHTML = '';
     
-    // اختيار عناصر عشوائية من كل قسم
-    const highlights = [];
+    // جمع العناصر من جميع الأقسام غير الفارغة
+    const allItems = [];
     Object.keys(appState.data).forEach(category => {
-        if (appState.data[category].length > 0) {
-            // عرض عنصرين من كل قسم بدلاً من عنصر واحد عشوائي
-            const itemsToShow = appState.data[category].slice(0, 2);
-            itemsToShow.forEach(item => {
-                highlights.push({
+        if (appState.data[category] && appState.data[category].length > 0) {
+            appState.data[category].forEach(item => {
+                allItems.push({
                     category: category,
                     item: item
                 });
@@ -270,11 +269,28 @@ function renderHighlights() {
         }
     });
     
-    if (highlights.length === 0) {
-        container.innerHTML = `<p class="${cssClasses.noItems}">لا توجد عناصر لعرضها</p>`;
+    // إذا لم توجد عناصر على الإطلاق
+    if (allItems.length === 0) {
+        container.innerHTML = `<p class="${cssClasses.noItems}">لا توجد عناصر لعرضها بعد</p>`;
         return;
     }
     
+    // اختيار عشوائي لعدد من العناصر (بحد أقصى 6)
+    const highlights = [];
+    const maxHighlights = Math.min(6, allItems.length);
+    
+    // إنشاء مصفوفة مؤقتة للعناصر لتجنب التكرار
+    const tempItems = [...allItems];
+    
+    for (let i = 0; i < maxHighlights; i++) {
+        if (tempItems.length === 0) break;
+        
+        const randomIndex = Math.floor(Math.random() * tempItems.length);
+        highlights.push(tempItems[randomIndex]);
+        tempItems.splice(randomIndex, 1);
+    }
+    
+    // عرض العناصر المميزة
     highlights.forEach(highlight => {
         const itemElement = createHighlightElement(highlight.category, highlight.item);
         container.appendChild(itemElement);
