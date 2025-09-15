@@ -1,8 +1,6 @@
-// تهيئة Supabase - يتم الآن تحميل المفاتيح بشكل آمن
-let SUPABASE_URL = '';
-let SUPABASE_ANON_KEY = '';
-let supabaseClient = null;
-
+// تهيئة Supabase
+const SUPABASE_URL = window.CONFIG.SUPABASE_URL;
+const SUPABASE_ANON_KEY = window.CONFIG.SUPABASE_ANON_KEY;
 // حالة التطبيق
 const appState = {
     data: {
