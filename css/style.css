@@ -993,3 +993,58 @@ footer p {
     max-height: 80%;
     object-fit: contain;
 }
+
+/* تحسينات للعناصر القابلة للنقر */
+.item {
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.item:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+}
+
+.item::after {
+    content: 'انقر للتفاصيل';
+    position: absolute;
+    bottom: 10px;
+    left: 10px;
+    background: rgba(0, 0, 0, 0.7);
+    color: #D4AF37;
+    padding: 3px 8px;
+    border-radius: 5px;
+    font-size: 0.8rem;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.item:hover::after {
+    opacity: 1;
+}
+
+/* منع تأثير النقر على الأزرار */
+.item-button {
+    cursor: pointer;
+    position: relative;
+    z-index: 2;
+}
+
+.item-button:hover::after {
+    opacity: 0;
+}
+
+/* شارات العناصر المميزة */
+.item-badge {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: #D4AF37;
+    color: #8B0000;
+    padding: 5px 10px;
+    border-radius: 15px;
+    font-size: 0.8rem;
+    font-weight: bold;
+    z-index: 2;
+}
