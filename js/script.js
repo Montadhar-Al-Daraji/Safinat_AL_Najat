@@ -2,8 +2,10 @@
 const SUPABASE_URL = 'https://xzltdsmmolyvcmkfzedf.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bHRkc21tb2x5dmNta2Z6ZWRmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc2Nzg1NzEsImV4cCI6MjA3MzI1NDU3MX0.3TJ49ctEhOT1KDIFtZXFw2jwTq57ujaWbqNNJ2Eeb1U';
 
+// إنشاء عميل Supabase
 const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+// حالة التطبيق
 const appState = {
     data: {
         books: [],
@@ -19,6 +21,7 @@ const appState = {
     isLoading: false
 };
 
+// عناصر DOM الرئيسية
 const domElements = {
     tabs: null,
     searchInput: null,
@@ -28,6 +31,7 @@ const domElements = {
     containers: null
 };
 
+// فئات CSS للعناصر
 const cssClasses = {
     active: 'active',
     hidden: 'hidden',
@@ -44,6 +48,7 @@ const cssClasses = {
     highlightsContainer: 'highlights-container'
 };
 
+// أسماء الأقسام بالعربية
 const categoryNames = {
     books: 'كتاب',
     novels: 'رواية',
@@ -60,6 +65,7 @@ function initApp() {
     loadData();
 }
 
+// تهيئة عناصر DOM
 function initializeDOMElements() {
     domElements.tabs = document.querySelectorAll('.nav-tab');
     domElements.searchInput = document.getElementById('search-input');
@@ -77,16 +83,20 @@ function initializeDOMElements() {
     };
 }
 
+// إعداد مستمعي الأحداث
 function setupEventListeners() {
+    // أحداث التبويبات
     domElements.tabs.forEach(tab => {
         tab.addEventListener('click', handleTabClick);
     });
 
+    // أحداث البحث
     domElements.searchBtn.addEventListener('click', performSearch);
     domElements.searchInput.addEventListener('keypress', (e) => {
         if (e.key === 'Enter') performSearch();
     });
 
+    // إغلاق نتائج البحث عند النقر خارجها
     document.addEventListener('click', (e) => {
         if (!domElements.searchResults.contains(e.target) && 
             e.target !== domElements.searchInput && 
@@ -100,13 +110,14 @@ function setupEventListeners() {
 async function loadData() {
     try {
         setLoadingState(true);
-
+        
+        // جلب البيانات من جميع الجداول بشكل متوازي
         const [
-            booksResponse,
-            novelsResponse,
-            filesResponse,
-            platformsResponse,
-            appsResponse,
+            booksResponse, 
+            novelsResponse, 
+            filesResponse, 
+            platformsResponse, 
+            appsResponse, 
             serversResponse
         ] = await Promise.all([
             supabaseClient.from('books').select('*'),
@@ -117,6 +128,7 @@ async function loadData() {
             supabaseClient.from('servers').select('*')
         ]);
 
+        // معالجة الاستجابات
         handleDataResponse('books', booksResponse);
         handleDataResponse('novels', novelsResponse);
         handleDataResponse('files', filesResponse);
@@ -124,10 +136,9 @@ async function loadData() {
         handleDataResponse('apps', appsResponse);
         handleDataResponse('servers', serversResponse);
 
-        // توحيد منطق العرض
         renderAllSections();
         setLoadingState(false);
-
+        
     } catch (error) {
         console.error('Error loading data:', error);
         showError('حدث خطأ في تحميل البيانات');
@@ -135,6 +146,7 @@ async function loadData() {
     }
 }
 
+// معالجة استجابة البيانات
 function handleDataResponse(category, response) {
     if (response.error) {
         console.error(`Error loading ${category}:`, response.error);
@@ -144,6 +156,7 @@ function handleDataResponse(category, response) {
     }
 }
 
+// تعيين حالة التحميل
 function setLoadingState(isLoading) {
     appState.isLoading = isLoading;
     const mainElement = document.querySelector('main');
@@ -155,17 +168,21 @@ function setLoadingState(isLoading) {
     }
 }
 
+// معالجة النقر على التبويب
 function handleTabClick(e) {
     e.preventDefault();
     
     const tab = e.currentTarget;
     const tabName = tab.getAttribute('data-tab');
     
+    // تحديث التبويب النشط
     updateActiveTab(tab);
     
+    // إظهار القسم المحدد
     showSection(tabName);
 }
 
+// تحديث التبويب النشط
 function updateActiveTab(activeTab) {
     domElements.tabs.forEach(tab => {
         tab.classList.remove(cssClasses.active);
@@ -174,15 +191,19 @@ function updateActiveTab(activeTab) {
     appState.currentTab = activeTab.getAttribute('data-tab');
 }
 
+// إظهار قسم معين
 function showSection(sectionName) {
+    // إخفاء جميع الأقسام
     domElements.sections.forEach(section => {
         section.classList.remove(cssClasses.active);
     });
     
+    // إظهار القسم المحدد
     const targetSection = document.getElementById(`${sectionName}-content`);
     if (targetSection) {
         targetSection.classList.add(cssClasses.active);
         
+        // إذا كان القسم لم يتم عرضه من قبل، قم بعرضه
         if (!appState.renderedSections.has(sectionName)) {
             renderSection(sectionName);
             appState.renderedSections.add(sectionName);
@@ -190,8 +211,9 @@ function showSection(sectionName) {
     }
 }
 
+// عرض جميع الأقسام
 function renderAllSections() {
-    renderHighlights(); // استدعاء الدالة الجديدة
+    renderSection('all');
     Object.keys(appState.data).forEach(section => {
         if (appState.currentTab === section) {
             renderSection(section);
@@ -200,6 +222,7 @@ function renderAllSections() {
     });
 }
 
+// عرض قسم معين
 function renderSection(sectionId) {
     const container = domElements.containers[sectionId];
     if (!container) return;
@@ -221,51 +244,223 @@ function renderSection(sectionId) {
         container.appendChild(itemElement);
     });
     
+    // تحديث العداد
     updateItemsCount(sectionId, items.length);
 }
 
-// دالة جديدة ومحسّنة لعرض المحتوى البارز
+// عرض المحتوى البارز على الصفحة الرئيسية
 function renderHighlights() {
     const container = domElements.containers.highlights;
     if (!container) return;
-
+    
     container.innerHTML = '';
-
-    const allItems = [];
+    
+    // اختيار عناصر عشوائية من كل قسم
+    const highlights = [];
     Object.keys(appState.data).forEach(category => {
-        allItems.push(...appState.data[category]);
+        if (appState.data[category].length > 0) {
+            // عرض عنصرين من كل قسم بدلاً من عنصر واحد عشوائي
+            const itemsToShow = appState.data[category].slice(0, 2);
+            itemsToShow.forEach(item => {
+                highlights.push({
+                    category: category,
+                    item: item
+                });
+            });
+        }
     });
-
-    if (allItems.length === 0) {
+    
+    if (highlights.length === 0) {
         container.innerHTML = `<p class="${cssClasses.noItems}">لا توجد عناصر لعرضها</p>`;
         return;
     }
     
-    const HIGHLIGHTS_COUNT = 6;
-    const shuffledItems = allItems.sort(() => 0.5 - Math.random());
-    const highlights = shuffledItems.slice(0, HIGHLIGHTS_COUNT);
-    
     highlights.forEach(highlight => {
-        // نحتاج إلى معرفة الفئة لكل عنصر
-        // يمكنك إما إضافة خاصية 'category' لكل عنصر عند جلب البيانات، أو البحث عنها
-        // أسرع طريقة هي إضافة الخاصية
-        // لكننا سنفترض هنا أن الدالة createHighlightElement ستقوم بالتعامل معها
-        const itemElement = createHighlightElement(highlight.category, highlight.item); // هنا يجب تحديد الفئة
+        const itemElement = createHighlightElement(highlight.category, highlight.item);
         container.appendChild(itemElement);
     });
 }
+// فتح صفحة تفاصيل العنصر
+function openItemDetails(category, itemId) {
+    window.location.href = `item-details.html?type=${category}&id=${itemId}`;
+}
 
-// دمج الدالتين
+// إنشاء عنصر لعرضه (معدّل)
 function createItemElement(category, item) {
-    // الكود الخاص بإنشاء عنصر عادي
-    // ... (لا حاجة للتغيير هنا)
+    const div = document.createElement('div');
+    div.className = cssClasses.item;
+    div.setAttribute('data-item-id', item.id);
+    div.setAttribute('data-category', category);
+    
+    let content = '';
+    
+    switch(category) {
+        case 'books':
+            content = createBookItem(item);
+            break;
+        case 'novels':
+            content = createNovelItem(item);
+            break;
+        case 'files':
+            content = createFileItem(item);
+            break;
+        case 'platforms':
+            content = createPlatformItem(item);
+            break;
+        case 'apps':
+            content = createAppItem(item);
+            break;
+        case 'servers':
+            content = createServerItem(item);
+            break;
+    }
+    
+    div.innerHTML = content;
+    
+    // إضافة مستمع حدث للنقر على العنصر (باستثناء الأزرار)
+    div.addEventListener('click', (e) => {
+        // منع فتح التفاصيل إذا تم النقر على زر
+        if (!e.target.closest('.item-button')) {
+            openItemDetails(category, item.id);
+        }
+    });
+    
+    // إضافة تأثيرات التمرير
+    div.style.cursor = 'pointer';
+    div.style.transition = 'transform 0.2s ease-in-out';
+    div.addEventListener('mouseenter', () => {
+        div.style.transform = 'translateY(-5px)';
+    });
+    div.addEventListener('mouseleave', () => {
+        div.style.transform = 'translateY(0)';
+    });
+    
+    return div;
 }
 
+// إنشاء عنصر مميز للصفحة الرئيسية
 function createHighlightElement(category, item) {
-    // الكود الخاص بإنشاء عنصر مميز
-    // ... (لا حاجة للتغيير هنا)
+    const div = document.createElement('div');
+    div.className = cssClasses.item;
+    div.setAttribute('data-item-id', item.id);
+    div.setAttribute('data-category', category);
+    
+    let content = '';
+    
+    switch(category) {
+        case 'books':
+            content = createBookItem(item);
+            break;
+        case 'novels':
+            content = createNovelItem(item);
+            break;
+        case 'files':
+            content = createFileItem(item);
+            break;
+        case 'platforms':
+            content = createPlatformItem(item);
+            break;
+        case 'apps':
+            content = createAppItem(item);
+            break;
+        case 'servers':
+            content = createServerItem(item);
+            break;
+    }
+    
+    // إضافة شارة توضح نوع المحتوى
+    content = `
+        <div class="item-badge">${categoryNames[category]}</div>
+        ${content}
+    `;
+    
+    div.innerHTML = content;
+    
+    // إضافة مستمع حدث للنقر على العنصر (باستثناء الأزرار)
+    div.addEventListener('click', (e) => {
+        // منع فتح التفاصيل إذا تم النقر على زر
+        if (!e.target.closest('.item-button')) {
+            openItemDetails(category, item.id);
+        }
+    });
+    
+    // إضافة تأثيرات التمرير
+    div.style.cursor = 'pointer';
+    div.style.transition = 'transform 0.2s ease-in-out';
+    div.addEventListener('mouseenter', () => {
+        div.style.transform = 'translateY(-5px)';
+    });
+    div.addEventListener('mouseleave', () => {
+        div.style.transform = 'translateY(0)';
+    });
+    
+    return div;
+}
+// إنشاء عنصر مميز للصفحة الرئيسية
+function createHighlightElement(category, item) {
+    const div = document.createElement('div');
+    div.className = cssClasses.item;
+    div.setAttribute('data-item-id', item.id);
+    div.setAttribute('data-category', category);
+    
+    let content = '';
+    
+    switch(category) {
+        case 'books':
+            content = createBookItem(item);
+            break;
+        case 'novels':
+            content = createNovelItem(item);
+            break;
+        case 'files':
+            content = createFileItem(item);
+            break;
+        case 'platforms':
+            content = createPlatformItem(item);
+            break;
+        case 'apps':
+            content = createAppItem(item);
+            break;
+        case 'servers':
+            content = createServerItem(item);
+            break;
+    }
+    
+    // إضافة شارة توضح نوع المحتوى
+    content = `
+        <div class="item-badge">${categoryNames[category]}</div>
+        ${content}
+    `;
+    
+    div.innerHTML = content;
+    
+    // إضافة مستمع حدث للنقر على العنصر (باستثناء الأزرار)
+    div.addEventListener('click', (e) => {
+        // منع فتح التفاصيل إذا تم النقر على زر
+        if (!e.target.closest('.item-button')) {
+            openItemDetails(category, item.id);
+        }
+    });
+    
+    // إضافة تأثيرات التمرير
+    div.style.cursor = 'pointer';
+    div.style.transition = 'transform 0.2s ease-in-out';
+    div.addEventListener('mouseenter', () => {
+        div.style.transform = 'translateY(-5px)';
+    });
+    div.addEventListener('mouseleave', () => {
+        div.style.transform = 'translateY(0)';
+    });
+    
+    return div;
 }
 
+// فتح صفحة تفاصيل العنصر
+function openItemDetails(category, itemId) {
+    window.location.href = `item-details.html?type=${category}&id=${itemId}`;
+}
+
+// إنشاء عنصر كتاب
 function createBookItem(item) {
     return `
         <div class="item-image-container">
@@ -278,6 +473,7 @@ function createBookItem(item) {
     `;
 }
 
+// إنشاء عنصر رواية (معدّل)
 function createNovelItem(item) {
     let imagesHtml = '';
     let imagesArray = [];
@@ -294,6 +490,7 @@ function createNovelItem(item) {
         }
     }
     
+    // صورة رئيسية
     let mainImage = '';
     if (imagesArray.length > 0) {
         mainImage = `<img src="${imagesArray[0]}" alt="${item.title}" class="${cssClasses.itemImage}">`;
@@ -301,6 +498,7 @@ function createNovelItem(item) {
         mainImage = `<div class="placeholder-image"><i class="fas fa-book-open"></i></div>`;
     }
     
+    // صور مصغرة
     if (imagesArray.length > 1) {
         imagesHtml = `<div class="${cssClasses.novelImages}">`;
         imagesArray.slice(1, 4).forEach((img, index) => {
@@ -320,6 +518,7 @@ function createNovelItem(item) {
     `;
 }
 
+// إنشاء عنصر ملف
 function createFileItem(item) {
     return `
         <div class="item-image-container">
@@ -332,6 +531,7 @@ function createFileItem(item) {
     `;
 }
 
+// إنشاء عنصر منصة
 function createPlatformItem(item) {
     return `
         <div class="item-image-container platform-image-container">
@@ -343,6 +543,7 @@ function createPlatformItem(item) {
     `;
 }
 
+// إنشاء عنصر تطبيق
 function createAppItem(item) {
     return `
         <div class="item-image-container">
@@ -355,6 +556,7 @@ function createAppItem(item) {
     `;
 }
 
+// إنشاء عنصر سيرفر
 function createServerItem(item) {
     return `
         <div class="item-image-container">
@@ -367,6 +569,7 @@ function createServerItem(item) {
     `;
 }
 
+// تحديث عداد العناصر
 function updateItemsCount(category, count) {
     const countElement = document.getElementById(`${category}-count`);
     if (countElement) {
@@ -374,6 +577,7 @@ function updateItemsCount(category, count) {
     }
 }
 
+// إجراء البحث
 function performSearch() {
     const searchTerm = domElements.searchInput.value.trim().toLowerCase();
     appState.searchTerm = searchTerm;
@@ -383,6 +587,7 @@ function performSearch() {
         return;
     }
     
+    // البحث في جميع البيانات
     const results = [];
     Object.keys(appState.data).forEach(category => {
         appState.data[category].forEach(item => {
@@ -393,9 +598,11 @@ function performSearch() {
         });
     });
     
+    // عرض نتائج البحث
     displaySearchResults(results);
 }
 
+// عرض نتائج البحث
 function displaySearchResults(results) {
     if (results.length > 0) {
         let html = '';
@@ -411,6 +618,7 @@ function displaySearchResults(results) {
         domElements.searchResults.innerHTML = html;
         domElements.searchResults.classList.add(cssClasses.active);
         
+        // إضافة event listeners للنتائج
         domElements.searchResults.querySelectorAll(`.${cssClasses.searchItem}`).forEach(item => {
             item.addEventListener('click', handleSearchResultClick);
         });
@@ -420,20 +628,24 @@ function displaySearchResults(results) {
     }
 }
 
+// معالجة النقر على نتيجة البحث
 function handleSearchResultClick(e) {
     const item = e.currentTarget;
     const category = item.getAttribute('data-category');
     const id = item.getAttribute('data-id');
     
+    // الانتقال إلى القسم المناسب
     domElements.tabs.forEach(tab => {
         if (tab.getAttribute('data-tab') === category) {
             tab.click();
         }
     });
     
+    // إخفاء نتائج البحث
     domElements.searchResults.classList.remove(cssClasses.active);
     domElements.searchInput.value = '';
     
+    // التمرير إلى العنصر المحدد
     setTimeout(() => {
         const element = document.querySelector(`[data-item-id="${id}"]`);
         if (element) {
@@ -443,6 +655,7 @@ function handleSearchResultClick(e) {
     }, 300);
 }
 
+// تمييز العنصر
 function highlightElement(element) {
     element.classList.add('highlight');
     setTimeout(() => {
@@ -450,6 +663,7 @@ function highlightElement(element) {
     }, 2000);
 }
 
+// عرض رسالة خطأ
 function showError(message) {
     const errorDiv = document.createElement('div');
     errorDiv.className = 'error-message';
@@ -460,19 +674,16 @@ function showError(message) {
     
     document.querySelector('main').prepend(errorDiv);
     
+    // إزالة رسالة الخطأ بعد 5 ثواني
     setTimeout(() => {
         errorDiv.remove();
     }, 5000);
 }
 
+// وظيفة تمرير الأقسام
 function scrollCategories(direction) {
     const container = document.querySelector('.categories-wrapper');
     container.scrollBy({ left: direction, behavior: 'smooth' });
-}
-
-// دمج الدالتين
-function openItemDetails(category, itemId) {
-    window.location.href = `item-details.html?type=${category}&id=${itemId}`;
 }
 
 // تهيئة التطبيق عند تحميل الصفحة
