@@ -111,6 +111,7 @@ const domElements = {
 };
 
 
+
 // أسماء الأقسام بالعربية
 const categoryNames = {
     books: 'كتاب',
