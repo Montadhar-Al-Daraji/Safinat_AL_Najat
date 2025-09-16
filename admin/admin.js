@@ -329,7 +329,7 @@ function setupAdminInterface(role) {
     }
 }
 
-// تحميل البيانات من Supabase
+// تحميل البيانات من Supabase مع الحقول المحسنة
 async function loadAdminData() {
     if (!supabase) {
         if (!initSupabase()) {
@@ -344,14 +344,14 @@ async function loadAdminData() {
             if (list) list.innerHTML = '<div class="loading-spinner"><i class="fas fa-spinner fa-spin"></i><p>جاري تحميل البيانات...</p></div>';
         });
         
-        // جلب البيانات من كل جدول
+        // جلب البيانات من كل جدول مع الحقول الجديدة
         const [booksData, novelsData, filesData, platformsData, appsData, serversData, adminsData] = await Promise.all([
-            supabase.from('books').select('*'),
-            supabase.from('novels').select('*'),
-            supabase.from('files').select('*'),
-            supabase.from('platforms').select('*'),
-            supabase.from('apps').select('*'),
-            supabase.from('servers').select('*'),
+            supabase.from('books').select('*, admins:added_by(email, full_name)'),
+            supabase.from('novels').select('*, admins:added_by(email, full_name)'),
+            supabase.from('files').select('*, admins:added_by(email, full_name)'),
+            supabase.from('platforms').select('*, admins:added_by(email, full_name)'),
+            supabase.from('apps').select('*, admins:added_by(email, full_name)'),
+            supabase.from('servers').select('*, admins:added_by(email, full_name)'),
             currentAdmin.role === 'owner' ? supabase.from('admins').select('*') : { data: [] }
         ]);
 
@@ -377,7 +377,6 @@ async function loadAdminData() {
         alert('حدث خطأ في تحميل البيانات: ' + error.message);
     }
 }
-
 // تحديث إحصائيات المشرفين
 function updateAdminStats() {
     const totalAdmins = siteData.admins.length;
