@@ -40,7 +40,7 @@ async function loadConfig() {
 // تهيئة التطبيق الرئيسية
 async function initializeApp() {
     try {
-        // تحميل التكوين أولاً
+       
         // تحميل التكوين أولاً
         const config = await loadConfig();
         console.log('التكوين المحمل:', config); // أضف هذا السطر للتحقق
@@ -73,41 +73,17 @@ async function initializeApp() {
         showError(error.message || 'حدث خطأ في تهيئة التطبيق');
     }
 }
-// دالة لتحميل التكوين بطريقة أكثر أماناً
-async function loadConfig() {
+// في دالة initializeApp، بعد إنشاء العميل
+const { data, error } = await window.supabaseClient
+    .from('books')
+    .select('count')
+    .limit(1);
 
-    if (import.meta.env && import.meta.env.VITE_SUPABASE_URL && import.meta.env.VITE_SUPABASE_ANON_KEY) {
-        return {
-            SUPABASE_URL: import.meta.env.VITE_SUPABASE_URL,
-            SUPABASE_ANON_KEY: import.meta.env.VITE_SUPABASE_ANON_KEY
-        };
-    }
-    
-    // التحقق من وجود التكوين في localStorage أولاً
-    const storedConfig = localStorage.getItem('app_config');
-    if (storedConfig) {
-        const config = JSON.parse(storedConfig);
-        if (config.SUPABASE_URL && config.SUPABASE_ANON_KEY) {
-            return config;
-        }
-    }
-    
-    // إذا كان التكوين محملاً في window
-    if (window.CONFIG && window.CONFIG.SUPABASE_URL && window.CONFIG.SUPABASE_ANON_KEY) {
-        // حفظ في localStorage للاستخدام المستقبلي
-        localStorage.setItem('app_config', JSON.stringify(window.CONFIG));
-        return window.CONFIG;
-    }
-    
-    // إذا لم يكن محملاً، ننتظر قليلاً ثم نتحقق مرة أخرى
-    await new Promise(resolve => setTimeout(resolve, 100));
-    
-    if (window.CONFIG && window.CONFIG.SUPABASE_URL && window.CONFIG.SUPABASE_ANON_KEY) {
-        localStorage.setItem('app_config', JSON.stringify(window.CONFIG));
-        return window.CONFIG;
-    }
-    
-    throw new Error('تعذر تحميل إعدادات التطبيق - تأكد من وجود ملف config.js');
+if (error) {
+    console.error('فشل الاتصال بقاعدة البيانات:', error);
+    showError('فشل الاتصال بقاعدة البيانات: ' + error.message);
+} else {
+    console.log('الاتصال بنجاح، عدد الكتب:', data);
 }
 // حالة التطبيق
 let currentItem = null;
