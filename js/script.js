@@ -130,7 +130,7 @@ async function loadData() {
             throw new Error('عميل Supabase غير مهيأ');
         }
         
-        // جلب البيانات من جميع الجداول بشكل متوازي
+        // جلب البيانات من جميع الجداول بشكل متوازي مع التصفية
         const [
             booksResponse, 
             novelsResponse, 
@@ -139,12 +139,12 @@ async function loadData() {
             appsResponse, 
             serversResponse
         ] = await Promise.all([
-            supabaseClient.from('books').select('*'),
-            supabaseClient.from('novels').select('*'),
-            supabaseClient.from('files').select('*'),
-            supabaseClient.from('platforms').select('*'),
-            supabaseClient.from('apps').select('*'),
-            supabaseClient.from('servers').select('*')
+            supabaseClient.from('books').select('*').eq('is_active', true),
+            supabaseClient.from('novels').select('*').eq('is_active', true),
+            supabaseClient.from('files').select('*').eq('is_active', true),
+            supabaseClient.from('platforms').select('*').eq('is_active', true),
+            supabaseClient.from('apps').select('*').eq('is_active', true),
+            supabaseClient.from('servers').select('*').eq('is_active', true)
         ]);
 
         // معالجة الاستجابات
@@ -486,26 +486,29 @@ function createHighlightElement(category, item) {
     return div;
 }
 
-// إنشاء عنصر كتاب
+// إنشاء عنصر كتاب (محدث مع حقول قاعدة البيانات الجديدة)
 function createBookItem(item) {
     // استخدام template literals مع التأكد من تنظيف البيانات مسبقًا
     return `
         <div class="item-image-container">
-            ${item.image ? `<img src="${item.image}" alt="${item.title}" class="${cssClasses.itemImage}" onerror="this.style.display='none'">` : 
+            ${item.image_url ? `<img src="${item.image_url}" alt="${item.title}" class="${cssClasses.itemImage}" onerror="this.style.display='none'">` : 
             `<div class="placeholder-image"><i class="fas fa-book"></i></div>`}
         </div>
         <h3>${item.title}</h3>
+        <p>${item.author ? `المؤلف: ${item.author}` : ''}</p>
         <p>${item.description || 'لا يوجد وصف متاح'}</p>
-        <a href="${item.drive_link || '#'}" target="_blank" rel="noopener noreferrer" class="${cssClasses.itemButton}">تحميل الكتاب</a>
+        <a href="${item.drive_link || '#'}" target="_blank" rel="noopener noreferrer" class="${cssClasses.itemButton}">
+            تحميل الكتاب (${item.file_format || 'PDF'})
+        </a>
     `;
 }
 
-// إنشاء عنصر رواية (معدّل)
+// إنشاء عنصر رواية (معدّل مع حقول قاعدة البيانات الجديدة)
 function createNovelItem(item) {
     let imagesHtml = '';
     let imagesArray = [];
 
-    // Correctly using the new column name: 'images_urls'
+    // استخدام الحقل الصحيح من قاعدة البيانات
     if (item.images_urls) {
         if (typeof item.images_urls === 'string') {
             try {
@@ -518,6 +521,7 @@ function createNovelItem(item) {
         }
     }
 
+    // صورة رئيسية
     let mainImage = '';
     if (imagesArray.length > 0) {
         mainImage = `<img src="${imagesArray[0]}" alt="${item.title}" class="${cssClasses.itemImage}" onerror="this.style.display='none'">`;
@@ -525,6 +529,7 @@ function createNovelItem(item) {
         mainImage = `<div class="placeholder-image"><i class="fas fa-book-open"></i></div>`;
     }
 
+    // صور مصغرة
     if (imagesArray.length > 1) {
         imagesHtml = `<div class="${cssClasses.novelImages}">`;
         imagesArray.slice(1, 4).forEach((img, index) => {
@@ -539,59 +544,67 @@ function createNovelItem(item) {
         </div>
         <h3>${item.title}</h3>
         ${imagesHtml}
+        <p>${item.author ? `المؤلف: ${item.author}` : ''}</p>
         <p>${item.description || 'لا يوجد وصف متاح'}</p>
-        <a href="${item.drive_link || '#'}" target="_blank" rel="noopener noreferrer" class="${cssClasses.itemButton}">قراءة الرواية</a>
+        <a href="${item.drive_link || '#'}" target="_blank" rel="noopener noreferrer" class="${cssClasses.itemButton}">
+            قراءة الرواية (${item.file_format || 'PDF'})
+        </a>
     `;
 }
 
-// إنشاء عنصر ملف
+// إنشاء عنصر ملف (محدث مع حقول قاعدة البيانات الجديدة)
 function createFileItem(item) {
     return `
         <div class="item-image-container">
-            ${item.images_urls ? `<img src="${item.images_urls}" alt="${item.title}" class="${cssClasses.itemImage}" onerror="this.style.display='none'">` :
+            ${item.image_url ? `<img src="${item.image_url}" alt="${item.title}" class="${cssClasses.itemImage}" onerror="this.style.display='none'">` :
             `<div class="placeholder-image"><i class="fas fa-file"></i></div>`}
         </div>
         <h3>${item.title}</h3>
         <p>${item.description || 'لا يوجد وصف متاح'}</p>
-        <a href="${item.drive_link || '#'}" target="_blank" rel="noopener noreferrer" class="${cssClasses.itemButton}">تحميل الملف</a>
+        <a href="${item.drive_link || '#'}" target="_blank" rel="noopener noreferrer" class="${cssClasses.itemButton}">
+            تحميل الملف (${item.file_format || 'PDF'})
+        </a>
     `;
 }
 
-// إنشاء عنصر منصة
+// إنشاء عنصر منصة (محدث مع حقول قاعدة البيانات الجديدة)
 function createPlatformItem(item) {
     return `
         <div class="item-image-container platform-image-container">
-            ${item.images_urls ? `<img src="${item.images_urls}" alt="${item.title}" class="${cssClasses.platformImage}" onerror="this.style.display='none'">` :
+            ${item.image_url ? `<img src="${item.image_url}" alt="${item.title}" class="${cssClasses.platformImage}" onerror="this.style.display='none'">` :
             `<div class="placeholder-image"><i class="fas fa-globe"></i></div>`}
         </div>
         <h3>${item.title}</h3>
-        <a href="${item.link || '#'}" target="_blank" rel="noopener noreferrer" class="${cssClasses.itemButton}">زيارة المنصة</a>
+        <p>${item.description || 'لا يوجد وصف متاح'}</p>
+        <a href="${item.link_url || '#'}" target="_blank" rel="noopener noreferrer" class="${cssClasses.itemButton}">زيارة المنصة</a>
     `;
 }
 
-// إنشاء عنصر تطبيق
+// إنشاء عنصر تطبيق (محدث مع حقول قاعدة البيانات الجديدة)
 function createAppItem(item) {
     return `
         <div class="item-image-container">
-            ${item.images_urls ? `<img src="${item.images_urls}" alt="${item.title}" class="${cssClasses.itemImage}" onerror="this.style.display='none'">` :
+            ${item.image_url ? `<img src="${item.image_url}" alt="${item.title}" class="${cssClasses.itemImage}" onerror="this.style.display='none'">` :
             `<div class="placeholder-image"><i class="fas fa-mobile-alt"></i></div>`}
         </div>
         <h3>${item.title}</h3>
         <p>${item.description || 'لا يوجد وصف متاح'}</p>
+        <p>${item.version ? `الإصدار: ${item.version}` : ''}</p>
         <a href="${item.download_link || '#'}" class="${cssClasses.itemButton}">تحميل التطبيق</a>
     `;
 }
 
-// إنشاء عنصر سيرفر
+// إنشاء عنصر سيرفر (محدث مع حقول قاعدة البيانات الجديدة)
 function createServerItem(item) {
     return `
         <div class="item-image-container">
-            ${item.images_urls ? `<img src="${item.images_urls}" alt="${item.title}" class="${cssClasses.itemImage}" onerror="this.style.display='none'">` :
+            ${item.image_url ? `<img src="${item.image_url}" alt="${item.title}" class="${cssClasses.itemImage}" onerror="this.style.display='none'">` :
             `<div class="placeholder-image"><i class="fas fa-server"></i></div>`}
         </div>
         <h3>${item.title}</h3>
         <p>${item.description || 'لا يوجد وصف متاح'}</p>
-        <a href="${item.link || '#'}" target="_blank" rel="noopener noreferrer" class="${cssClasses.itemButton}">انضم إلى السيرفر</a>
+        <p>${item.members_count ? `عدد الأعضاء: ${item.members_count}` : ''}</p>
+        <a href="${item.invite_link || '#'}" target="_blank" rel="noopener noreferrer" class="${cssClasses.itemButton}">انضم إلى السيرفر</a>
     `;
 }
 
@@ -618,7 +631,9 @@ function performSearch() {
     Object.keys(appState.data).forEach(category => {
         appState.data[category].forEach(item => {
             if (item.title && item.title.toLowerCase().includes(searchTerm) ||
-                (item.description && item.description.toLowerCase().includes(searchTerm))) {
+                (item.description && item.description.toLowerCase().includes(searchTerm)) ||
+                (item.author && item.author.toLowerCase().includes(searchTerm)) ||
+                (item.tags && item.tags.toLowerCase().includes(searchTerm))) {
                 results.push({ category, item });
             }
         });
