@@ -1,19 +1,40 @@
 // js/item-details.js - الإصدار المحسن
 // دالة لتحميل التكوين بطريقة أكثر أماناً
+// دالة لتحميل التكوين من ملف JSON
+
 async function loadConfig() {
-    // إذا كان التكوين محملاً بالفعل (تم تحميله عبر script tag)
-    if (window.CONFIG && window.CONFIG.SUPABASE_URL && window.CONFIG.SUPABASE_ANON_KEY) {
-        return window.CONFIG;
+    // إذا كان التكوين محملاً بالفعل في localStorage
+    const storedConfig = localStorage.getItem('supabase_config');
+    if (storedConfig) {
+        const config = JSON.parse(storedConfig);
+        if (config.SUPABASE_URL && config.SUPABASE_ANON_KEY) {
+            return config;
+        }
     }
     
-    // إذا لم يكن محملاً، ننتظر قليلاً ثم نتحقق مرة أخرى (في حال تم تحميله بشكل غير متزامن)
-    await new Promise(resolve => setTimeout(resolve, 100));
-    
-    if (window.CONFIG && window.CONFIG.SUPABASE_URL && window.CONFIG.SUPABASE_ANON_KEY) {
-        return window.CONFIG;
+    try {
+        // جلب التكوين من ملف JSON
+        const response = await fetch('/config.json');
+        if (!response.ok) {
+            throw new Error('فشل في تحميل ملف التكوين');
+        }
+        
+        const config = await response.json();
+        
+        // التحقق من وجود المفاتيح الضرورية
+        if (!config.SUPABASE_URL || !config.SUPABASE_ANON_KEY) {
+            throw new Error('ملف التكوين لا يحتوي على جميع المفاتيح الضرورية');
+        }
+        
+        // حفظ التكوين في localStorage للاستخدام المستقبلي
+        localStorage.setItem('supabase_config', JSON.stringify(config));
+        
+        return config;
+        
+    } catch (error) {
+        console.error('خطأ في تحميل التكوين:', error);
+        throw new Error('تعذر تحميل إعدادات التطبيق. تأكد من وجود ملف config.json');
     }
-    
-    throw new Error('تعذر تحميل إعدادات التطبيق - تأكد من وجود ملف config.js');
 }
 
 // تهيئة التطبيق الرئيسية
