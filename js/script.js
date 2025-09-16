@@ -112,16 +112,6 @@ const domElements = {
 
 
 
-// أسماء الأقسام بالعربية
-const categoryNames = {
-    books: 'كتاب',
-    novels: 'رواية',
-    files: 'ملف',
-    platforms: 'منصة',
-    apps: 'تطبيق',
-    servers: 'سيرفر'
-};
-
 // تهيئة التطبيق
 function initApp() {
     initializeDOMElements();
@@ -170,7 +160,6 @@ function setupEventListeners() {
     });
 }
 
-// تحميل البيانات من Supabase
 
 // تحميل البيانات من Supabase
 async function loadData() {
