@@ -1,31 +1,28 @@
 // js/item-details.js - الإصدار المحسن
-
 // دالة لتحميل التكوين بطريقة أكثر أماناً
 async function loadConfig() {
-    // إذا كان التكوين محملاً بالفعل
+    // إذا كان التكوين محملاً بالفعل (تم تحميله عبر script tag)
     if (window.CONFIG && window.CONFIG.SUPABASE_URL && window.CONFIG.SUPABASE_ANON_KEY) {
         return window.CONFIG;
     }
     
-    // محاولة تحميل التكوين من ملف خارجي
-    try {
-        const response = await fetch('config.js');
-        if (!response.ok) throw new Error('Failed to load config');
-        
-        // إعادة تحميل الصفحة لتفعيل التكوين (سيتم تنفيذ config.js مرة أخرى)
-        window.location.reload();
-        return null;
-    } catch (error) {
-        console.error('Error loading config:', error);
-        throw new Error('تعذر تحميل إعدادات التطبيق');
+    // إذا لم يكن محملاً، ننتظر قليلاً ثم نتحقق مرة أخرى (في حال تم تحميله بشكل غير متزامن)
+    await new Promise(resolve => setTimeout(resolve, 100));
+    
+    if (window.CONFIG && window.CONFIG.SUPABASE_URL && window.CONFIG.SUPABASE_ANON_KEY) {
+        return window.CONFIG;
     }
+    
+    throw new Error('تعذر تحميل إعدادات التطبيق - تأكد من وجود ملف config.js');
 }
 
 // تهيئة التطبيق الرئيسية
 async function initializeApp() {
     try {
         // تحميل التكوين أولاً
+        // تحميل التكوين أولاً
         const config = await loadConfig();
+        console.log('التكوين المحمل:', config); // أضف هذا السطر للتحقق
         
         if (!config) return; // تم إعادة تحميل الصفحة
         
@@ -39,6 +36,8 @@ async function initializeApp() {
             }
         );
         
+        console.log('تم تهيئة Supabase بنجاح'); // أضف هذا السطر
+        
         // تهيئة المكونات
         initModal();
         setupEventListeners();
@@ -46,13 +45,49 @@ async function initializeApp() {
         
         // تحميل تفاصيل العنصر
         await loadItemDetails();
-        
+        console.log('تم تهيئة Supabase بنجاح'); // أضف هذا السطر
+    
     } catch (error) {
         console.error('Error initializing app:', error);
         showError(error.message || 'حدث خطأ في تهيئة التطبيق');
     }
 }
+// دالة لتحميل التكوين بطريقة أكثر أماناً
+async function loadConfig() {
 
+    if (import.meta.env && import.meta.env.VITE_SUPABASE_URL && import.meta.env.VITE_SUPABASE_ANON_KEY) {
+        return {
+            SUPABASE_URL: import.meta.env.VITE_SUPABASE_URL,
+            SUPABASE_ANON_KEY: import.meta.env.VITE_SUPABASE_ANON_KEY
+        };
+    }
+    
+    // التحقق من وجود التكوين في localStorage أولاً
+    const storedConfig = localStorage.getItem('app_config');
+    if (storedConfig) {
+        const config = JSON.parse(storedConfig);
+        if (config.SUPABASE_URL && config.SUPABASE_ANON_KEY) {
+            return config;
+        }
+    }
+    
+    // إذا كان التكوين محملاً في window
+    if (window.CONFIG && window.CONFIG.SUPABASE_URL && window.CONFIG.SUPABASE_ANON_KEY) {
+        // حفظ في localStorage للاستخدام المستقبلي
+        localStorage.setItem('app_config', JSON.stringify(window.CONFIG));
+        return window.CONFIG;
+    }
+    
+    // إذا لم يكن محملاً، ننتظر قليلاً ثم نتحقق مرة أخرى
+    await new Promise(resolve => setTimeout(resolve, 100));
+    
+    if (window.CONFIG && window.CONFIG.SUPABASE_URL && window.CONFIG.SUPABASE_ANON_KEY) {
+        localStorage.setItem('app_config', JSON.stringify(window.CONFIG));
+        return window.CONFIG;
+    }
+    
+    throw new Error('تعذر تحميل إعدادات التطبيق - تأكد من وجود ملف config.js');
+}
 // حالة التطبيق
 let currentItem = null;
 let currentImages = [];
