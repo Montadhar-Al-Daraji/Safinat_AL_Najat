@@ -822,6 +822,12 @@ async function deleteAdmin(adminId, adminEmail) {
         }
     }
 }
+// بهذا:
+const { data: admin, error } = await supabase
+    .from('admins')
+    .select('*')
+    .eq('email', email)
+    .maybeSingle(); // استخدم maybeSingle بدلاً من single
 
 // حفظ البيانات إلى Supabase مع الحقول الجديدة
 async function saveItemToSupabase(table, item) {
