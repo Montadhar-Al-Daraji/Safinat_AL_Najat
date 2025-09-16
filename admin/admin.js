@@ -976,14 +976,16 @@ function escapeHtml(text) {
 
 // إعداد وظيفة البحث
 function setupSearchFunctionality() {
-    // إعداد البحث للكتب
+     // إعداد البحث للكتب
     const booksSearch = document.getElementById('books-search');
     if (booksSearch) {
         booksSearch.addEventListener('input', function(e) {
             const searchTerm = e.target.value.toLowerCase();
             const filteredBooks = siteData.books.filter(book => 
                 book.title.toLowerCase().includes(searchTerm) || 
-                (book.description && book.description.toLowerCase().includes(searchTerm))
+                (book.description && book.description.toLowerCase().includes(searchTerm)) ||
+                (book.author && book.author.toLowerCase().includes(searchTerm)) ||
+                (book.publisher && book.publisher.toLowerCase().includes(searchTerm))
             );
             renderAdminList('books', filteredBooks);
         });
