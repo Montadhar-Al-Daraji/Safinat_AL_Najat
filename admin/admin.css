@@ -869,3 +869,41 @@ button:disabled:hover {
     background: rgba(0, 0, 0, 0.7);
     z-index: -1;
 }
+/* أنماط النموذج المنبثق */
+.modal-content {
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+.input-group {
+    margin-bottom: 15px;
+}
+
+.input-group label {
+    display: block;
+    margin-bottom: 5px;
+    color: #FFFFFF;
+    font-weight: bold;
+}
+
+.input-group input,
+.input-group select,
+.input-group textarea {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #D4AF37;
+    border-radius: 5px;
+    background: rgba(0, 0, 0, 0.6);
+    color: #FFFFFF;
+}
+
+.input-group textarea {
+    resize: vertical;
+    min-height: 80px;
+}
+
+.item-type-fields {
+    border-top: 1px solid #D4AF37;
+    padding-top: 15px;
+    margin-top: 15px;
+}
