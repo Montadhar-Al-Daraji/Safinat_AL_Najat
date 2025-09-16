@@ -45,51 +45,6 @@ const cssClasses = {
     highlightsContainer: 'highlights-container'
 };
 
-// تهيئة التطبيق
-async function initApp() {
-    try {
-        // تحميل المفاتيح بشكل آمن من ملف البيئة
-        await loadEnvironmentVariables();
-        
-        // إنشاء عميل Supabase بعد تحميل المفاتيح
-        supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-        
-        initializeDOMElements();
-        setupEventListeners();
-        await loadData();
-    } catch (error) {
-        console.error('Error initializing app:', error);
-        showError('حدث خطأ في تهيئة التطبيق');
-    }
-}
-
-// تحميل متغيرات البيئة بشكل آمن
-async function loadEnvironmentVariables() {
-    try {
-        // في بيئة الإنتاج، سيتم تعيين هذه المتغيرات من خلال نظام البيئة
-        // في بيئة التطوير، يمكن استخدام ملف بيئة آمن
-        if (typeof process !== 'undefined' && process.env) {
-            // بيئة Node.js
-            SUPABASE_URL = process.env.SUPABASE_URL;
-            SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY;
-        } else if (window.__ENV__) {
-            // متغيرات معينة مسبقًا في النافذة
-            SUPABASE_URL = window.__ENV__.SUPABASE_URL;
-            SUPABASE_ANON_KEY = window.__ENV__.SUPABASE_ANON_KEY;
-        } else {
-            // للاستخدام المحلي فقط - لا يجب استخدامه في الإنتاج
-            // يمكن تحميل من ملف خارجي آمن
-            const response = await fetch('/api/config');
-            const config = await response.json();
-            SUPABASE_URL = config.SUPABASE_URL;
-            SUPABASE_ANON_KEY = config.SUPABASE_ANON_KEY;
-        }
-    } catch (error) {
-        console.error('Error loading environment variables:', error);
-        throw new Error('تعذر تحميل إعدادات التطبيق');
-    }
-}
-
 // أسماء الأقسام بالعربية
 const categoryNames = {
     books: 'كتاب',
@@ -109,6 +64,18 @@ const domElements = {
     sections: null,
     containers: null
 };
+
+// تهيئة التطبيق
+async function initApp() {
+    try {
+        initializeDOMElements();
+        setupEventListeners();
+        await loadData();
+    } catch (error) {
+        console.error('Error initializing app:', error);
+        showError('حدث خطأ في تهيئة التطبيق');
+    }
+}
 
 // تهيئة عناصر DOM
 function initializeDOMElements() {
@@ -150,7 +117,6 @@ function setupEventListeners() {
         }
     });
 }
-
 
 // تحميل البيانات من Supabase
 async function loadData() {
@@ -226,6 +192,13 @@ function sanitizeData(data) {
     });
 }
 
+// تنظيف السلسلة النصية لمنع XSS
+function sanitizeString(str) {
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+}
+
 // تعيين حالة التحميل
 function setLoadingState(isLoading) {
     appState.isLoading = isLoading;
@@ -292,7 +265,6 @@ function renderAllSections() {
     });
 }
 
-
 // عرض قسم معين
 function renderSection(sectionId) {
     const container = domElements.containers[sectionId];
@@ -323,7 +295,6 @@ function renderSection(sectionId) {
     // تحديث العداد
     updateItemsCount(sectionId, items.length);
 }
-
 
 // عرض المحتوى البارز على الصفحة الرئيسية (معدّل)
 function renderHighlights() {
@@ -372,7 +343,6 @@ function renderHighlights() {
         container.appendChild(itemElement);
     });
 }
-// فتح صفحة تفاصيل العنصر
 
 // فتح صفحة تفاصيل العنصر
 function openItemDetails(category, itemId) {
@@ -385,7 +355,6 @@ function openItemDetails(category, itemId) {
     
     window.location.href = `item-details.html?type=${encodeURIComponent(category)}&id=${encodeURIComponent(itemId)}`;
 }
-
 
 // التحقق من صحة المعرف
 function isValidId(id) {
@@ -445,7 +414,6 @@ function createItemElement(category, item) {
     
     return div;
 }
-
 
 // إنشاء عنصر مميز للصفحة الرئيسية (معدّل)
 function createHighlightElement(category, item) {
@@ -516,11 +484,6 @@ function createHighlightElement(category, item) {
     return div;
 }
 
-// فتح صفحة تفاصيل العنصر
-function openItemDetails(category, itemId) {
-    window.location.href = `item-details.html?type=${category}&id=${itemId}`;
-}
-
 // إنشاء عنصر كتاب
 function createBookItem(item) {
     // استخدام template literals مع التأكد من تنظيف البيانات مسبقًا
@@ -534,6 +497,7 @@ function createBookItem(item) {
         <a href="${item.drive_link || '#'}" target="_blank" rel="noopener noreferrer" class="${cssClasses.itemButton}">تحميل الكتاب</a>
     `;
 }
+
 // إنشاء عنصر رواية (معدّل)
 function createNovelItem(item) {
     let imagesHtml = '';
@@ -554,7 +518,7 @@ function createNovelItem(item) {
     // صورة رئيسية
     let mainImage = '';
     if (imagesArray.length > 0) {
-        mainImage = `<img src="${imagesArray[0]}" alt="${item.title}" class="${cssClasses.itemImage}">`;
+        mainImage = `<img src="${imagesArray[0]}" alt="${item.title}" class="${cssClasses.itemImage}" onerror="this.style.display='none'">`;
     } else {
         mainImage = `<div class="placeholder-image"><i class="fas fa-book-open"></i></div>`;
     }
@@ -563,7 +527,7 @@ function createNovelItem(item) {
     if (imagesArray.length > 1) {
         imagesHtml = `<div class="${cssClasses.novelImages}">`;
         imagesArray.slice(1, 4).forEach((img, index) => {
-            imagesHtml += `<img src="${img}" alt="صورة ${index + 2}" class="novel-thumbnail">`;
+            imagesHtml += `<img src="${img}" alt="صورة ${index + 2}" class="novel-thumbnail" onerror="this.style.display='none'">`;
         });
         imagesHtml += '</div>';
     }
@@ -575,7 +539,7 @@ function createNovelItem(item) {
         <h3>${item.title}</h3>
         ${imagesHtml}
         <p>${item.description || 'لا يوجد وصف متاح'}</p>
-        <a href="${item.drive_link || '#'}" target="_blank" class="${cssClasses.itemButton}">قراءة الرواية</a>
+        <a href="${item.drive_link || '#'}" target="_blank" rel="noopener noreferrer" class="${cssClasses.itemButton}">قراءة الرواية</a>
     `;
 }
 
@@ -583,12 +547,12 @@ function createNovelItem(item) {
 function createFileItem(item) {
     return `
         <div class="item-image-container">
-            ${item.image ? `<img src="${item.image}" alt="${item.title}" class="${cssClasses.itemImage}">` : 
+            ${item.image ? `<img src="${item.image}" alt="${item.title}" class="${cssClasses.itemImage}" onerror="this.style.display='none'">` : 
             `<div class="placeholder-image"><i class="fas fa-file"></i></div>`}
         </div>
         <h3>${item.title}</h3>
         <p>${item.description || 'لا يوجد وصف متاح'}</p>
-        <a href="${item.drive_link || '#'}" target="_blank" class="${cssClasses.itemButton}">تحميل الملف</a>
+        <a href="${item.drive_link || '#'}" target="_blank" rel="noopener noreferrer" class="${cssClasses.itemButton}">تحميل الملف</a>
     `;
 }
 
@@ -596,11 +560,11 @@ function createFileItem(item) {
 function createPlatformItem(item) {
     return `
         <div class="item-image-container platform-image-container">
-            ${item.image ? `<img src="${item.image}" alt="${item.title}" class="${cssClasses.platformImage}">` : 
+            ${item.image ? `<img src="${item.image}" alt="${item.title}" class="${cssClasses.platformImage}" onerror="this.style.display='none'">` : 
             `<div class="placeholder-image"><i class="fas fa-globe"></i></div>`}
         </div>
         <h3>${item.title}</h3>
-        <a href="${item.link || '#'}" target="_blank" class="${cssClasses.itemButton}">زيارة المنصة</a>
+        <a href="${item.link || '#'}" target="_blank" rel="noopener noreferrer" class="${cssClasses.itemButton}">زيارة المنصة</a>
     `;
 }
 
@@ -608,7 +572,7 @@ function createPlatformItem(item) {
 function createAppItem(item) {
     return `
         <div class="item-image-container">
-            ${item.image ? `<img src="${item.image}" alt="${item.title}" class="${cssClasses.itemImage}">` : 
+            ${item.image ? `<img src="${item.image}" alt="${item.title}" class="${cssClasses.itemImage}" onerror="this.style.display='none'">` : 
             `<div class="placeholder-image"><i class="fas fa-mobile-alt"></i></div>`}
         </div>
         <h3>${item.title}</h3>
@@ -621,12 +585,12 @@ function createAppItem(item) {
 function createServerItem(item) {
     return `
         <div class="item-image-container">
-            ${item.image ? `<img src="${item.image}" alt="${item.title}" class="${cssClasses.itemImage}">` : 
+            ${item.image ? `<img src="${item.image}" alt="${item.title}" class="${cssClasses.itemImage}" onerror="this.style.display='none'">` : 
             `<div class="placeholder-image"><i class="fas fa-server"></i></div>`}
         </div>
         <h3>${item.title}</h3>
         <p>${item.description || 'لا يوجد وصف متاح'}</p>
-        <a href="${item.link || '#'}" target="_blank" class="${cssClasses.itemButton}">انضم إلى السيرفر</a>
+        <a href="${item.link || '#'}" target="_blank" rel="noopener noreferrer" class="${cssClasses.itemButton}">انضم إلى السيرفر</a>
     `;
 }
 
@@ -637,7 +601,6 @@ function updateItemsCount(category, count) {
         countElement.textContent = `(${count})`;
     }
 }
-
 
 // إجراء البحث
 function performSearch() {
@@ -669,10 +632,14 @@ function displaySearchResults(results) {
     if (results.length > 0) {
         let html = '';
         results.forEach(result => {
+            // تنظيف البيانات قبل العرض
+            const title = sanitizeString(result.item.title);
+            const categoryName = sanitizeString(categoryNames[result.category] || 'غير معروف');
+            
             html += `
                 <div class="${cssClasses.searchItem}" data-category="${result.category}" data-id="${result.item.id}">
-                    <strong>${result.item.title}</strong>
-                    <span>(${categoryNames[result.category]})</span>
+                    <strong>${title}</strong>
+                    <span>(${categoryName})</span>
                 </div>
             `;
         });
@@ -685,7 +652,12 @@ function displaySearchResults(results) {
             item.addEventListener('click', handleSearchResultClick);
         });
     } else {
-        domElements.searchResults.innerHTML = `<p class="${cssClasses.noItems}">لا توجد نتائج للبحث</p>`;
+        // استخدام textContent بدلاً من innerHTML
+        domElements.searchResults.innerHTML = '';
+        const noResults = document.createElement('p');
+        noResults.className = cssClasses.noItems;
+        noResults.textContent = 'لا توجد نتائج للبحث';
+        domElements.searchResults.appendChild(noResults);
         domElements.searchResults.classList.add(cssClasses.active);
     }
 }
@@ -724,7 +696,6 @@ function highlightElement(element) {
         element.classList.remove('highlight');
     }, 2000);
 }
-
 
 // عرض رسالة خطأ
 function showError(message) {
