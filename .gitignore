@@ -1,1 +1,35 @@
+# ملف .gitignore
+# هذا الملف يخبر Git بعدم تتبع الملفات والمجلدات المحددة
+
+# ملفات الإعدادات التي تحتوي على معلومات سرية
 config.js
+.env
+.env.local
+.env.production
+
+# ملفات نظام التشغيل
+.DS_Store
+Thumbs.db
+
+# ملفات السجلات والمجلدات
+logs/
+*.log
+npm-debug.log*
+
+# مجلدات التبعيات
+node_modules/
+jspm_packages/
+
+# مجلدات البناء
+dist/
+build/
+
+# ملفات IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# ملفات نظام
+*.tmp
+*.temp
