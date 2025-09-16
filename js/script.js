@@ -5,9 +5,12 @@ const SUPABASE_ANON_KEY = window.CONFIG?.SUPABASE_ANON_KEY;
 // التحقق من وجود المفاتيح
 if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
     console.error('لم يتم العثور على مفاتيح Supabase. تأكد من وجود ملف config.js');
-    // يمكنك عرض رسالة خطأ للمستخدم هنا إذا أردت
+    // عرض رسالة خطأ للمستخدم
     showError('خطأ في إعدادات التطبيق. يرجى الاتصال بالدعم.');
 }
+
+// إنشاء عميل Supabase
+const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 // حالة التطبيق
 const appState = {
