@@ -1,6 +1,14 @@
-// تهيئة Supabase
-const SUPABASE_URL = window.CONFIG.SUPABASE_URL;
-const SUPABASE_ANON_KEY = window.CONFIG.SUPABASE_ANON_KEY;
+// تهيئة Supabase - قراءة المفاتيح من ملف الإعدادات
+const SUPABASE_URL = window.CONFIG?.SUPABASE_URL;
+const SUPABASE_ANON_KEY = window.CONFIG?.SUPABASE_ANON_KEY;
+
+// التحقق من وجود المفاتيح
+if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
+    console.error('لم يتم العثور على مفاتيح Supabase. تأكد من وجود ملف config.js');
+    // يمكنك عرض رسالة خطأ للمستخدم هنا إذا أردت
+    showError('خطأ في إعدادات التطبيق. يرجى الاتصال بالدعم.');
+}
+
 // حالة التطبيق
 const appState = {
     data: {
