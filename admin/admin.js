@@ -132,7 +132,32 @@ function startSessionTimer() {
         }
     }, 1000);
 }
+// إعداد أزرار الإضافة
+const addButtons = [
+    'add-book-btn', 'add-novel-btn', 'add-file-btn', 
+    'add-platform-btn', 'add-app-btn', 'add-server-btn'
+];
 
+addButtons.forEach(buttonId => {
+    const button = document.getElementById(buttonId);
+    if (button) {
+        const section = buttonId.replace('add-', '').replace('-btn', '');
+        button.addEventListener('click', () => openAddItemModal(section));
+    }
+});
+
+// إعداد نموذج العنصر
+const itemForm = document.getElementById('item-form');
+if (itemForm) {
+    itemForm.addEventListener('submit', saveItem);
+}
+
+const closeItemModal = document.getElementById('close-item-modal');
+if (closeItemModal) {
+    closeItemModal.addEventListener('click', function() {
+        closeModal('item-modal');
+    });
+}
 // إعادة تعيين مؤقت الجلسة
 function resetSession() {
     startSessionTimer();
