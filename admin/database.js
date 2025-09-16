@@ -1,149 +1,304 @@
-// admin/auth.js
-let currentAdmin = null;
-let sessionTimer;
+// admin/database.js
+let supabase;
 
-function checkAuth() {
-    const token = sessionStorage.getItem('adminToken');
-    const adminData = sessionStorage.getItem('adminData');
-    
-    if (!token || !adminData) {
-        showLoginPage();
-        return false;
-    }
-    
-    try {
-        const tokenData = parseJwt(token);
-        if (tokenData.exp * 1000 < Date.now()) {
-            console.error('Token expired');
-            logout();
-            return false;
-        }
-        
-        currentAdmin = JSON.parse(adminData);
-        showAdminPage();
-        setupAdminInterface(currentAdmin.role);
-        startSessionTimer();
+function initSupabase() {
+    if (window.supabase) {
+        supabase = window.supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
+        console.log('Supabase initialized successfully');
         return true;
-    } catch (error) {
-        console.error('Error parsing admin data:', error);
-        logout();
+    } else {
+        console.error('Supabase library not loaded');
         return false;
     }
 }
 
-function parseJwt(token) {
-    try {
-        return JSON.parse(atob(token.split('.')[1]));
-    } catch (e) {
-        return null;
-    }
-}
-
-function showLoginPage() {
-    const loginContainer = document.getElementById('login-container');
-    const adminContainer = document.getElementById('admin-container');
-    
-    if (loginContainer) loginContainer.classList.remove('hidden');
-    if (adminContainer) adminContainer.classList.add('hidden');
-    
-    document.addEventListener('keypress', handleLoginKeyPress);
-}
-
-function hideLoginPage() {
-    const loginContainer = document.getElementById('login-container');
-    if (loginContainer) loginContainer.classList.add('hidden');
-    
-    document.removeEventListener('keypress', handleLoginKeyPress);
-}
-
-function handleLoginKeyPress(e) {
-    if (e.key === 'Enter') {
-        login();
-    }
-}
-
-function showAdminPage() {
-    hideLoginPage();
-    const adminContainer = document.getElementById('admin-container');
-    if (adminContainer) adminContainer.classList.remove('hidden');
-    
-    document.getElementById('admin-email').textContent = currentAdmin.email;
-    document.getElementById('admin-role').textContent = currentAdmin.role === 'owner' ? 'مالك' : 'مشرف';
-    
-    loadAdminData();
-}
-
-function startSessionTimer() {
-    clearInterval(sessionTimer);
-    let timeLeft = CONFIG.SESSION_TIMEOUT;
-    
-    sessionTimer = setInterval(() => {
-        timeLeft--;
-        
-        const minutes = Math.floor(timeLeft / 60);
-        const seconds = timeLeft % 60;
-        
-        document.getElementById('session-timer').textContent = 
-            `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-        
-        if (timeLeft <= 0) {
-            clearInterval(sessionTimer);
-            alert('انتهت مدة الجلسة، يرجى تسجيل الدخول مرة أخرى');
-            logout();
-        }
-    }, 1000);
-}
-
-function resetSession() {
-    startSessionTimer();
-    alert('تم تجديد الجلسة بنجاح');
-}
-
-function logout() {
-    if (currentAdmin) {
-        logLogoutEvent(currentAdmin.email);
-    }
-    
-    clearInterval(sessionTimer);
-    sessionStorage.removeItem('adminToken');
-    sessionStorage.removeItem('adminData');
-    currentAdmin = null;
-    
-    showLoginPage();
-    
+async function login() {
     const emailInput = document.getElementById('email');
     const passwordInput = document.getElementById('password');
     const errorElement = document.getElementById('login-error');
+    const loginBtn = document.querySelector('.login-btn');
     
-    if (emailInput) emailInput.value = '';
-    if (passwordInput) passwordInput.value = '';
-    if (errorElement) errorElement.textContent = '';
-}
-
-function setupAdminInterface(role) {
-    const adminsTab = document.getElementById('admins-tab');
-    const securityTab = document.getElementById('security-tab');
-    
-    if (adminsTab) {
-        adminsTab.style.display = role === 'owner' ? 'block' : 'none';
+    if (!emailInput || !passwordInput || !errorElement || !loginBtn) {
+        console.error('Login elements not found');
+        return;
     }
     
-    if (securityTab) {
-        securityTab.style.display = role === 'owner' ? 'block' : 'none';
+    const email = emailInput.value.trim();
+    const password = passwordInput.value;
+    
+    errorElement.textContent = '';
+    
+    if (!email || !password) {
+        errorElement.textContent = 'يرجى ملء جميع الحقول';
+        return;
     }
-}
-
-function isValidEmail(email) {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email);
-}
-
-async function getClientIP() {
+    
+    if (!isValidEmail(email)) {
+        errorElement.textContent = 'صيغة البريد الإلكتروني غير صحيحة';
+        return;
+    }
+    
     try {
-        const response = await fetch('https://api.ipify.org?format=json');
-        const data = await response.json();
-        return data.ip;
+        const originalText = loginBtn.innerHTML;
+        loginBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري تسجيل الدخول...';
+        loginBtn.disabled = true;
+        
+        const { data: admin, error } = await supabase
+            .from(TABLES.ADMINS)
+            .select('*')
+            .eq('email', email)
+            .maybeSingle();
+
+        if (error || !admin) {
+            errorElement.textContent = 'البريد الإلكتروني أو كلمة المرور غير صحيحة';
+            loginBtn.innerHTML = originalText;
+            loginBtn.disabled = false;
+            return;
+        }
+        
+        if (password !== atob(admin.password_hash)) {
+            errorElement.textContent = 'البريد الإلكتروني أو كلمة المرور غير صحيحة';
+            loginBtn.innerHTML = originalText;
+            loginBtn.disabled = false;
+            
+            await logLoginAttempt(email, false);
+            return;
+        }
+        
+        const fakeToken = btoa(JSON.stringify({
+            id: admin.id,
+            email: admin.email,
+            role: admin.role,
+            exp: Math.floor(Date.now() / 1000) + (60 * 60)
+        }));
+        
+        sessionStorage.setItem('adminToken', fakeToken);
+        sessionStorage.setItem('adminData', JSON.stringify(admin));
+        currentAdmin = admin;
+        
+        await logLoginAttempt(email, true);
+        showAdminPage();
+        
+        loginBtn.innerHTML = originalText;
+        loginBtn.disabled = false;
+        
     } catch (error) {
-        return 'unknown';
+        console.error('Login error:', error);
+        if (errorElement) {
+            errorElement.textContent = 'حدث خطأ أثناء تسجيل الدخول';
+        }
+        
+        if (loginBtn) {
+            loginBtn.innerHTML = '<i class="fas fa-sign-in-alt"></i> دخول';
+            loginBtn.disabled = false;
+        }
     }
+}
+
+async function logLoginAttempt(email, success) {
+    try {
+        await supabase
+            .from(TABLES.LOGIN_ATTEMPTS)
+            .insert([{
+                email: email,
+                success: success,
+                ip: await getClientIP(),
+                user_agent: navigator.userAgent,
+                timestamp: new Date()
+            }]);
+    } catch (error) {
+        console.error('Error logging login attempt:', error);
+    }
+}
+
+async function logLogoutEvent(email) {
+    try {
+        await supabase
+            .from(TABLES.LOGOUT_EVENTS)
+            .insert([{
+                email: email,
+                timestamp: new Date()
+            }]);
+    } catch (error) {
+        console.error('Error logging logout event:', error);
+    }
+}
+
+async function logDeletionEvent(table, itemId) {
+    try {
+        await supabase
+            .from(TABLES.DELETION_LOGS)
+            .insert([{
+                admin_id: currentAdmin.id,
+                admin_email: currentAdmin.email,
+                table_name: table,
+                item_id: itemId,
+                timestamp: new Date()
+            }]);
+    } catch (error) {
+        console.error('Error logging deletion:', error);
+    }
+}
+
+async function loadAdminData() {
+    if (!supabase) {
+        if (!initSupabase()) {
+            alert('خطأ في تهيئة قاعدة البيانات');
+            return;
+        }
+    }
+    
+    try {
+        document.querySelectorAll('.items-list').forEach(list => {
+            if (list) list.innerHTML = '<div class="loading-spinner"><i class="fas fa-spinner fa-spin"></i><p>جاري تحميل البيانات...</p></div>';
+        });
+        
+        const [booksData, novelsData, filesData, platformsData, appsData, serversData, adminsData] = await Promise.all([
+            supabase.from(TABLES.BOOKS).select('*, admins:added_by(email, full_name)'),
+            supabase.from(TABLES.NOVELS).select('*, admins:added_by(email, full_name)'),
+            supabase.from(TABLES.FILES).select('*, admins:added_by(email, full_name)'),
+            supabase.from(TABLES.PLATFORMS).select('*, admins:added_by(email, full_name)'),
+            supabase.from(TABLES.APPS).select('*, admins:added_by(email, full_name)'),
+            supabase.from(TABLES.SERVERS).select('*, admins:added_by(email, full_name)'),
+            currentAdmin.role === 'owner' ? supabase.from(TABLES.ADMINS).select('*') : { data: [] }
+        ]);
+
+        siteData.books = booksData.data || [];
+        siteData.novels = novelsData.data || [];
+        siteData.files = filesData.data || [];
+        siteData.platforms = platformsData.data || [];
+        siteData.apps = appsData.data || [];
+        siteData.servers = serversData.data || [];
+        siteData.admins = adminsData.data || [];
+
+        renderAllAdminLists();
+        setupSearchFunctionality();
+        
+        if (currentAdmin.role === 'owner') {
+            updateAdminStats();
+        }
+        
+    } catch (error) {
+        console.error('Error loading data:', error);
+        alert('حدث خطأ في تحميل البيانات: ' + error.message);
+    }
+}
+
+async function saveItemToSupabase(table, item) {
+    if (!supabase) {
+        throw new Error('Supabase not initialized');
+    }
+    
+    item.added_by = currentAdmin.id;
+    item.added_at = new Date();
+    item.updated_at = new Date();
+    
+    const { data, error } = await supabase
+        .from(table)
+        .insert([item])
+        .select();
+
+    if (error) {
+        console.error('Error saving item:', error);
+        throw error;
+    }
+
+    return data[0];
+}
+
+async function deleteItemFromSupabase(table, id) {
+    if (!supabase) {
+        throw new Error('Supabase not initialized');
+    }
+    
+    const { error } = await supabase
+        .from(table)
+        .delete()
+        .eq('id', id);
+
+    if (error) {
+        console.error('Error deleting item:', error);
+        throw error;
+    }
+    
+    logDeletionEvent(table, id);
+}
+
+async function addAdmin(email, password, role) {
+    if (!currentAdmin || currentAdmin.role !== 'owner') {
+        alert('只有所有者可以添加管理员');
+        return false;
+    }
+    
+    if (!isValidEmail(email)) {
+        alert('صيغة البريد الإلكتروني غير صحيحة');
+        return false;
+    }
+    
+    if (!isStrongPassword(password)) {
+        alert('كلمة المرور يجب أن تحتوي على الأقل على 8 أحرف، وتشمل أحرف كبيرة وصغيرة وأرقام');
+        return false;
+    }
+    
+    try {
+        const passwordHash = btoa(password);
+        
+        const { data, error } = await supabase
+            .from(TABLES.ADMINS)
+            .insert([{ 
+                email, 
+                password_hash: passwordHash, 
+                role,
+                created_at: new Date(),
+                updated_at: new Date()
+            }])
+            .select();
+            
+        if (error) {
+            console.error('Error adding admin:', error);
+            alert('حدث خطأ أثناء إضافة المشرف: ' + error.message);
+            return false;
+        }
+        
+        alert('تمت إضافة المشرف بنجاح');
+        loadAdminsList();
+        return true;
+    } catch (error) {
+        console.error('Error adding admin:', error);
+        alert('حدث خطأ أثناء إضافة المشرف');
+        return false;
+    }
+}
+
+async function deleteAdmin(adminId, adminEmail) {
+    if (!currentAdmin || currentAdmin.role !== 'owner') {
+        alert('只有所有者可以删除管理员');
+        return;
+    }
+    
+    if (confirm(`هل أنت متأكد من حذف المشرف ${adminEmail}؟`)) {
+        try {
+            const { error } = await supabase
+                .from(TABLES.ADMINS)
+                .delete()
+                .eq('id', adminId);
+                
+            if (error) {
+                console.error('Error deleting admin:', error);
+                alert('حدث خطأ أثناء حذف المشرف: ' + error.message);
+                return;
+            }
+            
+            alert('تم حذف المشرف بنجاح');
+            loadAdminsList();
+        } catch (error) {
+            console.error('Error deleting admin:', error);
+            alert('حدث خطأ أثناء حذف المشرف');
+        }
+    }
+}
+
+function isStrongPassword(password) {
+    const strongRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
+    return strongRegex.test(password);
 }
