@@ -7,6 +7,8 @@ if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
     console.error('لم يتم العثور على مفاتيح Supabase. تأكد من وجود ملف config.js');
     // عرض رسالة خطأ للمستخدم
     showError('خطأ في إعدادات التطبيق. يرجى الاتصال بالدعم.');
+    // إيقاف التهيئة إذا لم توجد المفاتيح
+    throw new Error('مفاتيح Supabase غير موجودة');
 }
 
 // إنشاء عميل Supabase
@@ -66,11 +68,11 @@ const domElements = {
 };
 
 // تهيئة التطبيق
-async function initApp() {
+function initApp() {
     try {
         initializeDOMElements();
         setupEventListeners();
-        await loadData();
+        loadData();
     } catch (error) {
         console.error('Error initializing app:', error);
         showError('حدث خطأ في تهيئة التطبيق');
