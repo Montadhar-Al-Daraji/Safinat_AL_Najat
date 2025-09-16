@@ -570,3 +570,37 @@
     0% { background-position: 100% 50%; }
     100% { background-position: 0 50%; }
 }
+/* إضافة هذه الفئات في نهاية الملف */
+
+.hidden {
+    display: none !important;
+}
+
+#loading-spinner {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 3rem;
+    color: white;
+}
+
+#item-details {
+    display: none;
+}
+
+#error-message {
+    display: none;
+}
+
+#image-nav {
+    display: none;
+}
+
+#view-original-button {
+    display: none;
+}
+
+#additional-info {
+    display: none;
+}
