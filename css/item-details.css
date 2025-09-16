@@ -604,3 +604,7 @@
 #additional-info {
     display: none;
 }
+/* إضافة هذا في نهاية الملف */
+.initially-hidden {
+    display: none !important;
+}
