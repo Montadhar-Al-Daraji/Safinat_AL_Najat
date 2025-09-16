@@ -110,22 +110,6 @@ const domElements = {
     containers: null
 };
 
-// فئات CSS للعناصر
-const cssClasses = {
-    active: 'active',
-    hidden: 'hidden',
-    loading: 'loading',
-    item: 'item',
-    itemImage: 'item-image',
-    novelImages: 'novel-images',
-    platformImage: 'platform-image',
-    itemButton: 'item-button',
-    noItems: 'no-items',
-    searchResults: 'search-results',
-    searchItem: 'search-item',
-    contentSection: 'content-section',
-    highlightsContainer: 'highlights-container'
-};
 
 // أسماء الأقسام بالعربية
 const categoryNames = {
