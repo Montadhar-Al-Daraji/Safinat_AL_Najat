@@ -388,31 +388,91 @@ function updateAdminStats() {
     document.getElementById('total-admins-count').textContent = totalAdminsCount;
 }
 
-// تحميل قائمة المشرفين
-async function loadAdminsList() {
-    if (!currentAdmin || currentAdmin.role !== 'owner') {
+// عرض قائمة العناصر في لوحة التحكم مع البيانات المحسنة
+function renderAdminList(section, items) {
+    const listElement = document.getElementById(`${section}-list`);
+    if (!listElement) return;
+    
+    listElement.innerHTML = '';
+    
+    if (items.length === 0) {
+        listElement.innerHTML = '<p class="no-items">لا توجد عناصر</p>';
         return;
     }
     
-    try {
-        const { data: admins, error } = await supabase
-            .from('admins')
-            .select('*')
-            .order('created_at', { ascending: false });
-            
-        if (error) {
-            console.error('Error loading admins:', error);
-            document.getElementById('admins-list').innerHTML = '<p class="no-items">خطأ في تحميل قائمة المشرفين</p>';
-            return;
+    items.forEach((item) => {
+        const itemElement = document.createElement('div');
+        itemElement.className = 'item-card';
+        itemElement.setAttribute('data-id', item.id);
+        
+        let infoHtml = `
+            <div class="item-info">
+                <h3>${escapeHtml(item.title)}</h3>
+        `;
+        
+        // إضافة معلومات إضافية حسب النوع
+        switch(section) {
+            case 'books':
+                if (item.author) infoHtml += `<p><strong>المؤلف:</strong> ${escapeHtml(item.author)}</p>`;
+                if (item.publisher) infoHtml += `<p><strong>الناشر:</strong> ${escapeHtml(item.publisher)}</p>`;
+                if (item.pages) infoHtml += `<p><strong>الصفحات:</strong> ${escapeHtml(item.pages)}</p>`;
+                if (item.language) infoHtml += `<p><strong>اللغة:</strong> ${escapeHtml(item.language)}</p>`;
+                break;
+            case 'novels':
+                if (item.author) infoHtml += `<p><strong>المؤلف:</strong> ${escapeHtml(item.author)}</p>`;
+                if (item.publisher) infoHtml += `<p><strong>الناشر:</strong> ${escapeHtml(item.publisher)}</p>`;
+                if (item.pages) infoHtml += `<p><strong>الصفحات:</strong> ${escapeHtml(item.pages)}</p>`;
+                if (item.language) infoHtml += `<p><strong>اللغة:</strong> ${escapeHtml(item.language)}</p>`;
+                break;
+            case 'files':
+                if (item.file_type) infoHtml += `<p><strong>النوع:</strong> ${escapeHtml(item.file_type)}</p>`;
+                if (item.file_format) infoHtml += `<p><strong>الصيغة:</strong> ${escapeHtml(item.file_format)}</p>`;
+                if (item.file_size) infoHtml += `<p><strong>الحجم:</strong> ${escapeHtml(item.file_size)}</p>`;
+                break;
+            case 'platforms':
+                if (item.platform_type) infoHtml += `<p><strong>نوع المنصة:</strong> ${escapeHtml(item.platform_type)}</p>`;
+                break;
+            case 'apps':
+                if (item.developer) infoHtml += `<p><strong>المطور:</strong> ${escapeHtml(item.developer)}</p>`;
+                if (item.version) infoHtml += `<p><strong>الإصدار:</strong> ${escapeHtml(item.version)}</p>`;
+                if (item.platform) infoHtml += `<p><strong>المنصة:</strong> ${escapeHtml(item.platform)}</p>`;
+                if (item.file_size) infoHtml += `<p><strong>الحجم:</strong> ${escapeHtml(item.file_size)}</p>`;
+                break;
+            case 'servers':
+                if (item.server_type) infoHtml += `<p><strong>نوع السيرفر:</strong> ${escapeHtml(item.server_type)}</p>`;
+                if (item.members_count) infoHtml += `<p><strong>عدد الأعضاء:</strong> ${escapeHtml(item.members_count)}</p>`;
+                break;
         }
         
-        siteData.admins = admins || [];
-        renderAdminsList(admins);
-        updateAdminStats();
-    } catch (error) {
-        console.error('Error loading admins:', error);
-        document.getElementById('admins-list').innerHTML = '<p class="no-items">خطأ في تحميل قائمة المشرفين</p>';
-    }
+        // إضافة إحصائيات إذا كانت متوفرة
+        if (item.views_count !== undefined) {
+            infoHtml += `<p><strong>المشاهدات:</strong> ${item.views_count}</p>`;
+        }
+        
+        if (item.downloads_count !== undefined) {
+            infoHtml += `<p><strong>التحميلات:</strong> ${item.downloads_count}</p>`;
+        }
+        
+        // إضافة معلومات المضافة إذا كانت متوفرة
+        if (item.added_by && item.admins) {
+            infoHtml += `<p><strong>أضيف بواسطة:</strong> ${escapeHtml(item.admins.full_name || item.admins.email)}</p>`;
+        }
+        
+        infoHtml += `</div>`;
+        
+        itemElement.innerHTML = infoHtml + `
+            <div class="item-actions">
+                <button class="edit-btn" onclick="editItem('${section}', '${item.id}')">
+                    <i class="fas fa-edit"></i> تعديل
+                </button>
+                <button class="delete-btn" onclick="deleteItem('${section}', '${item.id}', '${escapeHtml(item.title.replace(/'/g, "\\'"))}')">
+                    <i class="fas fa-trash"></i> حذف
+                </button>
+            </div>
+        `;
+        
+        listElement.appendChild(itemElement);
+    });
 }
 
 // عرض قائمة المشرفين (الدالة المصححة)
