@@ -1,9 +1,5 @@
 // ملف config.js
-// هذا الملف يحتوي على المفاتيح السرية ويجب عدم رفعه إلى GitHub
 
-window.CONFIG = {
-  SUPABASE_URL: 'https://xzltdsmmolyvcmkfzedf.supabase.co',
-};
 // config.js
 window.CONFIG = {
   SUPABASE_URL: 'https://xzltdsmmolyvcmkfzedf.supabase.co',
