@@ -823,7 +823,7 @@ async function deleteAdmin(adminId, adminEmail) {
     }
 }
 
-// حفظ البيانات إلى Supabase
+// حفظ البيانات إلى Supabase مع الحقول الجديدة
 async function saveItemToSupabase(table, item) {
     if (!supabase) {
         throw new Error('Supabase not initialized');
@@ -832,6 +832,7 @@ async function saveItemToSupabase(table, item) {
     // تسجيل من قام بالإضافة
     item.added_by = currentAdmin.id;
     item.added_at = new Date();
+    item.updated_at = new Date();
     
     const { data, error } = await supabase
         .from(table)
