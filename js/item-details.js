@@ -1,30 +1,57 @@
-// تهيئة Supabase - قراءة المفاتيح من ملف الإعدادات
-const SUPABASE_URL = window.CONFIG?.SUPABASE_URL;
-const SUPABASE_ANON_KEY = window.CONFIG?.SUPABASE_ANON_KEY;
+// js/item-details.js - الإصدار المحسن
 
-// التحقق من وجود المفاتيح
-if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
-    console.error('لم يتم العثور على مفاتيح Supabase. تأكد من وجود ملف config.js');
-    showError('خطأ في إعدادات التطبيق. يرجى الاتصال بالدعم.');
-    throw new Error('مفاتيح Supabase غير موجودة');
+// دالة لتحميل التكوين بطريقة أكثر أماناً
+async function loadConfig() {
+    // إذا كان التكوين محملاً بالفعل
+    if (window.CONFIG && window.CONFIG.SUPABASE_URL && window.CONFIG.SUPABASE_ANON_KEY) {
+        return window.CONFIG;
+    }
+    
+    // محاولة تحميل التكوين من ملف خارجي
+    try {
+        const response = await fetch('config.js');
+        if (!response.ok) throw new Error('Failed to load config');
+        
+        // إعادة تحميل الصفحة لتفعيل التكوين (سيتم تنفيذ config.js مرة أخرى)
+        window.location.reload();
+        return null;
+    } catch (error) {
+        console.error('Error loading config:', error);
+        throw new Error('تعذر تحميل إعدادات التطبيق');
+    }
 }
 
-// إنشاء عميل Supabase مع إعدادات متقدمة
-const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-    auth: {
-        persistSession: true,
-        autoRefreshToken: true,
-        detectSessionInUrl: true
-    },
-    db: {
-        schema: 'public'
-    },
-    global: {
-        headers: {
-            'X-Application-Name': 'safinat-najah'
-        }
+// تهيئة التطبيق الرئيسية
+async function initializeApp() {
+    try {
+        // تحميل التكوين أولاً
+        const config = await loadConfig();
+        
+        if (!config) return; // تم إعادة تحميل الصفحة
+        
+        // إنشاء عميل Supabase
+        window.supabaseClient = window.supabase.createClient(
+            config.SUPABASE_URL, 
+            config.SUPABASE_ANON_KEY, 
+            {
+                auth: { persistSession: true },
+                db: { schema: 'public' }
+            }
+        );
+        
+        // تهيئة المكونات
+        initModal();
+        setupEventListeners();
+        setCurrentYear();
+        
+        // تحميل تفاصيل العنصر
+        await loadItemDetails();
+        
+    } catch (error) {
+        console.error('Error initializing app:', error);
+        showError(error.message || 'حدث خطأ في تهيئة التطبيق');
     }
-});
+}
 
 // حالة التطبيق
 let currentItem = null;
@@ -58,13 +85,7 @@ const categoryIcons = {
 };
 
 // تهيئة التطبيق عند تحميل الصفحة
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('صفحة التفاصيل محملة');
-    initModal();
-    setupEventListeners();
-    loadItemDetails();
-    setCurrentYear();
-});
+document.addEventListener('DOMContentLoaded', initializeApp);
 
 // تعيين السنة الحالية في التذييل
 function setCurrentYear() {
@@ -93,14 +114,10 @@ function setupEventListeners() {
     
     // زر إعادة المحاولة
     const retryButton = document.getElementById('retry-button');
-    if (retryButton) retryButton.addEventListener('click', loadItemDetails);
-    
-    // أزرار التمرير
-    const scrollLeftBtn = document.getElementById('scrollLeftBtn');
-    const scrollRightBtn = document.getElementById('scrollRightBtn');
-    
-    if (scrollLeftBtn) scrollLeftBtn.addEventListener('click', () => scrollCategories(-100));
-    if (scrollRightBtn) scrollRightBtn.addEventListener('click', () => scrollCategories(100));
+    if (retryButton) retryButton.addEventListener('click', () => {
+        hideError();
+        loadItemDetails();
+    });
     
     // إغلاق الـ modal بالزر Escape
     document.addEventListener('keydown', function(event) {
@@ -123,9 +140,7 @@ function initModal() {
     }
     
     // إغلاق الـ modal عند النقر على الزر
-    modalClose.onclick = function() {
-        closeModal();
-    };
+    modalClose.onclick = closeModal;
     
     // إغلاق الـ modal عند النقر خارج الصورة
     modal.onclick = function(event) {
@@ -139,14 +154,9 @@ function initModal() {
 function openModal(imageSrc, caption) {
     if (!modal || !modalImg || !modalCaption) return;
     
-    // التحقق من صحة URL الصورة
-    const validSrc = validateURL(imageSrc) || '';
-    
-    modalImg.src = validSrc;
+    modalImg.src = validateURL(imageSrc) || '';
     modalCaption.textContent = caption || 'صورة العنصر';
     modal.style.display = 'block';
-    
-    // منع التمرير عند فتح الـ modal
     document.body.style.overflow = 'hidden';
 }
 
@@ -155,8 +165,6 @@ function closeModal() {
     if (!modal) return;
     
     modal.style.display = 'none';
-    
-    // إعادة تمكين التمرير
     document.body.style.overflow = 'auto';
 }
 
@@ -164,15 +172,12 @@ function closeModal() {
 async function loadItemDetails() {
     try {
         showLoading();
-        hideError();
         hideItemDetails();
         
         // الحصول على المعاملات من URL
         const urlParams = new URLSearchParams(window.location.search);
         const type = urlParams.get('type');
         const id = urlParams.get('id');
-        
-        console.log('معاملات URL:', { type, id });
         
         if (!type || !id) {
             throw new Error('لم يتم تحديد نوع العنصر أو المعرّف');
@@ -183,8 +188,8 @@ async function loadItemDetails() {
             throw new Error('نوع العنصر أو المعرّف غير صالح');
         }
         
-        // جلب البيانات من Supabase مع زيادة وقت الانتظار
-        const { data, error } = await supabaseClient
+        // جلب البيانات من Supabase
+        const { data, error } = await window.supabaseClient
             .from(type)
             .select('*')
             .eq('id', id)
@@ -192,7 +197,6 @@ async function loadItemDetails() {
             .single();
         
         if (error) {
-            console.error('Supabase error:', error);
             throw new Error(`خطأ في الخادم: ${error.message}`);
         }
         
@@ -217,16 +221,12 @@ async function loadItemDetails() {
 // تحديث عدد المشاهدات
 async function updateViewCount(category, id) {
     try {
-        const { error } = await supabaseClient
+        await window.supabaseClient
             .from(category)
-            .update({ views_count: currentItem.views_count + 1 })
+            .update({ views_count: (currentItem.views_count || 0) + 1 })
             .eq('id', id);
-        
-        if (error) {
-            console.error('Error updating view count:', error);
-        }
     } catch (error) {
-        console.error('Error in updateViewCount:', error);
+        console.error('Error updating view count:', error);
     }
 }
 
@@ -269,105 +269,79 @@ function displayItemDetails(type, item) {
     document.getElementById('item-title').textContent = item.title;
     
     // تعيين الوصف
-    const description = item.description || 'لا يوجد وصف متاح';
-    document.getElementById('item-description').textContent = description;
+    document.getElementById('item-description').textContent = item.description || 'لا يوجد وصف متاح';
     
     // تعيين شارة النوع
     const categoryBadge = document.getElementById('item-category-badge');
     if (categoryBadge) {
-        categoryBadge.innerHTML = `
-            <i class="${categoryIcons[type]}"></i>
-            ${categoryNames[type]}
-        `;
+        categoryBadge.innerHTML = `<i class="${categoryIcons[type]}"></i> ${categoryNames[type]}`;
     }
     
-    // تعيين التاريخ إذا كان متوفراً
+    // تعيين التاريخ
     const dateElement = document.getElementById('item-date');
     if (dateElement) {
-        if (item.created_at) {
-            const date = new Date(item.created_at);
-            dateElement.textContent = date.toLocaleDateString('ar-SA');
-        } else {
-            dateElement.textContent = 'غير معروف';
-        }
+        dateElement.textContent = item.created_at ? 
+            new Date(item.created_at).toLocaleDateString('ar-SA') : 'غير معروف';
     }
+    
+    // تعيين عدد المشاهدات والتحميلات
+    document.getElementById('item-views').textContent = item.views_count || 0;
+    document.getElementById('item-downloads').textContent = item.downloads_count || 0;
     
     // معالجة الصور
     processImages(type, item);
     
     // تعيين رابط التحميل/الزيارة
-    const actionButton = document.getElementById('action-button');
-    if (actionButton) {
-        if (type === 'platforms') {
-            actionButton.innerHTML = '<i class="fas fa-external-link-alt"></i> زيارة المنصة';
-            actionButton.href = validateURL(item.link_url || '#');
-        } else if (type === 'servers') {
-            actionButton.innerHTML = '<i class="fas fa-external-link-alt"></i> انضم إلى السيرفر';
-            actionButton.href = validateURL(item.invite_link || '#');
-        } else if (type === 'apps') {
-            actionButton.innerHTML = '<i class="fas fa-download"></i> تحميل التطبيق';
-            actionButton.href = validateURL(item.download_link || '#');
-        } else {
-            actionButton.innerHTML = '<i class="fas fa-download"></i> تحميل';
-            actionButton.href = validateURL(item.drive_link || '#');
-        }
-        
-        // إضافة حدث لتتبع عدد التحميلات
-        actionButton.addEventListener('click', () => {
-            updateDownloadCount(type, item.id);
-        });
-    }
-    
-    // إظهار زر عرض الأصل إذا كان هناك رابط مختلف
-    const viewOriginalButton = document.getElementById('view-original-button');
-    if (viewOriginalButton && item.link_url && (item.drive_link || item.download_link)) {
-        viewOriginalButton.style.display = 'block';
-        viewOriginalButton.onclick = function() {
-            const validLink = validateURL(item.link_url);
-            if (validLink) {
-                window.open(validLink, '_blank', 'noopener,noreferrer');
-            }
-        };
-    }
+    setupActionButton(type, item);
     
     // معالجة المعلومات الإضافية
     processAdditionalInfo(type, item);
-    
-    // إضافة event listener للصورة الرئيسية للفتح في نافذة معاينة
-    const mainImage = document.getElementById('main-image');
-    if (mainImage && currentImages.length > 0) {
-        mainImage.addEventListener('click', function() {
-            openModal(this.src, item.title);
-        });
-    }
     
     // إظهار تفاصيل العنصر
     showItemDetails();
 }
 
-// تحديث عدد التحميلات
-async function updateDownloadCount(category, id) {
-    try {
-        const { error } = await supabaseClient
-            .from(category)
-            .update({ downloads_count: currentItem.downloads_count + 1 })
-            .eq('id', id);
-        
-        if (error) {
-            console.error('Error updating download count:', error);
-        }
-    } catch (error) {
-        console.error('Error in updateDownloadCount:', error);
+// إعداد زر التنفيذ الرئيسي
+function setupActionButton(type, item) {
+    const actionButton = document.getElementById('action-button');
+    if (!actionButton) return;
+    
+    let buttonText = '';
+    let buttonUrl = '';
+    
+    switch(type) {
+        case 'platforms':
+            buttonText = 'زيارة المنصة';
+            buttonUrl = item.link_url;
+            break;
+        case 'servers':
+            buttonText = 'انضم إلى السيرفر';
+            buttonUrl = item.invite_link;
+            break;
+        case 'apps':
+            buttonText = 'تحميل التطبيق';
+            buttonUrl = item.download_link;
+            break;
+        default:
+            buttonText = 'تحميل';
+            buttonUrl = item.drive_link;
+            break;
     }
+    
+    actionButton.innerHTML = `<i class="fas fa-download"></i> ${buttonText}`;
+    actionButton.href = validateURL(buttonUrl) || '#';
+    
+    // إضافة حدث لتتبع عدد التحميلات
+    actionButton.addEventListener('click', () => {
+        updateDownloadCount(type, item.id);
+    });
 }
 
 // معالجة الصور
 function processImages(type, item) {
     currentImages = [];
     const thumbnailsContainer = document.getElementById('thumbnails-container');
-    if (thumbnailsContainer) {
-        thumbnailsContainer.innerHTML = '';
-    }
+    if (thumbnailsContainer) thumbnailsContainer.innerHTML = '';
     
     // جمع جميع الصور المتاحة
     if (item.image_url) {
@@ -394,29 +368,28 @@ function processImages(type, item) {
         });
     }
     
-    // إذا لم توجد صور، نستخدم صورة افتراضية
+    // عرض الصور
     const imagePlaceholder = document.getElementById('image-placeholder');
     const mainImage = document.getElementById('main-image');
     const imageNav = document.getElementById('image-nav');
     
     if (currentImages.length === 0) {
-        if (imagePlaceholder) imagePlaceholder.style.display = 'flex';
-        if (mainImage) mainImage.style.display = 'none';
-        if (imageNav) imageNav.style.display = 'none';
+        showElement(imagePlaceholder);
+        hideElement(mainImage);
+        hideElement(imageNav);
         return;
     }
     
-    // إظهار الصور
-    if (imagePlaceholder) imagePlaceholder.style.display = 'none';
-    if (mainImage) mainImage.style.display = 'block';
+    hideElement(imagePlaceholder);
+    showElement(mainImage);
     
     // عرض الصورة الأولى
     showImage(0);
     
     // إضافة event listener للصورة الرئيسية
     if (mainImage) {
-        mainImage.addEventListener('click', function() {
-            openModal(this.src, item.title);
+        mainImage.addEventListener('click', () => {
+            openModal(currentImages[currentImageIndex], item.title);
         });
     }
     
@@ -432,14 +405,12 @@ function processImages(type, item) {
             thumbnailImg.alt = `صورة مصغرة ${index + 1}`;
             thumbnailImg.loading = 'lazy';
             
-            // إضافة event listener للصورة المصغرة
-            thumbnailImg.addEventListener('click', function(e) {
+            thumbnailImg.addEventListener('click', (e) => {
                 e.stopPropagation();
                 showImage(index);
             });
             
-            // إضافة event listener للنقر المزدوج للصورة المصغرة
-            thumbnailImg.addEventListener('dblclick', function() {
+            thumbnailImg.addEventListener('dblclick', () => {
                 openModal(img, item.title);
             });
             
@@ -449,13 +420,11 @@ function processImages(type, item) {
     }
     
     // إظهار أزرار التنقل إذا كان هناك أكثر من صورة
-    if (imageNav) {
-        if (currentImages.length > 1) {
-            imageNav.style.display = 'flex';
-            updateImageCounter();
-        } else {
-            imageNav.style.display = 'none';
-        }
+    if (currentImages.length > 1) {
+        showElement(imageNav);
+        updateImageCounter();
+    } else {
+        hideElement(imageNav);
     }
 }
 
@@ -471,11 +440,9 @@ function showImage(index) {
     
     // تحديث الصورة المصغرة النشطة
     document.querySelectorAll('.thumbnail').forEach((thumb, i) => {
-        if (i === index) {
-            thumb.classList.add('active');
-        } else {
+        i === index ? 
+            thumb.classList.add('active') : 
             thumb.classList.remove('active');
-        }
     });
     
     updateImageCounter();
@@ -483,16 +450,12 @@ function showImage(index) {
 
 // عرض الصورة التالية
 function showNextImage() {
-    let nextIndex = currentImageIndex + 1;
-    if (nextIndex >= currentImages.length) nextIndex = 0;
-    showImage(nextIndex);
+    showImage((currentImageIndex + 1) % currentImages.length);
 }
 
 // عرض الصورة السابقة
 function showPrevImage() {
-    let prevIndex = currentImageIndex - 1;
-    if (prevIndex < 0) prevIndex = currentImages.length - 1;
-    showImage(prevIndex);
+    showImage((currentImageIndex - 1 + currentImages.length) % currentImages.length);
 }
 
 // تحديث عداد الصور
@@ -511,86 +474,52 @@ function processAdditionalInfo(type, item) {
     if (!additionalInfo || !additionalInfoContent) return;
     
     additionalInfoContent.innerHTML = '';
-    
     let hasAdditionalInfo = false;
     
     // إضافة معلومات إضافية حسب نوع العنصر
-    switch(type) {
-        case 'books':
-        case 'novels':
-            if (item.author) {
-                additionalInfoContent.innerHTML += `<p><strong>المؤلف:</strong> ${sanitizeText(item.author)}</p>`;
+    const infoMap = {
+        books: [
+            { key: 'author', label: 'المؤلف' },
+            { key: 'publisher', label: 'الناشر' },
+            { key: 'publication_year', label: 'سنة النشر' },
+            { key: 'pages', label: 'عدد الصفحات' },
+            { key: 'language', label: 'اللغة' }
+        ],
+        novels: [
+            { key: 'author', label: 'المؤلف' },
+            { key: 'publisher', label: 'الناشر' },
+            { key: 'publication_year', label: 'سنة النشر' },
+            { key: 'pages', label: 'عدد الصفحات' },
+            { key: 'language', label: 'اللغة' }
+        ],
+        files: [
+            { key: 'file_format', label: 'صيغة الملف' },
+            { key: 'file_size', label: 'حجم الملف' },
+            { key: 'file_type', label: 'نوع الملف' }
+        ],
+        apps: [
+            { key: 'version', label: 'الإصدار' },
+            { key: 'developer', label: 'المطور' },
+            { key: 'platform', label: 'المنصة' },
+            { key: 'file_size', label: 'الحجم' }
+        ],
+        platforms: [
+            { key: 'platform_type', label: 'نوع المنصة' }
+        ],
+        servers: [
+            { key: 'server_type', label: 'نوع السيرفر' },
+            { key: 'members_count', label: 'عدد الأعضاء' }
+        ]
+    };
+    
+    // إضافة المعلومات الخاصة بالنوع
+    if (infoMap[type]) {
+        infoMap[type].forEach(info => {
+            if (item[info.key]) {
+                additionalInfoContent.innerHTML += `<p><strong>${info.label}:</strong> ${sanitizeText(item[info.key])}</p>`;
                 hasAdditionalInfo = true;
             }
-            if (item.publisher) {
-                additionalInfoContent.innerHTML += `<p><strong>الناشر:</strong> ${sanitizeText(item.publisher)}</p>`;
-                hasAdditionalInfo = true;
-            }
-            if (item.publication_year) {
-                additionalInfoContent.innerHTML += `<p><strong>سنة النشر:</strong> ${sanitizeText(item.publication_year)}</p>`;
-                hasAdditionalInfo = true;
-            }
-            if (item.pages) {
-                additionalInfoContent.innerHTML += `<p><strong>عدد الصفحات:</strong> ${sanitizeText(item.pages)}</p>`;
-                hasAdditionalInfo = true;
-            }
-            if (item.language) {
-                additionalInfoContent.innerHTML += `<p><strong>اللغة:</strong> ${sanitizeText(item.language)}</p>`;
-                hasAdditionalInfo = true;
-            }
-            break;
-            
-        case 'files':
-            if (item.file_format) {
-                additionalInfoContent.innerHTML += `<p><strong>صيغة الملف:</strong> ${sanitizeText(item.file_format)}</p>`;
-                hasAdditionalInfo = true;
-            }
-            if (item.file_size) {
-                additionalInfoContent.innerHTML += `<p><strong>حجم الملف:</strong> ${sanitizeText(item.file_size)}</p>`;
-                hasAdditionalInfo = true;
-            }
-            if (item.file_type) {
-                additionalInfoContent.innerHTML += `<p><strong>نوع الملف:</strong> ${sanitizeText(item.file_type)}</p>`;
-                hasAdditionalInfo = true;
-            }
-            break;
-            
-        case 'apps':
-            if (item.version) {
-                additionalInfoContent.innerHTML += `<p><strong>الإصدار:</strong> ${sanitizeText(item.version)}</p>`;
-                hasAdditionalInfo = true;
-            }
-            if (item.developer) {
-                additionalInfoContent.innerHTML += `<p><strong>المطور:</strong> ${sanitizeText(item.developer)}</p>`;
-                hasAdditionalInfo = true;
-            }
-            if (item.platform) {
-                additionalInfoContent.innerHTML += `<p><strong>المنصة:</strong> ${sanitizeText(item.platform)}</p>`;
-                hasAdditionalInfo = true;
-            }
-            if (item.file_size) {
-                additionalInfoContent.innerHTML += `<p><strong>الحجم:</strong> ${sanitizeText(item.file_size)}</p>`;
-                hasAdditionalInfo = true;
-            }
-            break;
-            
-        case 'platforms':
-            if (item.platform_type) {
-                additionalInfoContent.innerHTML += `<p><strong>نوع المنصة:</strong> ${sanitizeText(item.platform_type)}</p>`;
-                hasAdditionalInfo = true;
-            }
-            break;
-            
-        case 'servers':
-            if (item.server_type) {
-                additionalInfoContent.innerHTML += `<p><strong>نوع السيرفر:</strong> ${sanitizeText(item.server_type)}</p>`;
-                hasAdditionalInfo = true;
-            }
-            if (item.members_count) {
-                additionalInfoContent.innerHTML += `<p><strong>عدد الأعضاء:</strong> ${sanitizeText(item.members_count)}</p>`;
-                hasAdditionalInfo = true;
-            }
-            break;
+        });
     }
     
     // إضافة المعلومات المشتركة
@@ -605,10 +534,18 @@ function processAdditionalInfo(type, item) {
     }
     
     // إظهار قسم المعلومات الإضافية إذا كان هناك معلومات
-    if (hasAdditionalInfo) {
-        additionalInfo.style.display = 'block';
-    } else {
-        additionalInfo.style.display = 'none';
+    hasAdditionalInfo ? showElement(additionalInfo) : hideElement(additionalInfo);
+}
+
+// تحديث عدد التحميلات
+async function updateDownloadCount(category, id) {
+    try {
+        await window.supabaseClient
+            .from(category)
+            .update({ downloads_count: (currentItem.downloads_count || 0) + 1 })
+            .eq('id', id);
+    } catch (error) {
+        console.error('Error updating download count:', error);
     }
 }
 
@@ -616,19 +553,15 @@ function processAdditionalInfo(type, item) {
 function shareItem() {
     if (!currentItem) return;
     
-    const title = currentItem.title;
-    const url = window.location.href;
+    const shareData = {
+        title: currentItem.title,
+        url: window.location.href
+    };
     
     if (navigator.share) {
-        navigator.share({
-            title: title,
-            url: url
-        }).catch(error => {
-            console.error('Error sharing:', error);
-            copyToClipboard(url);
-        });
+        navigator.share(shareData).catch(() => copyToClipboard(shareData.url));
     } else {
-        copyToClipboard(url);
+        copyToClipboard(shareData.url);
     }
 }
 
@@ -636,8 +569,7 @@ function shareItem() {
 function copyToClipboard(text) {
     navigator.clipboard.writeText(text).then(() => {
         alert('تم نسخ الرابط إلى الحافظة: ' + text);
-    }).catch(error => {
-        console.error('Error copying to clipboard:', error);
+    }).catch(() => {
         alert('لم يتمكن المتصفح من نسخ الرابط. يرجى نسخه يدوياً: ' + text);
     });
 }
@@ -647,61 +579,41 @@ function goBack() {
     window.history.length > 1 ? window.history.back() : window.location.href = 'index.html';
 }
 
-// إظهار مؤشر التحميل
+// وظائف المساعدة للعرض والإخفاء
+function showElement(element) {
+    if (element) element.classList.remove('initially-hidden');
+}
+
+function hideElement(element) {
+    if (element) element.classList.add('initially-hidden');
+}
+
 function showLoading() {
-    const loadingSpinner = document.getElementById('loading-spinner');
-    if (loadingSpinner) {
-        loadingSpinner.style.display = 'flex';
-    }
+    showElement(document.getElementById('loading-spinner'));
 }
 
-// إخفاء مؤشر التحميل
 function hideLoading() {
-    const loadingSpinner = document.getElementById('loading-spinner');
-    if (loadingSpinner) {
-        loadingSpinner.style.display = 'none';
-    }
+    hideElement(document.getElementById('loading-spinner'));
 }
 
-// إظهار تفاصيل العنصر
 function showItemDetails() {
-    const itemDetails = document.getElementById('item-details');
-    if (itemDetails) {
-        itemDetails.style.display = 'flex';
-    }
+    showElement(document.getElementById('item-details'));
 }
 
-// إخفاء تفاصيل العنصر
 function hideItemDetails() {
-    const itemDetails = document.getElementById('item-details');
-    if (itemDetails) {
-        itemDetails.style.display = 'none';
-    }
+    hideElement(document.getElementById('item-details'));
 }
 
-// إظهار رسالة الخطأ
 function showError(message) {
     const errorMessage = document.getElementById('error-message');
     const errorText = document.getElementById('error-text');
     
     if (errorMessage && errorText) {
         errorText.textContent = message;
-        errorMessage.style.display = 'block';
+        showElement(errorMessage);
     }
 }
 
-// إخفاء رسالة الخطأ
 function hideError() {
-    const errorMessage = document.getElementById('error-message');
-    if (errorMessage) {
-        errorMessage.style.display = 'none';
-    }
-}
-
-// وظيفة تمرير الأقسام
-function scrollCategories(direction) {
-    const container = document.querySelector('.categories-wrapper');
-    if (container) {
-        container.scrollBy({ left: direction, behavior: 'smooth' });
-    }
+    hideElement(document.getElementById('error-message'));
 }
