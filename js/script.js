@@ -110,15 +110,6 @@ const domElements = {
     containers: null
 };
 
-
-
-// تهيئة التطبيق
-function initApp() {
-    initializeDOMElements();
-    setupEventListeners();
-    loadData();
-}
-
 // تهيئة عناصر DOM
 function initializeDOMElements() {
     domElements.tabs = document.querySelectorAll('.nav-tab');
