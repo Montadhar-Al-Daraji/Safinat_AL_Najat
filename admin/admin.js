@@ -1,3 +1,28 @@
+// Ensure you have a valid Supabase client instance
+const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+// Make sure the user is logged in and a session exists
+const { data: { user }, error } = await supabase.auth.getUser();
+
+if (user) {
+  // The Supabase client should automatically include the Authorization header
+  // with the user's JWT for authenticated requests like this one:
+  const { data, error } = await supabase
+    .from('admins')
+    .select('*')
+    .eq('null', '@gmail.com');
+
+  if (error) {
+    console.error('Error fetching admin data:', error);
+  } else {
+    console.log('Admin data:', data);
+  }
+} else {
+  console.error('User is not authenticated. Please log in.');
+  // Redirect to login page or handle unauthenticated state
+}
+
+
 // admin/admin.js
 // تهيئة الصفحة عند التحميل
 document.addEventListener('DOMContentLoaded', function() {
