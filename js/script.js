@@ -504,28 +504,27 @@ function createBookItem(item) {
 function createNovelItem(item) {
     let imagesHtml = '';
     let imagesArray = [];
-    
-    if (item.images) {
-        if (typeof item.images === 'string') {
+
+    // Correctly using the new column name: 'images_urls'
+    if (item.images_urls) {
+        if (typeof item.images_urls === 'string') {
             try {
-                imagesArray = JSON.parse(item.images);
+                imagesArray = JSON.parse(item.images_urls);
             } catch (e) {
-                imagesArray = [item.images];
+                imagesArray = [item.images_urls];
             }
-        } else if (Array.isArray(item.images)) {
-            imagesArray = item.images;
+        } else if (Array.isArray(item.images_urls)) {
+            imagesArray = item.images_urls;
         }
     }
-    
-    // صورة رئيسية
+
     let mainImage = '';
     if (imagesArray.length > 0) {
         mainImage = `<img src="${imagesArray[0]}" alt="${item.title}" class="${cssClasses.itemImage}" onerror="this.style.display='none'">`;
     } else {
         mainImage = `<div class="placeholder-image"><i class="fas fa-book-open"></i></div>`;
     }
-    
-    // صور مصغرة
+
     if (imagesArray.length > 1) {
         imagesHtml = `<div class="${cssClasses.novelImages}">`;
         imagesArray.slice(1, 4).forEach((img, index) => {
@@ -533,7 +532,7 @@ function createNovelItem(item) {
         });
         imagesHtml += '</div>';
     }
-    
+
     return `
         <div class="item-image-container">
             ${mainImage}
@@ -549,7 +548,7 @@ function createNovelItem(item) {
 function createFileItem(item) {
     return `
         <div class="item-image-container">
-            ${item.image ? `<img src="${item.image}" alt="${item.title}" class="${cssClasses.itemImage}" onerror="this.style.display='none'">` : 
+            ${item.images_urls ? `<img src="${item.images_urls}" alt="${item.title}" class="${cssClasses.itemImage}" onerror="this.style.display='none'">` :
             `<div class="placeholder-image"><i class="fas fa-file"></i></div>`}
         </div>
         <h3>${item.title}</h3>
@@ -562,7 +561,7 @@ function createFileItem(item) {
 function createPlatformItem(item) {
     return `
         <div class="item-image-container platform-image-container">
-            ${item.image ? `<img src="${item.image}" alt="${item.title}" class="${cssClasses.platformImage}" onerror="this.style.display='none'">` : 
+            ${item.images_urls ? `<img src="${item.images_urls}" alt="${item.title}" class="${cssClasses.platformImage}" onerror="this.style.display='none'">` :
             `<div class="placeholder-image"><i class="fas fa-globe"></i></div>`}
         </div>
         <h3>${item.title}</h3>
@@ -574,7 +573,7 @@ function createPlatformItem(item) {
 function createAppItem(item) {
     return `
         <div class="item-image-container">
-            ${item.image ? `<img src="${item.image}" alt="${item.title}" class="${cssClasses.itemImage}" onerror="this.style.display='none'">` : 
+            ${item.images_urls ? `<img src="${item.images_urls}" alt="${item.title}" class="${cssClasses.itemImage}" onerror="this.style.display='none'">` :
             `<div class="placeholder-image"><i class="fas fa-mobile-alt"></i></div>`}
         </div>
         <h3>${item.title}</h3>
@@ -587,7 +586,7 @@ function createAppItem(item) {
 function createServerItem(item) {
     return `
         <div class="item-image-container">
-            ${item.image ? `<img src="${item.image}" alt="${item.title}" class="${cssClasses.itemImage}" onerror="this.style.display='none'">` : 
+            ${item.images_urls ? `<img src="${item.images_urls}" alt="${item.title}" class="${cssClasses.itemImage}" onerror="this.style.display='none'">` :
             `<div class="placeholder-image"><i class="fas fa-server"></i></div>`}
         </div>
         <h3>${item.title}</h3>
