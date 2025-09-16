@@ -1,18 +1,15 @@
-// تهيئة Supabase - قراءة المفاتيح من ملف الإعدادات
-const SUPABASE_URL = window.CONFIG?.SUPABASE_URL;
-const SUPABASE_ANON_KEY = window.CONFIG?.SUPABASE_ANON_KEY;
+// تهيئة Supabase
+const SUPABASE_URL = 'https://xzltdsmmolyvcmkfzedf.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bHRkc21tb2x5dmNta2Z6ZWRmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc2Nzg1NzEsImV4cCI6MjA3MzI1NDU3MX0.3TJ49ctEhOT1KDIFtZXFw2jwTq57ujaWbqNNJ2Eeb1U';
 
-// التحقق من وجود المفاتيح
-if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
-    console.error('لم يتم العثور على مفاتيح Supabase. تأكد من وجود ملف config.js');
-    // عرض رسالة خطأ للمستخدم
-    showError('خطأ في إعدادات التطبيق. يرجى الاتصال بالدعم.');
-    // إيقاف التهيئة إذا لم توجد المفاتيح
-    throw new Error('مفاتيح Supabase غير موجودة');
-}
-
-// إنشاء عميل Supabase
-const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+// إنشاء عميل Supabase مع إعدادات متقدمة
+const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+    auth: {
+        persistSession: true,
+        autoRefreshToken: true,
+        detectSessionInUrl: true
+    }
+});
 
 // حالة التطبيق
 let currentItem = null;
@@ -49,14 +46,24 @@ const categoryIcons = {
 document.addEventListener('DOMContentLoaded', function() {
     console.log('صفحة التفاصيل محملة');
     initModal(); // تهيئة الـ modal أولاً
-    loadItemDetails();
     setupEventListeners();
+    loadItemDetails();
+    setCurrentYear();
 });
+
+// تعيين السنة الحالية في التذييل
+function setCurrentYear() {
+    const yearElement = document.getElementById('current-year');
+    if (yearElement) {
+        yearElement.textContent = new Date().getFullYear();
+    }
+}
 
 // إعداد مستمعي الأحداث
 function setupEventListeners() {
     // زر الرجوع
-    document.getElementById('back-button').addEventListener('click', goBack);
+    const backButton = document.getElementById('back-button');
+    if (backButton) backButton.addEventListener('click', goBack);
     
     // أزرار التنقل بين الصور
     const prevButton = document.getElementById('prev-image');
@@ -68,6 +75,17 @@ function setupEventListeners() {
     // زر المشاركة
     const shareButton = document.getElementById('share-button');
     if (shareButton) shareButton.addEventListener('click', shareItem);
+    
+    // زر إعادة المحاولة
+    const retryButton = document.getElementById('retry-button');
+    if (retryButton) retryButton.addEventListener('click', loadItemDetails);
+    
+    // أزرار التمرير
+    const scrollLeftBtn = document.getElementById('scrollLeftBtn');
+    const scrollRightBtn = document.getElementById('scrollRightBtn');
+    
+    if (scrollLeftBtn) scrollLeftBtn.addEventListener('click', () => scrollCategories(-100));
+    if (scrollRightBtn) scrollRightBtn.addEventListener('click', () => scrollCategories(100));
 }
 
 // تهيئة نافذة معاينة الصورة
@@ -106,8 +124,11 @@ function initModal() {
 function openModal(imageSrc, caption) {
     if (!modal || !modalImg || !modalCaption) return;
     
-    modalImg.src = imageSrc;
-    modalCaption.innerHTML = caption || 'صورة العنصر';
+    // التحقق من صحة URL الصورة
+    const validSrc = validateURL(imageSrc) || '';
+    
+    modalImg.src = validSrc;
+    modalCaption.textContent = caption || 'صورة العنصر';
     modal.style.display = 'block';
     
     // منع التمرير عند فتح الـ modal
@@ -129,6 +150,7 @@ async function loadItemDetails() {
     try {
         showLoading();
         hideError();
+        hideItemDetails();
         
         // الحصول على المعاملات من URL
         const urlParams = new URLSearchParams(window.location.search);
@@ -139,6 +161,11 @@ async function loadItemDetails() {
         
         if (!type || !id) {
             throw new Error('لم يتم تحديد نوع العنصر أو المعرّف');
+        }
+        
+        // التحقق من صحة النوع والمعرف
+        if (!isValidCategory(type) || !isValidId(id)) {
+            throw new Error('نوع العنصر أو المعرّف غير صالح');
         }
         
         // جلب البيانات من Supabase
@@ -167,10 +194,44 @@ async function loadItemDetails() {
     }
 }
 
+// التحقق من صحة نوع العنصر
+function isValidCategory(category) {
+    return ['books', 'novels', 'files', 'platforms', 'apps', 'servers'].includes(category);
+}
+
+// التحقق من صحة المعرف
+function isValidId(id) {
+    // التحقق من أن المعرف يتكون من أحرف وأرقام وشرطات فقط
+    return /^[a-zA-Z0-9\-_]+$/.test(id);
+}
+
+// التحقق من صحة URL
+function validateURL(url) {
+    try {
+        const parsedUrl = new URL(url);
+        // السماح فقط بـ HTTP و HTTPS
+        if (['http:', 'https:'].includes(parsedUrl.protocol)) {
+            return url;
+        }
+        return ''; // رفض البروتوكولات غير الآمنة
+    } catch {
+        return ''; // ربط URLs غير الصالحة بسلسلة فارغة
+    }
+}
+
+// تنظيف النص من الأحرف الخطرة
+function sanitizeText(text) {
+    if (!text) return '';
+    
+    const temp = document.createElement('div');
+    temp.textContent = text;
+    return temp.innerHTML;
+}
+
 // عرض تفاصيل العنصر
 function displayItemDetails(type, item) {
     // تعيين العنوان
-    document.title = `${item.title} - سفينة النجاة`;
+    document.title = `${sanitizeText(item.title)} - سفينة النجاة`;
     document.getElementById('item-title').textContent = item.title;
     
     // تعيين الوصف
@@ -204,10 +265,10 @@ function displayItemDetails(type, item) {
     if (actionButton) {
         if (type === 'platforms' || type === 'servers') {
             actionButton.innerHTML = '<i class="fas fa-external-link-alt"></i> زيارة';
-            actionButton.href = item.link || item.drive_link || '#';
+            actionButton.href = validateURL(item.link || item.drive_link || '#');
         } else {
             actionButton.innerHTML = '<i class="fas fa-download"></i> تحميل';
-            actionButton.href = item.drive_link || item.download_link || item.link || '#';
+            actionButton.href = validateURL(item.drive_link || item.download_link || item.link || '#');
         }
     }
     
@@ -216,7 +277,10 @@ function displayItemDetails(type, item) {
     if (viewOriginalButton && item.link && (item.drive_link || item.download_link)) {
         viewOriginalButton.style.display = 'block';
         viewOriginalButton.onclick = function() {
-            window.open(item.link, '_blank');
+            const validLink = validateURL(item.link);
+            if (validLink) {
+                window.open(validLink, '_blank', 'noopener,noreferrer');
+            }
         };
     }
     
@@ -232,10 +296,7 @@ function displayItemDetails(type, item) {
     }
     
     // إظهار تفاصيل العنصر
-    const itemDetails = document.getElementById('item-details');
-    if (itemDetails) {
-        itemDetails.style.display = 'flex';
-    }
+    showItemDetails();
 }
 
 // معالجة الصور
@@ -304,8 +365,9 @@ function processImages(type, item) {
             if (index === 0) thumbnail.classList.add('active');
             
             const thumbnailImg = document.createElement('img');
-            thumbnailImg.src = img;
+            thumbnailImg.src = validateURL(img) || '';
             thumbnailImg.alt = `صورة مصغرة ${index + 1}`;
+            thumbnailImg.loading = 'lazy';
             
             // إضافة event listener للصورة المصغرة
             thumbnailImg.addEventListener('click', function(e) {
@@ -341,7 +403,7 @@ function showImage(index) {
     currentImageIndex = index;
     const mainImage = document.getElementById('main-image');
     if (mainImage) {
-        mainImage.src = currentImages[index];
+        mainImage.src = validateURL(currentImages[index]) || '';
     }
     
     // تحديث الصورة المصغرة النشطة
@@ -393,26 +455,26 @@ function processAdditionalInfo(type, item) {
     switch(type) {
         case 'books':
             if (item.author) {
-                additionalInfoContent.innerHTML += `<p><strong>المؤلف:</strong> ${item.author}</p>`;
+                additionalInfoContent.innerHTML += `<p><strong>المؤلف:</strong> ${sanitizeText(item.author)}</p>`;
                 hasAdditionalInfo = true;
             }
             if (item.pages) {
-                additionalInfoContent.innerHTML += `<p><strong>عدد الصفحات:</strong> ${item.pages}</p>`;
+                additionalInfoContent.innerHTML += `<p><strong>عدد الصفحات:</strong> ${sanitizeText(item.pages)}</p>`;
                 hasAdditionalInfo = true;
             }
             if (item.publisher) {
-                additionalInfoContent.innerHTML += `<p><strong>الناشر:</strong> ${item.publisher}</p>`;
+                additionalInfoContent.innerHTML += `<p><strong>الناشر:</strong> ${sanitizeText(item.publisher)}</p>`;
                 hasAdditionalInfo = true;
             }
             break;
             
         case 'novels':
             if (item.author) {
-                additionalInfoContent.innerHTML += `<p><strong>المؤلف:</strong> ${item.author}</p>`;
+                additionalInfoContent.innerHTML += `<p><strong>المؤلف:</strong> ${sanitizeText(item.author)}</p>`;
                 hasAdditionalInfo = true;
             }
             if (item.chapters) {
-                additionalInfoContent.innerHTML += `<p><strong>عدد الفصول:</strong> ${item.chapters}</p>`;
+                additionalInfoContent.innerHTML += `<p><strong>عدد الفصول:</strong> ${sanitizeText(item.chapters)}</p>`;
                 hasAdditionalInfo = true;
             }
             break;
@@ -423,7 +485,7 @@ function processAdditionalInfo(type, item) {
                 const formatElement = document.getElementById('item-format');
                 if (formatContainer && formatElement) {
                     formatContainer.style.display = 'flex';
-                    formatElement.textContent = item.format;
+                    formatElement.textContent = sanitizeText(item.format);
                 }
             }
             if (item.size) {
@@ -431,18 +493,18 @@ function processAdditionalInfo(type, item) {
                 const sizeElement = document.getElementById('item-size');
                 if (sizeContainer && sizeElement) {
                     sizeContainer.style.display = 'flex';
-                    sizeElement.textContent = item.size;
+                    sizeElement.textContent = sanitizeText(item.size);
                 }
             }
             break;
             
         case 'apps':
             if (item.version) {
-                additionalInfoContent.innerHTML += `<p><strong>الإصدار:</strong> ${item.version}</p>`;
+                additionalInfoContent.innerHTML += `<p><strong>الإصدار:</strong> ${sanitizeText(item.version)}</p>`;
                 hasAdditionalInfo = true;
             }
             if (item.developer) {
-                additionalInfoContent.innerHTML += `<p><strong>المطور:</strong> ${item.developer}</p>`;
+                additionalInfoContent.innerHTML += `<p><strong>المطور:</strong> ${sanitizeText(item.developer)}</p>`;
                 hasAdditionalInfo = true;
             }
             break;
@@ -458,6 +520,8 @@ function processAdditionalInfo(type, item) {
 
 // مشاركة العنصر
 function shareItem() {
+    if (!currentItem) return;
+    
     const title = currentItem.title;
     const url = window.location.href;
     
@@ -484,9 +548,8 @@ function copyToClipboard(text) {
     });
 }
 
-// الرجوع إلى الصفحة الرئيسية
+// الرجوع إلى الصفحة السابقة
 function goBack() {
-    // استخدام window.location للانتقال إلى index.html
     window.location.href = 'index.html';
 }
 
@@ -503,6 +566,22 @@ function hideLoading() {
     const loadingSpinner = document.getElementById('loading-spinner');
     if (loadingSpinner) {
         loadingSpinner.style.display = 'none';
+    }
+}
+
+// إظهار تفاصيل العنصر
+function showItemDetails() {
+    const itemDetails = document.getElementById('item-details');
+    if (itemDetails) {
+        itemDetails.style.display = 'flex';
+    }
+}
+
+// إخفاء تفاصيل العنصر
+function hideItemDetails() {
+    const itemDetails = document.getElementById('item-details');
+    if (itemDetails) {
+        itemDetails.style.display = 'none';
     }
 }
 
