@@ -201,7 +201,82 @@ function setupSearchFunctionality() {
         });
     }
     
-    // ... باقي عمليات البحث بنفس الطريقة
+    // إعداد البحث للروايات
+    const novelsSearch = document.getElementById('novels-search');
+    if (novelsSearch) {
+        novelsSearch.addEventListener('input', function(e) {
+            const searchTerm = e.target.value.toLowerCase();
+            const filteredNovels = siteData.novels.filter(novel => 
+                novel.title.toLowerCase().includes(searchTerm) || 
+                (novel.description && novel.description.toLowerCase().includes(searchTerm))
+            );
+            renderAdminList('novels', filteredNovels);
+        });
+    }
+    
+    // إعداد البحث للملفات
+    const filesSearch = document.getElementById('files-search');
+    if (filesSearch) {
+        filesSearch.addEventListener('input', function(e) {
+            const searchTerm = e.target.value.toLowerCase();
+            const filteredFiles = siteData.files.filter(file => 
+                file.title.toLowerCase().includes(searchTerm) || 
+                (file.description && file.description.toLowerCase().includes(searchTerm))
+            );
+            renderAdminList('files', filteredFiles);
+        });
+    }
+    
+    // إعداد البحث للمنصات
+    const platformsSearch = document.getElementById('platforms-search');
+    if (platformsSearch) {
+        platformsSearch.addEventListener('input', function(e) {
+            const searchTerm = e.target.value.toLowerCase();
+            const filteredPlatforms = siteData.platforms.filter(platform => 
+                platform.title.toLowerCase().includes(searchTerm)
+            );
+            renderAdminList('platforms', filteredPlatforms);
+        });
+    }
+    
+    // إعداد البحث للتطبيقات
+    const appsSearch = document.getElementById('apps-search');
+    if (appsSearch) {
+        appsSearch.addEventListener('input', function(e) {
+            const searchTerm = e.target.value.toLowerCase();
+            const filteredApps = siteData.apps.filter(app => 
+                app.title.toLowerCase().includes(searchTerm) || 
+                (app.description && app.description.toLowerCase().includes(searchTerm))
+            );
+            renderAdminList('apps', filteredApps);
+        });
+    }
+    
+    // إعداد البحث للسيرفرات
+    const serversSearch = document.getElementById('servers-search');
+    if (serversSearch) {
+        serversSearch.addEventListener('input', function(e) {
+            const searchTerm = e.target.value.toLowerCase();
+            const filteredServers = siteData.servers.filter(server => 
+                server.title.toLowerCase().includes(searchTerm) || 
+                (server.description && server.description.toLowerCase().includes(searchTerm))
+            );
+            renderAdminList('servers', filteredServers);
+        });
+    }
+    
+    // إعداد البحث للمشرفين
+    const adminsSearch = document.getElementById('admins-search');
+    if (adminsSearch) {
+        adminsSearch.addEventListener('input', function(e) {
+            const searchTerm = e.target.value.toLowerCase();
+            const filteredAdmins = siteData.admins.filter(admin => 
+                admin.email.toLowerCase().includes(searchTerm)
+            );
+            renderAdminsList(filteredAdmins);
+        });
+    }
+    
 }
 
 function openAddItemModal(section) {
