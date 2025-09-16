@@ -73,6 +73,7 @@ async function initializeApp() {
         showError(error.message || 'حدث خطأ في تهيئة التطبيق');
     }
 }
+
 // في دالة initializeApp، بعد إنشاء العميل
 const { data, error } = await window.supabaseClient
     .from('books')
