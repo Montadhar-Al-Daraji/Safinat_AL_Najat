@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com; img-src 'self' data: https:; media-src https:; connect-src 'self' https://your-supabase-url.supabase.co;">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com; img-src 'self' data: https:; media-src https:; connect-src 'self' https://xzltdsmmolyvcmkfzedf.supabase.co;">
+    <meta name="description" content="صفحة تفاصيل العنصر - سفينة النجاة للمحتوى الديني">
     <title>تفاصيل العنصر - سفينة النجاة</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -11,11 +12,12 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="./css/style.css">
     <link rel="stylesheet" href="./css/item-details.css">
+    <link rel="icon" href="./assets/logo.png" type="image/png">
 </head>
 <body>
     <div class="video-background">
-        <video autoplay muted loop id="bgVideo">
-            <source src="https://c.top4top.io/m_3544ww25t1.mp4">
+        <video autoplay muted loop id="bgVideo" aria-hidden="true">
+            <source src="https://c.top4top.io/m_3544ww25t1.mp4" type="video/mp4">
             متصفحك لا يدعم تشغيل الفيديو
         </video>
     </div>
@@ -24,127 +26,127 @@
     
     <header>
         <div class="logo-container">
-            <a href="index.html">
-                <img src="./assets/logo.png" alt="شعار المنصة الدينية" class="logo">
+            <a href="index.html" aria-label="العودة إلى الصفحة الرئيسية">
+                <img src="./assets/logo.png" alt="شعار سفينة النجاة" class="logo" width="50" height="50">
             </a>
             <h1>سفينة النجاة</h1>
         </div>
     </header>
     
     <!-- قائمة الأقسام القابلة للسحب -->
-    <div class="categories-scroll-container">
+    <nav class="categories-scroll-container" aria-label="أقسام الموقع">
         <div class="categories-scroll">
-            <button class="scroll-btn scroll-left" id="scrollLeftBtn">
-                <i class="fas fa-chevron-right"></i>
+            <button class="scroll-btn scroll-left" id="scrollLeftBtn" aria-label="التمرير لليسار">
+                <i class="fas fa-chevron-right" aria-hidden="true"></i>
             </button>
 
             <div class="categories-container">
                 <div class="categories-wrapper">
                     <a href="index.html" class="category-tab">
-                        <i class="fas fa-home"></i>
+                        <i class="fas fa-home" aria-hidden="true"></i>
                         <span>الرئيسية</span>
                     </a>
                     <a href="index.html#books-content" class="category-tab">
-                        <i class="fas fa-book"></i>
+                        <i class="fas fa-book" aria-hidden="true"></i>
                         <span>الكتب</span>
                     </a>
                     <a href="index.html#novels-content" class="category-tab">
-                        <i class="fas fa-book-open"></i>
+                        <i class="fas fa-book-open" aria-hidden="true"></i>
                         <span>الروايات</span>
                     </a>
                     <a href="index.html#files-content" class="category-tab">
-                        <i class="fas fa-file"></i>
+                        <i class="fas fa-file" aria-hidden="true"></i>
                         <span>الملفات</span>
                     </a>
                     <a href="index.html#platforms-content" class="category-tab">
-                        <i class="fas fa-globe"></i>
+                        <i class="fas fa-globe" aria-hidden="true"></i>
                         <span>المنصات</span>
                     </a>
                     <a href="index.html#apps-content" class="category-tab">
-                        <i class="fas fa-mobile-alt"></i>
+                        <i class="fas fa-mobile-alt" aria-hidden="true"></i>
                         <span>التطبيقات</span>
                     </a>
                     <a href="index.html#servers-content" class="category-tab">
-                        <i class="fas fa-server"></i>
+                        <i class="fas fa-server" aria-hidden="true"></i>
                         <span>سيرفرات</span>
                     </a>
                 </div>
             </div>
             
-            <button class="scroll-btn scroll-right" id="scrollRightBtn">
-                <i class="fas fa-chevron-left"></i>
+            <button class="scroll-btn scroll-right" id="scrollRightBtn" aria-label="التمرير لليمين">
+                <i class="fas fa-chevron-left" aria-hidden="true"></i>
             </button>
         </div>
-    </div>
+    </nav>
     
     <main class="details-main">
         <div class="back-button-container">
-            <button id="back-button" class="back-button">
-                <i class="fas fa-arrow-right"></i> رجوع
+            <button id="back-button" class="back-button" aria-label="العودة للصفحة السابقة">
+                <i class="fas fa-arrow-right" aria-hidden="true"></i> رجوع
             </button>
         </div>
         
-        <div class="loading-spinner" id="loading-spinner">
-            <i class="fas fa-spinner fa-spin"></i>
+        <div class="loading-spinner" id="loading-spinner" role="status" aria-live="polite">
+            <i class="fas fa-spinner fa-spin" aria-hidden="true"></i>
             <p>جاري تحميل البيانات...</p>
         </div>
         
         <div class="item-details-container" id="item-details" style="display: none;">
             <div class="item-gallery">
                 <div class="main-image-container">
-                    <img id="main-image" src="" alt="صورة العنصر" class="main-image">
-                    <div class="image-placeholder" id="image-placeholder">
-                        <i class="fas fa-image"></i>
+                    <img id="main-image" src="" alt="صورة العنصر" class="main-image" loading="lazy">
+                    <div class="image-placeholder" id="image-placeholder" aria-hidden="true">
+                        <i class="fas fa-image" aria-hidden="true"></i>
                     </div>
                 </div>
                 
-                <div class="image-thumbnails" id="thumbnails-container"></div>
+                <div class="image-thumbnails" id="thumbnails-container" aria-label="معاينات الصور"></div>
                 
-                <div class="image-nav" id="image-nav" style="display: none;">
-                    <button id="prev-image" class="nav-button">
-                        <i class="fas fa-chevron-right"></i>
+                <div class="image-nav" id="image-nav" style="display: none;" aria-label="التنقل بين الصور">
+                    <button id="prev-image" class="nav-button" aria-label="الصورة السابقة">
+                        <i class="fas fa-chevron-right" aria-hidden="true"></i>
                     </button>
                     <span id="image-counter">1/1</span>
-                    <button id="next-image" class="nav-button">
-                        <i class="fas fa-chevron-left"></i>
+                    <button id="next-image" class="nav-button" aria-label="الصورة التالية">
+                        <i class="fas fa-chevron-left" aria-hidden="true"></i>
                     </button>
                 </div>
             </div>
             
             <div class="item-info">
                 <h1 id="item-title">عنوان العنصر</h1>
-                <div class="item-category-badge" id="item-category-badge"></div>
+                <div class="item-category-badge" id="item-category-badge" aria-label="نوع العنصر"></div>
                 
                 <p id="item-description">وصف العنصر سيظهر هنا...</p>
                 
                 <div class="item-meta">
                     <div class="meta-item" id="item-date-container">
-                        <i class="fas fa-calendar"></i>
+                        <i class="fas fa-calendar" aria-hidden="true"></i>
                         <span id="item-date">تاريخ الإضافة</span>
                     </div>
                     
                     <div class="meta-item" id="item-size-container" style="display: none;">
-                        <i class="fas fa-weight-hanging"></i>
+                        <i class="fas fa-weight-hanging" aria-hidden="true"></i>
                         <span id="item-size">الحجم</span>
                     </div>
                     
                     <div class="meta-item" id="item-format-container" style="display: none;">
-                        <i class="fas fa-file"></i>
+                        <i class="fas fa-file" aria-hidden="true"></i>
                         <span id="item-format">الصيغة</span>
                     </div>
                 </div>
                 
                 <div class="action-buttons">
                     <a id="action-button" href="#" target="_blank" rel="noopener noreferrer" class="item-button primary-button">
-                        <i class="fas fa-download"></i> تحميل
+                        <i class="fas fa-download" aria-hidden="true"></i> تحميل
                     </a>
                     
-                    <button id="share-button" class="item-button secondary-button">
-                        <i class="fas fa-share-alt"></i> مشاركة
+                    <button id="share-button" class="item-button secondary-button" aria-label="مشاركة العنصر">
+                        <i class="fas fa-share-alt" aria-hidden="true"></i> مشاركة
                     </button>
                     
-                    <button id="view-original-button" class="item-button tertiary-button" style="display: none;">
-                        <i class="fas fa-external-link-alt"></i> عرض الأصل
+                    <button id="view-original-button" class="item-button tertiary-button" style="display: none;" aria-label="عرض النسخة الأصلية">
+                        <i class="fas fa-external-link-alt" aria-hidden="true"></i> عرض الأصل
                     </button>
                 </div>
                 
@@ -155,8 +157,8 @@
             </div>
         </div>
         
-        <div class="error-message" id="error-message" style="display: none;">
-            <i class="fas fa-exclamation-triangle"></i>
+        <div class="error-message" id="error-message" style="display: none;" role="alert">
+            <i class="fas fa-exclamation-triangle" aria-hidden="true"></i>
             <p id="error-text">حدث خطأ في تحميل البيانات</p>
             <button id="retry-button" class="retry-button">إعادة المحاولة</button>
         </div>
@@ -166,19 +168,27 @@
         <div class="social-links">
             <h3>تابعنا على وسائل التواصل الاجتماعي</h3>
             <div class="social-icons">
-                <a href="#" class="social-link discord" rel="noopener noreferrer"><i class="fab fa-discord"></i> ديسكورد</a>
-                <a href="#" class="social-link instagram" rel="noopener noreferrer"><i class="fab fa-instagram"></i> انستجرام</a>
-                <a href="#" class="social-link facebook" rel="noopener noreferrer"><i class="fab fa-facebook"></i> فيسبوك</a>
-                <a href="#" class="social-link twitter" rel="noopener noreferrer"><i class="fab fa-twitter"></i> تويتر</a>
+                <a href="#" class="social-link discord" rel="noopener noreferrer" aria-label="ديسكورد">
+                    <i class="fab fa-discord" aria-hidden="true"></i> ديسكورد
+                </a>
+                <a href="#" class="social-link instagram" rel="noopener noreferrer" aria-label="انستجرام">
+                    <i class="fab fa-instagram" aria-hidden="true"></i> انستجرام
+                </a>
+                <a href="#" class="social-link facebook" rel="noopener noreferrer" aria-label="فيسبوك">
+                    <i class="fab fa-facebook" aria-hidden="true"></i> فيسبوك
+                </a>
+                <a href="#" class="social-link twitter" rel="noopener noreferrer" aria-label="تويتر">
+                    <i class="fab fa-twitter" aria-hidden="true"></i> تويتر
+                </a>
             </div>
         </div>
         <p>جميع الحقوق محفوظة © سفينة النجاة <span id="current-year"></span></p>
     </footer>
     
      <!-- نافذة معاينة الصورة -->
-    <div id="image-modal" class="modal">
-        <span class="modal-close">&times;</span>
-        <img class="modal-content" id="modal-image">
+    <div id="image-modal" class="modal" role="dialog" aria-label="معاينة الصورة" aria-modal="true">
+        <span class="modal-close" aria-label="إغلاق النافذة">&times;</span>
+        <img class="modal-content" id="modal-image" alt="معاينة الصورة">
         <div class="modal-caption" id="modal-caption"></div>
     </div>
     
