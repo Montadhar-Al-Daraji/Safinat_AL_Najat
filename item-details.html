@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com; img-src 'self' data: https:; media-src https:; connect-src 'self' https://xzltdsmmolyvcmkfzedf.supabase.co;">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' https://fonts.googleapis.com https://cdnjs.cloudflare.com 'unsafe-inline'; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com; img-src 'self' data: https:; media-src https:; connect-src 'self' https://xzltdsmmolyvcmkfzedf.supabase.co;">
     <meta name="description" content="صفحة تفاصيل العنصر - سفينة النجاة للمحتوى الديني">
     <title>تفاصيل العنصر - سفينة النجاة</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -86,12 +86,12 @@
             </button>
         </div>
         
-        <div class="loading-spinner" id="loading-spinner" role="status" aria-live="polite">
+        <div class="loading-spinner" id="loading-spinner">
             <i class="fas fa-spinner fa-spin" aria-hidden="true"></i>
             <p>جاري تحميل البيانات...</p>
         </div>
         
-        <div class="item-details-container" id="item-details" style="display: none;">
+        <div class="item-details-container" id="item-details">
             <div class="item-gallery">
                 <div class="main-image-container">
                     <img id="main-image" src="" alt="صورة العنصر" class="main-image" loading="lazy">
@@ -102,7 +102,7 @@
                 
                 <div class="image-thumbnails" id="thumbnails-container" aria-label="معاينات الصور"></div>
                 
-                <div class="image-nav" id="image-nav" style="display: none;" aria-label="التنقل بين الصور">
+                <div class="image-nav" id="image-nav" aria-label="التنقل بين الصور">
                     <button id="prev-image" class="nav-button" aria-label="الصورة السابقة">
                         <i class="fas fa-chevron-right" aria-hidden="true"></i>
                     </button>
@@ -145,19 +145,19 @@
                         <i class="fas fa-share-alt" aria-hidden="true"></i> مشاركة
                     </button>
                     
-                    <button id="view-original-button" class="item-button tertiary-button" style="display: none;" aria-label="عرض النسخة الأصلية">
+                    <button id="view-original-button" class="item-button tertiary-button" aria-label="عرض النسخة الأصلية">
                         <i class="fas fa-external-link-alt" aria-hidden="true"></i> عرض الأصل
                     </button>
                 </div>
                 
-                <div class="additional-info" id="additional-info" style="display: none;">
+                <div class="additional-info" id="additional-info">
                     <h3>معلومات إضافية</h3>
                     <div id="additional-info-content"></div>
                 </div>
             </div>
         </div>
         
-        <div class="error-message" id="error-message" style="display: none;" role="alert">
+        <div class="error-message" id="error-message">
             <i class="fas fa-exclamation-triangle" aria-hidden="true"></i>
             <p id="error-text">حدث خطأ في تحميل البيانات</p>
             <button id="retry-button" class="retry-button">إعادة المحاولة</button>
@@ -192,6 +192,8 @@
         <div class="modal-caption" id="modal-caption"></div>
     </div>
     
+    <!-- إضافة ملف الإعدادات أولاً -->
+    <script src="config.js"></script>
     <!-- إضافة Supabase JS -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.38.0/dist/umd/supabase.min.js"></script>
     <script src="./js/item-details.js"></script>
