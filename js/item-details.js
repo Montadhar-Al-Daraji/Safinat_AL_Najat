@@ -1,6 +1,15 @@
-// تهيئة Supabase
-const SUPABASE_URL = 'https://xzltdsmmolyvcmkfzedf.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bHRkc21tb2x5dmNta2Z6ZWRmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc2Nzg1NzEsImV4cCI6MjA3MzI1NDU3MX0.3TJ49ctEhOT1KDIFtZXFw2jwTq57ujaWbqNNJ2Eeb1U';
+// تهيئة Supabase - قراءة المفاتيح من ملف الإعدادات
+const SUPABASE_URL = window.CONFIG?.SUPABASE_URL;
+const SUPABASE_ANON_KEY = window.CONFIG?.SUPABASE_ANON_KEY;
+
+// التحقق من وجود المفاتيح
+if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
+    console.error('لم يتم العثور على مفاتيح Supabase. تأكد من وجود ملف config.js');
+    // عرض رسالة خطأ للمستخدم
+    showError('خطأ في إعدادات التطبيق. يرجى الاتصال بالدعم.');
+    // إيقاف التهيئة إذا لم توجد المفاتيح
+    throw new Error('مفاتيح Supabase غير موجودة');
+}
 
 // إنشاء عميل Supabase
 const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
