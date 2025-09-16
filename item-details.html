@@ -16,7 +16,7 @@
 </head>
 <body>
     <div class="video-background">
-        <video autoplay muted loop id="bgVideo" aria-hidden="true">
+        <video autoplay muted loop id="bgVideo" aria-hidden="true" playsinline>
             <source src="https://c.top4top.io/m_3544ww25t1.mp4" type="video/mp4">
             متصفحك لا يدعم تشغيل الفيديو
         </video>
@@ -27,7 +27,7 @@
     <header>
         <div class="logo-container">
             <a href="index.html" aria-label="العودة إلى الصفحة الرئيسية">
-                <img src="./assets/logo.png" alt="شعار سفينة النجاة" class="logo" width="50" height="50">
+                <img src="./assets/logo.png" alt="شعار سفينة النجاة" class="logo" width="50" height="50" loading="lazy">
             </a>
             <h1>سفينة النجاة</h1>
         </div>
@@ -125,14 +125,14 @@
                         <span id="item-date">تاريخ الإضافة</span>
                     </div>
                     
-                    <div class="meta-item" id="item-size-container" style="display: none;">
-                        <i class="fas fa-weight-hanging" aria-hidden="true"></i>
-                        <span id="item-size">الحجم</span>
+                    <div class="meta-item" id="item-views-container">
+                        <i class="fas fa-eye" aria-hidden="true"></i>
+                        <span id="item-views">0</span>
                     </div>
                     
-                    <div class="meta-item" id="item-format-container" style="display: none;">
-                        <i class="fas fa-file" aria-hidden="true"></i>
-                        <span id="item-format">الصيغة</span>
+                    <div class="meta-item" id="item-downloads-container">
+                        <i class="fas fa-download" aria-hidden="true"></i>
+                        <span id="item-downloads">0</span>
                     </div>
                 </div>
                 
@@ -193,7 +193,7 @@
     </div>
     
     <!-- إضافة Supabase JS -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.38.0/dist/umd/supabase.min.js"></script>
     <script src="./js/item-details.js"></script>
 </body>
 </html>
