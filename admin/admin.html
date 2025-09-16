@@ -221,7 +221,7 @@
                         </div>
                         <button class="add-btn" id="add-server-btn">
                             <i class="fas fa-plus"></i>
-                            إضافة سيرفر
+                            إضافة سيرфер
                         </button>
                     </div>
                 </div>
@@ -364,6 +364,227 @@
                     <i class="fas fa-save"></i>
                     حفظ التغييرات
                 </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- نافذة إضافة/تعديل العناصر -->
+    <div id="item-modal" class="modal">
+        <div class="modal-content large-modal">
+            <span class="modal-close" id="close-item-modal">&times;</span>
+            <h2 id="item-modal-title">إضافة عنصر جديد</h2>
+            <form id="item-form">
+                <input type="hidden" id="item-id">
+                <input type="hidden" id="item-type">
+                
+                <div class="form-section">
+                    <h3>المعلومات الأساسية</h3>
+                    <div class="form-row">
+                        <div class="input-group">
+                            <label for="item-title">العنوان *</label>
+                            <input type="text" id="item-title" required>
+                        </div>
+                        <div class="input-group">
+                            <label for="item-category">التصنيف</label>
+                            <input type="text" id="item-category">
+                        </div>
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="item-description">الوصف</label>
+                        <textarea id="item-description" rows="3"></textarea>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="input-group">
+                            <label for="item-image">رابط الصورة</label>
+                            <input type="url" id="item-image">
+                        </div>
+                        <div class="input-group">
+                            <label for="item-drive-link">رابط التحميل *</label>
+                            <input type="url" id="item-drive-link" required>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- حقول الكتب -->
+                <div id="item-fields-books" class="item-type-fields form-section">
+                    <h3>معلومات الكتاب</h3>
+                    <div class="form-row">
+                        <div class="input-group">
+                            <label for="item-author">المؤلف</label>
+                            <input type="text" id="item-author">
+                        </div>
+                        <div class="input-group">
+                            <label for="item-publisher">الناشر</label>
+                            <input type="text" id="item-publisher">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="input-group">
+                            <label for="item-pages">عدد الصفحات</label>
+                            <input type="number" id="item-pages" min="0">
+                        </div>
+                        <div class="input-group">
+                            <label for="item-language">اللغة</label>
+                            <input type="text" id="item-language" value="العربية">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="input-group">
+                            <label for="item-format">صيغة الملف</label>
+                            <input type="text" id="item-format" value="PDF">
+                        </div>
+                        <div class="input-group">
+                            <label for="item-size">حجم الملف</label>
+                            <input type="text" id="item-size" placeholder="مثال: 10MB">
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- حقول الروايات -->
+                <div id="item-fields-novels" class="item-type-fields form-section">
+                    <h3>معلومات الرواية</h3>
+                    <div class="form-row">
+                        <div class="input-group">
+                            <label for="item-author-novel">المؤلف</label>
+                            <input type="text" id="item-author-novel">
+                        </div>
+                        <div class="input-group">
+                            <label for="item-publisher-novel">الناشر</label>
+                            <input type="text" id="item-publisher-novel">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="input-group">
+                            <label for="item-pages-novel">عدد الصفحات</label>
+                            <input type="number" id="item-pages-novel" min="0">
+                        </div>
+                        <div class="input-group">
+                            <label for="item-language-novel">اللغة</label>
+                            <input type="text" id="item-language-novel" value="العربية">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="input-group">
+                            <label for="item-format-novel">صيغة الملف</label>
+                            <input type="text" id="item-format-novel" value="PDF">
+                        </div>
+                        <div class="input-group">
+                            <label for="item-size-novel">حجم الملف</label>
+                            <input type="text" id="item-size-novel" placeholder="مثال: 10MB">
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- حقول الملفات -->
+                <div id="item-fields-files" class="item-type-fields form-section">
+                    <h3>معلومات الملف</h3>
+                    <div class="form-row">
+                        <div class="input-group">
+                            <label for="item-file-type">نوع الملف</label>
+                            <select id="item-file-type">
+                                <option value="document">وثيقة</option>
+                                <option value="audio">صوت</option>
+                                <option value="video">فيديو</option>
+                                <option value="archive">أرشيف</option>
+                                <option value="other">أخرى</option>
+                            </select>
+                        </div>
+                        <div class="input-group">
+                            <label for="item-format-file">صيغة الملف</label>
+                            <input type="text" id="item-format-file">
+                        </div>
+                    </div>
+                    <div class="input-group">
+                        <label for="item-size-file">حجم الملف</label>
+                        <input type="text" id="item-size-file" placeholder="مثال: 10MB">
+                    </div>
+                </div>
+                
+                <!-- حقول المنصات -->
+                <div id="item-fields-platforms" class="item-type-fields form-section">
+                    <h3>معلومات المنصة</h3>
+                    <div class="form-row">
+                        <div class="input-group">
+                            <label for="item-platform-type">نوع المنصة</label>
+                            <select id="item-platform-type">
+                                <option value="website">موقع ويب</option>
+                                <option value="social_media">وسائل تواصل اجتماعي</option>
+                                <option value="learning">تعليمية</option>
+                                <option value="entertainment">ترفيهية</option>
+                                <option value="other">أخرى</option>
+                            </select>
+                        </div>
+                        <div class="input-group">
+                            <label for="item-link-url">رابط المنصة *</label>
+                            <input type="url" id="item-link-url" required>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- حقول التطبيقات -->
+                <div id="item-fields-apps" class="item-type-fields form-section">
+                    <h3>معلومات التطبيق</h3>
+                    <div class="form-row">
+                        <div class="input-group">
+                            <label for="item-developer">المطور</label>
+                            <input type="text" id="item-developer">
+                        </div>
+                        <div class="input-group">
+                            <label for="item-version">الإصدار</label>
+                            <input type="text" id="item-version">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="input-group">
+                            <label for="item-platform-app">المنصة</label>
+                            <select id="item-platform-app">
+                                <option value="android">Android</option>
+                                <option value="ios">iOS</option>
+                                <option value="windows">Windows</option>
+                                <option value="mac">Mac</option>
+                                <option value="web">Web</option>
+                            </select>
+                        </div>
+                        <div class="input-group">
+                            <label for="item-size-app">حجم التطبيق</label>
+                            <input type="text" id="item-size-app" placeholder="مثال: 50MB">
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- حقول السيرفرات -->
+                <div id="item-fields-servers" class="item-type-fields form-section">
+                    <h3>معلومات السيرفر</h3>
+                    <div class="form-row">
+                        <div class="input-group">
+                            <label for="item-server-type">نوع السيرفر</label>
+                            <select id="item-server-type">
+                                <option value="discord">Discord</option>
+                                <option value="telegram">Telegram</option>
+                                <option value="whatsapp">WhatsApp</option>
+                                <option value="other">أخرى</option>
+                            </select>
+                        </div>
+                        <div class="input-group">
+                            <label for="item-invite-link">رابط الدعوة *</label>
+                            <input type="url" id="item-invite-link" required>
+                        </div>
+                    </div>
+                    <div class="input-group">
+                        <label for="item-members-count">عدد الأعضاء</label>
+                        <input type="number" id="item-members-count" min="0" value="0">
+                    </div>
+                </div>
+                
+                <div class="form-actions">
+                    <button type="button" class="btn-secondary" id="cancel-item-btn">إلغاء</button>
+                    <button type="submit" class="btn-primary">
+                        <i class="fas fa-save"></i>
+                        حفظ
+                    </button>
+                </div>
             </form>
         </div>
     </div>
