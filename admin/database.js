@@ -7,14 +7,15 @@ async function initSupabase() {
             supabase = window.supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
             console.log('Supabase initialized successfully');
             
-            // اختبار الاتصال بقاعدة البيانات
-            const { data, error } = await supabase
-                .from('admins')
-                .select('count')
+            // اختبار الاتصال باستخدام استعلام أبسط لا يتطلب صلاحيات عالية
+            const { error } = await supabase
+                .from('books')
+                .select('id')
                 .limit(1);
                 
-            if (error) {
-                console.error('Failed to connect to database:', error);
+            if (error && error.message.includes('401')) {
+                console.error('Authentication error - check your API key:', error);
+                showNotification('خطأ في المصادقة، يرجى التحقق من مفتاح API', 'error');
                 return false;
             }
             
@@ -22,10 +23,12 @@ async function initSupabase() {
             return true;
         } else {
             console.error('Supabase library not loaded');
+            showNotification('لم يتم تحميل مكتبة Supabase', 'error');
             return false;
         }
     } catch (error) {
         console.error('Error initializing Supabase:', error);
+        showNotification('حدث خطأ أثناء تهيئة قاعدة البيانات', 'error');
         return false;
     }
 }
@@ -73,20 +76,27 @@ async function login() {
 
         if (error) {
             console.error('Supabase error:', error);
-            errorElement.textContent = 'خطأ في الاتصال بقاعدة البيانات';
+            
+            if (error.code === '42501' || error.message.includes('permission')) {
+                errorElement.textContent = 'لا تملك الصلاحية للوصول إلى البيانات';
+            } else if (error.code === '401') {
+                errorElement.textContent = 'مفتاح API غير صالح أو منتهي الصلاحية';
+            } else {
+                errorElement.textContent = 'خطأ في الاتصال بقاعدة البيانات';
+            }
             return;
         }
 
         if (!admin) {
             errorElement.textContent = 'البريد الإلكتروني أو كلمة المرور غير صحيحة';
+            await logLoginAttempt(email, false);
             return;
         }
         
         // التحقق من كلمة المرور
+        // تأكد من أن كلمة المرور مخزنة بشكل آمن (هنا نستخدم base64 للمثال فقط)
         if (password !== atob(admin.password_hash)) {
             errorElement.textContent = 'البريد الإلكتروني أو كلمة المرور غير صحيحة';
-            
-            // تسجيل محاولة الدخول الفاشلة
             await logLoginAttempt(email, false);
             return;
         }
@@ -94,16 +104,18 @@ async function login() {
         // تحديث آخر وقت دخول
         await supabase
             .from('admins')
-            .update({ last_login: new Date() })
+            .update({ last_login: new Date().toISOString() })
             .eq('id', admin.id);
 
         // إنشاء توكن
-        const token = btoa(JSON.stringify({
+        const tokenPayload = {
             id: admin.id,
             email: admin.email,
             role: admin.role,
-            exp: Date.now() + (60 * 60 * 1000) // انتهاء الصلاحية بعد ساعة
-        }));
+            exp: Math.floor(Date.now() / 1000) + (60 * 60) // انتهاء الصلاحية بعد ساعة
+        };
+        
+        const token = btoa(JSON.stringify(tokenPayload));
         
         // حفظ بيانات المشرف
         sessionStorage.setItem('adminToken', token);
@@ -128,17 +140,18 @@ async function login() {
     }
 }
 
-// تأكد من أن هذه الدوال async
+// بقية الدوال تبقى كما هي مع إضافة معالجة الأخطاء
 async function logLoginAttempt(email, success) {
     try {
+        const ip = await getClientIP();
         await supabase
             .from(TABLES.LOGIN_ATTEMPTS)
             .insert([{
                 email: email,
                 success: success,
-                ip: await getClientIP(),
+                ip: ip,
                 user_agent: navigator.userAgent,
-                timestamp: new Date()
+                timestamp: new Date().toISOString()
             }]);
     } catch (error) {
         console.error('Error logging login attempt:', error);
