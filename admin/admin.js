@@ -1,4 +1,4 @@
-// admin/admin.js (الجزء المصحح)
+// admin/admin.js
 // تهيئة الصفحة عند التحميل
 document.addEventListener('DOMContentLoaded', async function() {
     try {
@@ -10,7 +10,7 @@ document.addEventListener('DOMContentLoaded', async function() {
             try {
                 const supabaseInitialized = await initSupabase();
                 if (!supabaseInitialized) {
-                    console.warn('فشل في تهيئة قاعدة البيانات، سيتم المحاولة عند الحاجة');
+                    console.warn('فشل في تهيئة قاعدة البيانات، سيتم العمل في وضع عدم الاتصال');
                 }
                 
                 setupEventListeners();
@@ -26,11 +26,8 @@ document.addEventListener('DOMContentLoaded', async function() {
         }, 100);
     } catch (error) {
         console.error('Error initializing admin panel:', error);
-        // استخدام console.log بدلاً من showNotification لتجنب الأخطاء
-        console.log('حدث خطأ أثناء تهيئة لوحة التحكم');
     }
 });
-
 // إعداد جميع event listeners
 function setupEventListeners() {
     console.log('Setting up event listeners...');
