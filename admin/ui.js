@@ -45,34 +45,43 @@ function renderAdminList(section, items) {
         
         switch(section) {
             case 'books':
-                if (item.author) infoHtml += `<p><strong>المؤلف:</strong> ${escapeHtml(item.author)}</p>`;
-                if (item.publisher) infoHtml += `<p><strong>الناشر:</strong> ${escapeHtml(item.publisher)}</p>`;
-                if (item.pages) infoHtml += `<p><strong>الصفحات:</strong> ${escapeHtml(item.pages)}</p>`;
-                if (item.language) infoHtml += `<p><strong>اللغة:</strong> ${escapeHtml(item.language)}</p>`;
-                break;
             case 'novels':
                 if (item.author) infoHtml += `<p><strong>المؤلف:</strong> ${escapeHtml(item.author)}</p>`;
                 if (item.publisher) infoHtml += `<p><strong>الناشر:</strong> ${escapeHtml(item.publisher)}</p>`;
+                if (item.publication_year) infoHtml += `<p><strong>سنة النشر:</strong> ${escapeHtml(item.publication_year)}</p>`;
                 if (item.pages) infoHtml += `<p><strong>الصفحات:</strong> ${escapeHtml(item.pages)}</p>`;
                 if (item.language) infoHtml += `<p><strong>اللغة:</strong> ${escapeHtml(item.language)}</p>`;
-                break;
-            case 'files':
-                if (item.file_type) infoHtml += `<p><strong>النوع:</strong> ${escapeHtml(item.file_type)}</p>`;
                 if (item.file_format) infoHtml += `<p><strong>الصيغة:</strong> ${escapeHtml(item.file_format)}</p>`;
                 if (item.file_size) infoHtml += `<p><strong>الحجم:</strong> ${escapeHtml(item.file_size)}</p>`;
+                if (item.category) infoHtml += `<p><strong>التصنيف:</strong> ${escapeHtml(item.category)}</p>`;
                 break;
+                
+            case 'files':
+                if (item.file_type) infoHtml += `<p><strong>نوع الملف:</strong> ${escapeHtml(item.file_type)}</p>`;
+                if (item.file_format) infoHtml += `<p><strong>الصيغة:</strong> ${escapeHtml(item.file_format)}</p>`;
+                if (item.file_size) infoHtml += `<p><strong>الحجم:</strong> ${escapeHtml(item.file_size)}</p>`;
+                if (item.category) infoHtml += `<p><strong>التصنيف:</strong> ${escapeHtml(item.category)}</p>`;
+                break;
+                
             case 'platforms':
                 if (item.platform_type) infoHtml += `<p><strong>نوع المنصة:</strong> ${escapeHtml(item.platform_type)}</p>`;
+                if (item.link_url) infoHtml += `<p><strong>الرابط:</strong> ${escapeHtml(item.link_url)}</p>`;
+                if (item.category) infoHtml += `<p><strong>التصنيف:</strong> ${escapeHtml(item.category)}</p>`;
                 break;
+                
             case 'apps':
                 if (item.developer) infoHtml += `<p><strong>المطور:</strong> ${escapeHtml(item.developer)}</p>`;
                 if (item.version) infoHtml += `<p><strong>الإصدار:</strong> ${escapeHtml(item.version)}</p>`;
                 if (item.platform) infoHtml += `<p><strong>المنصة:</strong> ${escapeHtml(item.platform)}</p>`;
                 if (item.file_size) infoHtml += `<p><strong>الحجم:</strong> ${escapeHtml(item.file_size)}</p>`;
+                if (item.category) infoHtml += `<p><strong>التصنيف:</strong> ${escapeHtml(item.category)}</p>`;
                 break;
+                
             case 'servers':
                 if (item.server_type) infoHtml += `<p><strong>نوع السيرفر:</strong> ${escapeHtml(item.server_type)}</p>`;
+                if (item.invite_link) infoHtml += `<p><strong>رابط الدعوة:</strong> ${escapeHtml(item.invite_link)}</p>`;
                 if (item.members_count) infoHtml += `<p><strong>عدد الأعضاء:</strong> ${escapeHtml(item.members_count)}</p>`;
+                if (item.category) infoHtml += `<p><strong>التصنيف:</strong> ${escapeHtml(item.category)}</p>`;
                 break;
         }
         
@@ -84,8 +93,12 @@ function renderAdminList(section, items) {
             infoHtml += `<p><strong>التحميلات:</strong> ${item.downloads_count}</p>`;
         }
         
-        if (item.added_by && item.admins) {
-            infoHtml += `<p><strong>أضيف بواسطة:</strong> ${escapeHtml(item.admins.full_name || item.admins.email)}</p>`;
+        if (item.is_featured) {
+            infoHtml += `<p><strong>مميز:</strong> نعم</p>`;
+        }
+        
+        if (item.added_by) {
+            infoHtml += `<p><strong>أضيف بواسطة:</strong> ${escapeHtml(item.added_by)}</p>`;
         }
         
         infoHtml += `</div>`;
@@ -127,15 +140,23 @@ function renderAdminsList(admins) {
         const emailHeading = document.createElement('h3');
         emailHeading.textContent = escapeHtml(admin.email);
         
+        const fullName = document.createElement('p');
+        fullName.textContent = `الاسم: ${admin.full_name || 'غير محدد'}`;
+        
         const createdAt = document.createElement('p');
         createdAt.textContent = `تم الإنشاء: ${new Date(admin.created_at).toLocaleDateString('ar-EG')}`;
+        
+        const lastLogin = document.createElement('p');
+        lastLogin.textContent = `آخر دخول: ${admin.last_login ? new Date(admin.last_login).toLocaleDateString('ar-EG') : 'لم يسجل دخول بعد'}`;
         
         const roleSpan = document.createElement('span');
         roleSpan.className = `admin-role role-${admin.role}`;
         roleSpan.textContent = admin.role === 'owner' ? 'مالك' : 'مشرف';
         
         adminInfo.appendChild(emailHeading);
+        adminInfo.appendChild(fullName);
         adminInfo.appendChild(createdAt);
+        adminInfo.appendChild(lastLogin);
         adminInfo.appendChild(roleSpan);
         
         const adminActions = document.createElement('div');
@@ -195,90 +216,98 @@ function setupSearchFunctionality() {
                 book.title.toLowerCase().includes(searchTerm) || 
                 (book.description && book.description.toLowerCase().includes(searchTerm)) ||
                 (book.author && book.author.toLowerCase().includes(searchTerm)) ||
-                (book.publisher && book.publisher.toLowerCase().includes(searchTerm))
+                (book.publisher && book.publisher.toLowerCase().includes(searchTerm)) ||
+                (book.category && book.category.toLowerCase().includes(searchTerm))
             );
             renderAdminList('books', filteredBooks);
         });
     }
     
-    // إعداد البحث للروايات
     const novelsSearch = document.getElementById('novels-search');
     if (novelsSearch) {
         novelsSearch.addEventListener('input', function(e) {
             const searchTerm = e.target.value.toLowerCase();
             const filteredNovels = siteData.novels.filter(novel => 
                 novel.title.toLowerCase().includes(searchTerm) || 
-                (novel.description && novel.description.toLowerCase().includes(searchTerm))
+                (novel.description && novel.description.toLowerCase().includes(searchTerm)) ||
+                (novel.author && novel.author.toLowerCase().includes(searchTerm)) ||
+                (novel.publisher && novel.publisher.toLowerCase().includes(searchTerm)) ||
+                (novel.category && novel.category.toLowerCase().includes(searchTerm))
             );
             renderAdminList('novels', filteredNovels);
         });
     }
     
-    // إعداد البحث للملفات
     const filesSearch = document.getElementById('files-search');
     if (filesSearch) {
         filesSearch.addEventListener('input', function(e) {
             const searchTerm = e.target.value.toLowerCase();
             const filteredFiles = siteData.files.filter(file => 
                 file.title.toLowerCase().includes(searchTerm) || 
-                (file.description && file.description.toLowerCase().includes(searchTerm))
+                (file.description && file.description.toLowerCase().includes(searchTerm)) ||
+                (file.file_type && file.file_type.toLowerCase().includes(searchTerm)) ||
+                (file.category && file.category.toLowerCase().includes(searchTerm))
             );
             renderAdminList('files', filteredFiles);
         });
     }
     
-    // إعداد البحث للمنصات
     const platformsSearch = document.getElementById('platforms-search');
     if (platformsSearch) {
         platformsSearch.addEventListener('input', function(e) {
             const searchTerm = e.target.value.toLowerCase();
             const filteredPlatforms = siteData.platforms.filter(platform => 
-                platform.title.toLowerCase().includes(searchTerm)
+                platform.title.toLowerCase().includes(searchTerm) || 
+                (platform.description && platform.description.toLowerCase().includes(searchTerm)) ||
+                (platform.platform_type && platform.platform_type.toLowerCase().includes(searchTerm)) ||
+                (platform.category && platform.category.toLowerCase().includes(searchTerm))
             );
             renderAdminList('platforms', filteredPlatforms);
         });
     }
     
-    // إعداد البحث للتطبيقات
     const appsSearch = document.getElementById('apps-search');
     if (appsSearch) {
         appsSearch.addEventListener('input', function(e) {
             const searchTerm = e.target.value.toLowerCase();
             const filteredApps = siteData.apps.filter(app => 
                 app.title.toLowerCase().includes(searchTerm) || 
-                (app.description && app.description.toLowerCase().includes(searchTerm))
+                (app.description && app.description.toLowerCase().includes(searchTerm)) ||
+                (app.developer && app.developer.toLowerCase().includes(searchTerm)) ||
+                (app.platform && app.platform.toLowerCase().includes(searchTerm)) ||
+                (app.category && app.category.toLowerCase().includes(searchTerm))
             );
             renderAdminList('apps', filteredApps);
         });
     }
     
-    // إعداد البحث للسيرفرات
     const serversSearch = document.getElementById('servers-search');
     if (serversSearch) {
         serversSearch.addEventListener('input', function(e) {
             const searchTerm = e.target.value.toLowerCase();
             const filteredServers = siteData.servers.filter(server => 
                 server.title.toLowerCase().includes(searchTerm) || 
-                (server.description && server.description.toLowerCase().includes(searchTerm))
+                (server.description && server.description.toLowerCase().includes(searchTerm)) ||
+                (server.server_type && server.server_type.toLowerCase().includes(searchTerm)) ||
+                (server.category && server.category.toLowerCase().includes(searchTerm))
             );
             renderAdminList('servers', filteredServers);
         });
     }
     
-    // إعداد البحث للمشرفين
     const adminsSearch = document.getElementById('admins-search');
     if (adminsSearch) {
         adminsSearch.addEventListener('input', function(e) {
             const searchTerm = e.target.value.toLowerCase();
             const filteredAdmins = siteData.admins.filter(admin => 
-                admin.email.toLowerCase().includes(searchTerm)
+                admin.email.toLowerCase().includes(searchTerm) ||
+                (admin.full_name && admin.full_name.toLowerCase().includes(searchTerm))
             );
             renderAdminsList(filteredAdmins);
         });
     }
-    
 }
-// إظهار/إخفاء تحميل
+
 function showLoading(show = true) {
     const loadingOverlay = document.getElementById('loading-overlay');
     if (loadingOverlay) {
@@ -286,9 +315,7 @@ function showLoading(show = true) {
     }
 }
 
-// عرض رسائل للمستخدم
 function showNotification(message, type = 'info') {
-    // إنشاء عنصر الإشعار إذا لم يكن موجودًا
     let notification = document.getElementById('notification');
     if (!notification) {
         notification = document.createElement('div');
@@ -308,21 +335,19 @@ function showNotification(message, type = 'info') {
         document.body.appendChild(notification);
     }
     
-    // تعيين النص والنمط حسب النوع
     notification.textContent = message;
     notification.style.backgroundColor = type === 'error' ? '#f44336' : 
                                       type === 'success' ? '#4CAF50' : '#2196F3';
     
-    // إظهار الإشعار
     notification.style.opacity = '1';
     notification.style.transform = 'translateY(0)';
     
-    // إخفاء الإشعار بعد 3 ثوان
     setTimeout(() => {
         notification.style.opacity = '0';
         notification.style.transform = 'translateY(-20px)';
     }, 3000);
 }
+
 function openAddItemModal(section) {
     const modal = document.getElementById('item-modal');
     const modalTitle = document.getElementById('item-modal-title');
@@ -343,7 +368,6 @@ function openAddItemModal(section) {
     modal.style.display = 'block';
 }
 
-// admin/ui.js (جزء من التحديثات)
 function openEditItemModal(section, id) {
     const item = siteData[section].find(item => item.id === id);
     if (!item) return;
@@ -370,10 +394,10 @@ function openEditItemModal(section, id) {
             document.getElementById('item-author').value = item.author || '';
             document.getElementById('item-publisher').value = item.publisher || '';
             document.getElementById('item-pages').value = item.pages || '';
+            document.getElementById('item-publication-year').value = item.publication_year || '';
             document.getElementById('item-language').value = item.language || 'العربية';
             document.getElementById('item-format').value = item.file_format || 'PDF';
             document.getElementById('item-size').value = item.file_size || '';
-            document.getElementById('item-publication-year').value = item.publication_year || new Date().getFullYear();
             document.getElementById('item-category').value = item.category || '';
             document.getElementById('item-tags').value = item.tags || '';
             document.getElementById('item-is-featured').checked = item.is_featured || false;
@@ -382,7 +406,7 @@ function openEditItemModal(section, id) {
             break;
             
         case 'files':
-            document.getElementById('item-file-type').value = item.file_type || 'document';
+            document.getElementById('item-file-type').value = item.file_type || '';
             document.getElementById('item-format-file').value = item.file_format || '';
             document.getElementById('item-size-file').value = item.file_size || '';
             document.getElementById('item-category-file').value = item.category || '';
@@ -393,7 +417,7 @@ function openEditItemModal(section, id) {
             break;
             
         case 'platforms':
-            document.getElementById('item-platform-type').value = item.platform_type || 'website';
+            document.getElementById('item-platform-type').value = item.platform_type || '';
             document.getElementById('item-link-url').value = item.link_url || '';
             document.getElementById('item-category-platform').value = item.category || '';
             document.getElementById('item-tags-platform').value = item.tags || '';
@@ -404,7 +428,7 @@ function openEditItemModal(section, id) {
         case 'apps':
             document.getElementById('item-developer').value = item.developer || '';
             document.getElementById('item-version').value = item.version || '';
-            document.getElementById('item-platform-app').value = item.platform || 'android';
+            document.getElementById('item-platform-app').value = item.platform || '';
             document.getElementById('item-size-app').value = item.file_size || '';
             document.getElementById('item-category-app').value = item.category || '';
             document.getElementById('item-tags-app').value = item.tags || '';
@@ -414,7 +438,7 @@ function openEditItemModal(section, id) {
             break;
             
         case 'servers':
-            document.getElementById('item-server-type').value = item.server_type || 'discord';
+            document.getElementById('item-server-type').value = item.server_type || '';
             document.getElementById('item-invite-link').value = item.invite_link || '';
             document.getElementById('item-members-count').value = item.members_count || 0;
             document.getElementById('item-category-server').value = item.category || '';
@@ -432,14 +456,6 @@ function openEditItemModal(section, id) {
     
     modal.style.display = 'block';
 }
-    
-    document.querySelectorAll('.item-type-fields').forEach(field => {
-        field.style.display = 'none';
-    });
-    document.getElementById(`item-fields-${section}`).style.display = 'block';
-    
-    modal.style.display = 'block';
-}
 
 async function saveItem(e) {
     e.preventDefault();
@@ -449,59 +465,76 @@ async function saveItem(e) {
     
     const itemData = {
         title: document.getElementById('item-title').value,
-        description: document.getElementById('item-description').value,
-        image: document.getElementById('item-image').value,
-        drive_link: document.getElementById('item-drive-link').value
+        description: document.getElementById('item-description').value
     };
     
     switch(itemType) {
         case 'books':
+        case 'novels':
             itemData.author = document.getElementById('item-author').value;
             itemData.publisher = document.getElementById('item-publisher').value;
             itemData.pages = parseInt(document.getElementById('item-pages').value) || 0;
+            itemData.publication_year = parseInt(document.getElementById('item-publication-year').value) || new Date().getFullYear();
             itemData.language = document.getElementById('item-language').value;
             itemData.file_format = document.getElementById('item-format').value;
             itemData.file_size = document.getElementById('item-size').value;
+            itemData.category = document.getElementById('item-category').value;
+            itemData.tags = document.getElementById('item-tags').value;
+            itemData.is_featured = document.getElementById('item-is-featured').checked;
+            itemData.image_url = document.getElementById('item-image').value;
+            itemData.drive_link = document.getElementById('item-drive-link').value;
             break;
-        case 'novels':
-            itemData.author = document.getElementById('item-author-novel').value;
-            itemData.publisher = document.getElementById('item-publisher-novel').value;
-            itemData.pages = parseInt(document.getElementById('item-pages-novel').value) || 0;
-            itemData.language = document.getElementById('item-language-novel').value;
-            itemData.file_format = document.getElementById('item-format-novel').value;
-            itemData.file_size = document.getElementById('item-size-novel').value;
-            break;
+            
         case 'files':
             itemData.file_type = document.getElementById('item-file-type').value;
             itemData.file_format = document.getElementById('item-format-file').value;
             itemData.file_size = document.getElementById('item-size-file').value;
+            itemData.category = document.getElementById('item-category-file').value;
+            itemData.tags = document.getElementById('item-tags-file').value;
+            itemData.is_featured = document.getElementById('item-is-featured-file').checked;
+            itemData.image_url = document.getElementById('item-image-file').value;
+            itemData.drive_link = document.getElementById('item-drive-link-file').value;
             break;
+            
         case 'platforms':
             itemData.platform_type = document.getElementById('item-platform-type').value;
-            itemData.link = document.getElementById('item-link-url').value;
+            itemData.link_url = document.getElementById('item-link-url').value;
+            itemData.category = document.getElementById('item-category-platform').value;
+            itemData.tags = document.getElementById('item-tags-platform').value;
+            itemData.is_featured = document.getElementById('item-is-featured-platform').checked;
+            itemData.image_url = document.getElementById('item-image-platform').value;
             break;
+            
         case 'apps':
             itemData.developer = document.getElementById('item-developer').value;
             itemData.version = document.getElementById('item-version').value;
             itemData.platform = document.getElementById('item-platform-app').value;
             itemData.file_size = document.getElementById('item-size-app').value;
+            itemData.category = document.getElementById('item-category-app').value;
+            itemData.tags = document.getElementById('item-tags-app').value;
+            itemData.is_featured = document.getElementById('item-is-featured-app').checked;
+            itemData.image_url = document.getElementById('item-image-app').value;
+            itemData.download_link = document.getElementById('item-drive-link-app').value;
             break;
+            
         case 'servers':
             itemData.server_type = document.getElementById('item-server-type').value;
             itemData.invite_link = document.getElementById('item-invite-link').value;
             itemData.members_count = parseInt(document.getElementById('item-members-count').value) || 0;
+            itemData.category = document.getElementById('item-category-server').value;
+            itemData.tags = document.getElementById('item-tags-server').value;
+            itemData.is_featured = document.getElementById('item-is-featured-server').checked;
+            itemData.image_url = document.getElementById('item-image-server').value;
             break;
     }
     
     try {
+        let result;
         if (itemId) {
-            await supabase
-                .from(itemType)
-                .update(itemData)
-                .eq('id', itemId);
+            result = await saveItemToSupabase(itemType, { ...itemData, id: itemId });
             showNotification('تم تعديل العنصر بنجاح', 'success');
         } else {
-            await saveItemToSupabase(itemType, itemData);
+            result = await saveItemToSupabase(itemType, itemData);
             showNotification('تم إضافة العنصر بنجاح', 'success');
         }
         
@@ -522,6 +555,7 @@ async function deleteItem(section, id, title) {
             deleteBtn.disabled = true;
             
             await deleteItemFromSupabase(section, id);
+            await logDeletionEvent(section, id, title);
             await loadAdminData();
             
             deleteBtn.textContent = originalText;
