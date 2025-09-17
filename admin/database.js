@@ -1,25 +1,43 @@
 // admin/database.js
 let supabase;
+let isSupabaseInitialized = false;
 
 async function initSupabase() {
     try {
-        if (window.supabase) {
-            supabase = window.supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
+        if (window.supabase && !isSupabaseInitialized) {
+            supabase = window.supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY, {
+                auth: {
+                    persistSession: false,
+                    autoRefreshToken: false
+                }
+            });
+            
             console.log('Supabase initialized successfully');
             
-            // اختبار الاتصال باستخدام استعلام أبسط لا يتطلب صلاحيات عالية
+            // اختبار الاتصال باستخدام استعلام أبسط
             const { error } = await supabase
                 .from('books')
                 .select('id')
                 .limit(1);
                 
-            if (error && error.message.includes('401')) {
-                console.error('Authentication error - check your API key:', error);
-                showNotification('خطأ في المصادقة، يرجى التحقق من مفتاح API', 'error');
+            if (error) {
+                console.error('Failed to connect to database:', error);
+                
+                if (error.code === '42501' || error.message.includes('permission')) {
+                    showNotification('خطأ في الصلاحيات: يرجى التحقق من سياسات الأمان في Supabase', 'error');
+                } else if (error.code === '401') {
+                    showNotification('مفتاح API غير صالح أو منتهي الصلاحية', 'error');
+                } else {
+                    showNotification('فشل في الاتصال بقاعدة البيانات: ' + error.message, 'error');
+                }
+                
                 return false;
             }
             
             console.log('Database connection successful');
+            isSupabaseInitialized = true;
+            return true;
+        } else if (isSupabaseInitialized) {
             return true;
         } else {
             console.error('Supabase library not loaded');
@@ -28,12 +46,21 @@ async function initSupabase() {
         }
     } catch (error) {
         console.error('Error initializing Supabase:', error);
-        showNotification('حدث خطأ أثناء تهيئة قاعدة البيانات', 'error');
+        showNotification('حدث خطأ أثناء تهيئة قاعدة البيانات: ' + error.message, 'error');
         return false;
     }
 }
 
-// admin/database.js
+async function ensureSupabaseConnection() {
+    if (!isSupabaseInitialized) {
+        const initialized = await initSupabase();
+        if (!initialized) {
+            throw new Error('فشل في الاتصال بقاعدة البيانات');
+        }
+    }
+    return true;
+}
+
 async function login() {
     const emailInput = document.getElementById('email');
     const passwordInput = document.getElementById('password');
@@ -61,7 +88,8 @@ async function login() {
     }
     
     try {
-        // إظهار تحميل
+        await ensureSupabaseConnection();
+        
         const originalText = loginBtn.innerHTML;
         loginBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري تسجيل الدخول...';
         loginBtn.disabled = true;
@@ -78,41 +106,42 @@ async function login() {
             console.error('Supabase error:', error);
             
             if (error.code === '42501' || error.message.includes('permission')) {
-                errorElement.textContent = 'لا تملك الصلاحية للوصول إلى البيانات';
+                errorElement.textContent = 'لا تملك الصلاحية للوصول إلى بيانات المشرفين';
             } else if (error.code === '401') {
                 errorElement.textContent = 'مفتاح API غير صالح أو منتهي الصلاحية';
             } else {
-                errorElement.textContent = 'خطأ في الاتصال بقاعدة البيانات';
+                errorElement.textContent = 'خطأ في الاتصال بقاعدة البيانات: ' + error.message;
             }
             return;
         }
 
         if (!admin) {
             errorElement.textContent = 'البريد الإلكتروني أو كلمة المرور غير صحيحة';
-            await logLoginAttempt(email, false);
             return;
         }
         
         // التحقق من كلمة المرور
-        // تأكد من أن كلمة المرور مخزنة بشكل آمن (هنا نستخدم base64 للمثال فقط)
         if (password !== atob(admin.password_hash)) {
             errorElement.textContent = 'البريد الإلكتروني أو كلمة المرور غير صحيحة';
-            await logLoginAttempt(email, false);
             return;
         }
         
         // تحديث آخر وقت دخول
-        await supabase
+        const { error: updateError } = await supabase
             .from('admins')
             .update({ last_login: new Date().toISOString() })
             .eq('id', admin.id);
+
+        if (updateError) {
+            console.error('Error updating last login:', updateError);
+        }
 
         // إنشاء توكن
         const tokenPayload = {
             id: admin.id,
             email: admin.email,
             role: admin.role,
-            exp: Math.floor(Date.now() / 1000) + (60 * 60) // انتهاء الصلاحية بعد ساعة
+            exp: Math.floor(Date.now() / 1000) + (60 * 60)
         };
         
         const token = btoa(JSON.stringify(tokenPayload));
@@ -122,17 +151,13 @@ async function login() {
         sessionStorage.setItem('adminData', JSON.stringify(admin));
         currentAdmin = admin;
         
-        // تسجيل محاولة الدخول الناجحة
-        await logLoginAttempt(email, true);
-        
         // إظهار لوحة التحكم
         showAdminPage();
         
     } catch (error) {
         console.error('Login error:', error);
-        errorElement.textContent = 'حدث خطأ غير متوقع أثناء تسجيل الدخول';
+        errorElement.textContent = 'حدث خطأ غير متوقع أثناء تسجيل الدخول: ' + error.message;
     } finally {
-        // إعادة تعيين الزر في جميع الحالات
         if (loginBtn) {
             loginBtn.innerHTML = '<i class="fas fa-sign-in-alt"></i> دخول';
             loginBtn.disabled = false;
@@ -140,73 +165,35 @@ async function login() {
     }
 }
 
-// بقية الدوال تبقى كما هي مع إضافة معالجة الأخطاء
-async function logLoginAttempt(email, success) {
-    try {
-        const ip = await getClientIP();
-        await supabase
-            .from(TABLES.LOGIN_ATTEMPTS)
-            .insert([{
-                email: email,
-                success: success,
-                ip: ip,
-                user_agent: navigator.userAgent,
-                timestamp: new Date().toISOString()
-            }]);
-    } catch (error) {
-        console.error('Error logging login attempt:', error);
-    }
-}
-
-async function logLogoutEvent(email) {
-    try {
-        await supabase
-            .from(TABLES.LOGOUT_EVENTS)
-            .insert([{
-                email: email,
-                timestamp: new Date()
-            }]);
-    } catch (error) {
-        console.error('Error logging logout event:', error);
-    }
-}
-
-async function logDeletionEvent(table, itemId) {
-    try {
-        await supabase
-            .from(TABLES.DELETION_LOGS)
-            .insert([{
-                admin_id: currentAdmin.id,
-                admin_email: currentAdmin.email,
-                table_name: table,
-                item_id: itemId,
-                timestamp: new Date()
-            }]);
-    } catch (error) {
-        console.error('Error logging deletion:', error);
-    }
-}
-
 async function loadAdminData() {
-    if (!supabase) {
-        if (!await initSupabase()) {
-            showNotification('خطأ في تهيئة قاعدة البيانات', 'error');
-            return;
-        }
-    }
-    
     try {
+        await ensureSupabaseConnection();
         showLoading(true);
         
-        const [booksData, novelsData, filesData, platformsData, appsData, serversData, adminsData] = await Promise.all([
-            supabase.from(TABLES.BOOKS).select('*, admins:added_by(email, full_name)'),
-            supabase.from(TABLES.NOVELS).select('*, admins:added_by(email, full_name)'),
-            supabase.from(TABLES.FILES).select('*, admins:added_by(email, full_name)'),
-            supabase.from(TABLES.PLATFORMS).select('*, admins:added_by(email, full_name)'),
-            supabase.from(TABLES.APPS).select('*, admins:added_by(email, full_name)'),
-            supabase.from(TABLES.SERVERS).select('*, admins:added_by(email, full_name)'),
-            currentAdmin.role === 'owner' ? supabase.from(TABLES.ADMINS).select('*') : { data: [] }
-        ]);
+        const promises = [
+            supabase.from(TABLES.BOOKS).select('*'),
+            supabase.from(TABLES.NOVELS).select('*'),
+            supabase.from(TABLES.FILES).select('*'),
+            supabase.from(TABLES.PLATFORMS).select('*'),
+            supabase.from(TABLES.APPS).select('*'),
+            supabase.from(TABLES.SERVERS).select('*')
+        ];
+        
+        if (currentAdmin.role === 'owner') {
+            promises.push(supabase.from(TABLES.ADMINS).select('*'));
+        } else {
+            promises.push(Promise.resolve({ data: [] }));
+        }
+        
+        const [
+            booksData, 
+            novelsData, 
+            filesData, 
+            platformsData, 
+            appsData, 
+            serversData, 
+            adminsData
+        ] = await Promise.all(promises);
 
         siteData.books = booksData.data || [];
         siteData.novels = novelsData.data || [];
@@ -232,31 +219,95 @@ async function loadAdminData() {
 }
 
 async function saveItemToSupabase(table, item) {
-    if (!supabase) {
-        throw new Error('Supabase not initialized');
+    await ensureSupabaseConnection();
+    
+    // إضافة الحقول الإضافية بناءً على الجدول
+    switch(table) {
+        case 'books':
+            item.publication_year = item.publication_year || new Date().getFullYear();
+            item.language = item.language || 'العربية';
+            item.file_format = item.file_format || 'PDF';
+            item.is_featured = item.is_featured || false;
+            item.views_count = item.views_count || 0;
+            item.downloads_count = item.downloads_count || 0;
+            item.is_active = item.is_active !== undefined ? item.is_active : true;
+            break;
+            
+        case 'novels':
+            item.publication_year = item.publication_year || new Date().getFullYear();
+            item.language = item.language || 'العربية';
+            item.file_format = item.file_format || 'PDF';
+            item.is_featured = item.is_featured || false;
+            item.views_count = item.views_count || 0;
+            item.downloads_count = item.downloads_count || 0;
+            item.is_active = item.is_active !== undefined ? item.is_active : true;
+            break;
+            
+        case 'files':
+            item.is_featured = item.is_featured || false;
+            item.views_count = item.views_count || 0;
+            item.downloads_count = item.downloads_count || 0;
+            item.is_active = item.is_active !== undefined ? item.is_active : true;
+            break;
+            
+        case 'platforms':
+            item.is_featured = item.is_featured || false;
+            item.views_count = item.views_count || 0;
+            item.is_active = item.is_active !== undefined ? item.is_active : true;
+            break;
+            
+        case 'apps':
+            item.is_featured = item.is_featured || false;
+            item.views_count = item.views_count || 0;
+            item.downloads_count = item.downloads_count || 0;
+            item.is_active = item.is_active !== undefined ? item.is_active : true;
+            break;
+            
+        case 'servers':
+            item.members_count = item.members_count || 0;
+            item.is_featured = item.is_featured || false;
+            item.views_count = item.views_count || 0;
+            item.is_active = item.is_active !== undefined ? item.is_active : true;
+            break;
     }
     
-    item.added_by = currentAdmin.id;
-    item.added_at = new Date();
-    item.updated_at = new Date();
+    item.updated_at = new Date().toISOString();
     
-    const { data, error } = await supabase
-        .from(table)
-        .insert([item])
-        .select();
+    if (!item.id) {
+        // عنصر جديد
+        item.added_by = currentAdmin.id;
+        item.created_at = new Date().toISOString();
+        
+        const { data, error } = await supabase
+            .from(table)
+            .insert([item])
+            .select();
 
-    if (error) {
-        console.error('Error saving item:', error);
-        throw error;
+        if (error) {
+            console.error('Error saving item:', error);
+            throw error;
+        }
+
+        return data[0];
+    } else {
+        // تحديث عنصر موجود
+        const { data, error } = await supabase
+            .from(table)
+            .update(item)
+            .eq('id', item.id)
+            .select();
+
+        if (error) {
+            console.error('Error updating item:', error);
+            throw error;
+        }
+
+        return data[0];
     }
-
-    return data[0];
 }
 
 async function deleteItemFromSupabase(table, id) {
-    if (!supabase) {
-        throw new Error('Supabase not initialized');
-    }
+    await ensureSupabaseConnection();
     
     const { error } = await supabase
         .from(table)
@@ -267,11 +318,11 @@ async function deleteItemFromSupabase(table, id) {
         console.error('Error deleting item:', error);
         throw error;
     }
-    
-    await logDeletionEvent(table, id);
 }
 
 async function addAdmin(email, password, role) {
+    await ensureSupabaseConnection();
+    
     if (!currentAdmin || currentAdmin.role !== 'owner') {
         showNotification('只有所有者可以添加管理员', 'error');
         return false;
@@ -296,9 +347,10 @@ async function addAdmin(email, password, role) {
                 email, 
                 password_hash: passwordHash, 
                 role,
+                full_name: email.split('@')[0], // استخدام جزء من الإيميل كاسم
                 is_active: true,
-                created_at: new Date(),
-                updated_at: new Date()
+                created_at: new Date().toISOString(),
+                updated_at: new Date().toISOString()
             }])
             .select();
             
@@ -315,60 +367,5 @@ async function addAdmin(email, password, role) {
         console.error('Error adding admin:', error);
         showNotification('حدث خطأ أثناء إضافة المشرف', 'error');
         return false;
-    }
-}
-
-async function deleteAdmin(adminId, adminEmail) {
-    if (!currentAdmin || currentAdmin.role !== 'owner') {
-        showNotification('只有所有者可以删除管理员', 'error');
-        return;
-    }
-    
-    if (confirm(`هل أنت متأكد من حذف المشرف ${adminEmail}؟`)) {
-        try {
-            const { error } = await supabase
-                .from(TABLES.ADMINS)
-                .delete()
-                .eq('id', adminId);
-                
-            if (error) {
-                console.error('Error deleting admin:', error);
-                showNotification('حدث خطأ أثناء حذف المشرف: ' + error.message, 'error');
-                return;
-            }
-            
-            showNotification('تم حذف المشرف بنجاح', 'success');
-            await loadAdminsList();
-        } catch (error) {
-            console.error('Error deleting admin:', error);
-            showNotification('حدث خطأ أثناء حذف المشرف', 'error');
-        }
-    }
-}
-
-function isStrongPassword(password) {
-    const strongRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
-    return strongRegex.test(password);
-}
-
-// دالة لتحميل قائمة المشرفين
-async function loadAdminsList() {
-    if (currentAdmin && currentAdmin.role === 'owner') {
-        try {
-            const { data, error } = await supabase
-                .from(TABLES.ADMINS)
-                .select('*');
-                
-            if (error) {
-                console.error('Error loading admins:', error);
-                return;
-            }
-            
-            siteData.admins = data || [];
-            renderAdminsList(siteData.admins);
-            updateAdminStats();
-        } catch (error) {
-            console.error('Error loading admins:', error);
-        }
     }
 }
