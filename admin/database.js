@@ -2,9 +2,27 @@ let supabase;
 
 async function initSupabase() {
     try {
-        supabase = window.supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
-        console.log('Supabase initialized successfully');
-        return true;
+        if (window.supabase) {
+            supabase = window.supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
+            console.log('Supabase initialized successfully');
+            
+            // اختبار الاتصال بقاعدة البيانات
+            const { data, error } = await supabase
+                .from('admins')
+                .select('count')
+                .limit(1);
+                
+            if (error) {
+                console.error('Failed to connect to database:', error);
+                return false;
+            }
+            
+            console.log('Database connection successful');
+            return true;
+        } else {
+            console.error('Supabase library not loaded');
+            return false;
+        }
     } catch (error) {
         console.error('Error initializing Supabase:', error);
         return false;
