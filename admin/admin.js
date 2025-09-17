@@ -1,35 +1,14 @@
 // admin/admin.js
 // تهيئة الصفحة عند التحميل
 document.addEventListener('DOMContentLoaded', async function() {
-    // جعل الدالة async لتتمكن من استخدام await
     await initSupabase();
     setupEventListeners();
-    checkAuth();
+    await checkAuth();
 });
-
-// بقية الكود...
-if (user) {
-  // The Supabase client should automatically include the Authorization header
-  // with the user's JWT for authenticated requests like this one:
-  const { data, error } = await supabase
-    .from('admins')
-    .select('*')
-    .eq('null', '@gmail.com');
-
-  if (error) {
-    console.error('Error fetching admin data:', error);
-  } else {
-    console.log('Admin data:', data);
-  }
-} else {
-  console.error('User is not authenticated. Please log in.');
-  // Redirect to login page or handle unauthenticated state
-}
 
 // إعداد جميع event listeners
 function setupEventListeners() {
     console.log('Setting up event listeners...');
-    
     
     // إعداد نموذج تسجيل الدخول
     const loginForm = document.getElementById('login-form');
@@ -61,18 +40,17 @@ function setupEventListeners() {
     
     const addAdminForm = document.getElementById('add-admin-form');
     if (addAdminForm) {
-        addAdminForm.addEventListener('submit', function(e) {
+        addAdminForm.addEventListener('submit', async function(e) {
             e.preventDefault();
             const email = document.getElementById('new-admin-email').value;
             const password = document.getElementById('new-admin-password').value;
             const role = document.getElementById('new-admin-role').value;
             
             if (email && password && role) {
-                addAdmin(email, password, role).then(success => {
-                    if (success) {
-                        this.reset();
-                    }
-                });
+                const success = await addAdmin(email, password, role);
+                if (success) {
+                    this.reset();
+                }
             }
         });
     }
@@ -144,5 +122,27 @@ function setupEventListeners() {
         closeItemModal.addEventListener('click', function() {
             closeModal('item-modal');
         });
+    }
+}
+
+// دالة مساعدة للتحقق من المستخدم بعد المصادقة
+async function checkUserAuth() {
+    if (currentAdmin) {
+        try {
+            const { data, error } = await supabase
+                .from('admins')
+                .select('*')
+                .eq('email', currentAdmin.email);
+
+            if (error) {
+                console.error('Error fetching admin data:', error);
+            } else {
+                console.log('Admin data:', data);
+            }
+        } catch (error) {
+            console.error('Error in checkUserAuth:', error);
+        }
+    } else {
+        console.error('User is not authenticated. Please log in.');
     }
 }
