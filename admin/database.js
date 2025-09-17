@@ -1,3 +1,31 @@
+// admin/database.js
+const SUPABASE_URL = 'https://xzltdsmmolyvcmkfzedf.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhbmFzZSIsInJlZiI6Inh6bHRkc21tb2x5dmNta2Z6ZWRmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc2Nzg1NzEsImV4cCI6MjA3MzI1NDU3MX0.3TJ49ctEhOT1KDIFtZXFw2jwTq57ujaWbqNNJ2Eeb1U';
+
+const TABLES = {
+    BOOKS: 'books',
+    NOVELS: 'novels',
+    FILES: 'files',
+    PLATFORMS: 'platforms',
+    APPS: 'apps',
+    SERVERS: 'servers',
+    ADMINS: 'admins',
+    SECURITY_LOGS: 'security_logs',
+    SITE_SETTINGS: 'site_settings'
+};
+
+const CATEGORY_NAMES = {
+    books: 'كتاب',
+    novels: 'رواية',
+    files: 'ملف',
+    platforms: 'منصة',
+    apps: 'تطبيق',
+    servers: 'سيرفر'
+};
+
+let supabase;
+let isSupabaseInitialized = false;
+
 // في بداية database.js
 if (typeof showNotification !== 'function') {
     function showNotification(message, type = 'info') {
@@ -37,15 +65,11 @@ if (typeof showNotification !== 'function') {
         }, 3000);
     }
 }
-// admin/database.js
-// admin/database.js (الجزء المصحح)
-let supabase;
-let isSupabaseInitialized = false;
 
 async function initSupabase() {
     try {
         if (window.supabase && !isSupabaseInitialized) {
-            supabase = window.supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY, {
+            supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
                 auth: {
                     persistSession: false,
                     autoRefreshToken: false
@@ -62,23 +86,9 @@ async function initSupabase() {
                 
             if (error) {
                 console.error('Failed to connect to database:', error);
-                
-                if (error.code === '42501' || error.message.includes('permission')) {
-                    // خطأ في الصلاحيات، لكننا سنستمر مع وضع عدم الاتصال
-                    console.warn('صلاحيات محدودة، الانتقال لوضع عدم الاتصال');
-                    isSupabaseInitialized = true;
-                    return true;
-                } else if (error.code === '401') {
-                    console.error('مفتاح API غير صالح أو منتهي الصلاحية');
-                    // سنستمر مع وضع عدم الاتصال
-                    isSupabaseInitialized = true;
-                    return true;
-                } else {
-                    console.error('فشل في الاتصال بقاعدة البيانات: ' + error.message);
-                    // سنستمر مع وضع عدم الاتصال
-                    isSupabaseInitialized = true;
-                    return true;
-                }
+                // حتى لو فشل الاتصال، نعتبر Supabase مهيأ للاستخدام في الوضع غير المتصل
+                isSupabaseInitialized = true;
+                return false;
             }
             
             console.log('Database connection successful');
@@ -88,15 +98,13 @@ async function initSupabase() {
             return true;
         } else {
             console.error('Supabase library not loaded');
-            // سنستمر مع وضع عدم الاتصال
             isSupabaseInitialized = true;
-            return true;
+            return false;
         }
     } catch (error) {
         console.error('Error initializing Supabase:', error);
-        // سنستمر مع وضع عدم الاتصال
         isSupabaseInitialized = true;
-        return true;
+        return false;
     }
 }
 
