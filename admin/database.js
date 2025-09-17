@@ -29,6 +29,7 @@ async function initSupabase() {
     }
 }
 
+// admin/database.js
 async function login() {
     const emailInput = document.getElementById('email');
     const passwordInput = document.getElementById('password');
@@ -56,55 +57,69 @@ async function login() {
     }
     
     try {
+        // إظهار تحميل
         const originalText = loginBtn.innerHTML;
         loginBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري تسجيل الدخول...';
         loginBtn.disabled = true;
         
+        // البحث عن المشرف في قاعدة البيانات
         const { data: admin, error } = await supabase
-            .from(TABLES.ADMINS)
+            .from('admins')
             .select('*')
             .eq('email', email)
+            .eq('is_active', true)
             .maybeSingle();
 
-        if (error || !admin) {
+        if (error) {
+            console.error('Supabase error:', error);
+            errorElement.textContent = 'خطأ في الاتصال بقاعدة البيانات';
+            return;
+        }
+
+        if (!admin) {
             errorElement.textContent = 'البريد الإلكتروني أو كلمة المرور غير صحيحة';
-            loginBtn.innerHTML = originalText;
-            loginBtn.disabled = false;
             return;
         }
         
+        // التحقق من كلمة المرور
         if (password !== atob(admin.password_hash)) {
             errorElement.textContent = 'البريد الإلكتروني أو كلمة المرور غير صحيحة';
-            loginBtn.innerHTML = originalText;
-            loginBtn.disabled = false;
             
+            // تسجيل محاولة الدخول الفاشلة
             await logLoginAttempt(email, false);
             return;
         }
         
-        const fakeToken = btoa(JSON.stringify({
+        // تحديث آخر وقت دخول
+        await supabase
+            .from('admins')
+            .update({ last_login: new Date() })
+            .eq('id', admin.id);
+
+        // إنشاء توكن
+        const token = btoa(JSON.stringify({
             id: admin.id,
             email: admin.email,
             role: admin.role,
-            exp: Math.floor(Date.now() / 1000) + (60 * 60)
+            exp: Date.now() + (60 * 60 * 1000) // انتهاء الصلاحية بعد ساعة
         }));
         
-        sessionStorage.setItem('adminToken', fakeToken);
+        // حفظ بيانات المشرف
+        sessionStorage.setItem('adminToken', token);
         sessionStorage.setItem('adminData', JSON.stringify(admin));
         currentAdmin = admin;
         
+        // تسجيل محاولة الدخول الناجحة
         await logLoginAttempt(email, true);
-        showAdminPage();
         
-        loginBtn.innerHTML = originalText;
-        loginBtn.disabled = false;
+        // إظهار لوحة التحكم
+        showAdminPage();
         
     } catch (error) {
         console.error('Login error:', error);
-        if (errorElement) {
-            errorElement.textContent = 'حدث خطأ أثناء تسجيل الدخول';
-        }
-        
+        errorElement.textContent = 'حدث خطأ غير متوقع أثناء تسجيل الدخول';
+    } finally {
+        // إعادة تعيين الزر في جميع الحالات
         if (loginBtn) {
             loginBtn.innerHTML = '<i class="fas fa-sign-in-alt"></i> دخول';
             loginBtn.disabled = false;
