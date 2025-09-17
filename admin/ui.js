@@ -343,6 +343,7 @@ function openAddItemModal(section) {
     modal.style.display = 'block';
 }
 
+// admin/ui.js (جزء من التحديثات)
 function openEditItemModal(section, id) {
     const item = siteData[section].find(item => item.id === id);
     if (!item) return;
@@ -358,49 +359,79 @@ function openEditItemModal(section, id) {
     itemType.value = section;
     form.reset();
     
+    // تعبئة الحقول الأساسية
     document.getElementById('item-title').value = item.title || '';
     document.getElementById('item-description').value = item.description || '';
-    document.getElementById('item-image').value = item.image || '';
-    document.getElementById('item-drive-link').value = item.drive_link || item.download_link || item.link || '';
     
+    // تعبئة الحقول الخاصة بكل نوع
     switch(section) {
         case 'books':
+        case 'novels':
             document.getElementById('item-author').value = item.author || '';
             document.getElementById('item-publisher').value = item.publisher || '';
             document.getElementById('item-pages').value = item.pages || '';
             document.getElementById('item-language').value = item.language || 'العربية';
             document.getElementById('item-format').value = item.file_format || 'PDF';
             document.getElementById('item-size').value = item.file_size || '';
+            document.getElementById('item-publication-year').value = item.publication_year || new Date().getFullYear();
+            document.getElementById('item-category').value = item.category || '';
+            document.getElementById('item-tags').value = item.tags || '';
+            document.getElementById('item-is-featured').checked = item.is_featured || false;
+            document.getElementById('item-image').value = item.image_url || '';
+            document.getElementById('item-drive-link').value = item.drive_link || '';
             break;
-        case 'novels':
-            document.getElementById('item-author-novel').value = item.author || '';
-            document.getElementById('item-publisher-novel').value = item.publisher || '';
-            document.getElementById('item-pages-novel').value = item.pages || '';
-            document.getElementById('item-language-novel').value = item.language || 'العربية';
-            document.getElementById('item-format-novel').value = item.file_format || 'PDF';
-            document.getElementById('item-size-novel').value = item.file_size || '';
-            break;
+            
         case 'files':
             document.getElementById('item-file-type').value = item.file_type || 'document';
             document.getElementById('item-format-file').value = item.file_format || '';
             document.getElementById('item-size-file').value = item.file_size || '';
+            document.getElementById('item-category-file').value = item.category || '';
+            document.getElementById('item-tags-file').value = item.tags || '';
+            document.getElementById('item-is-featured-file').checked = item.is_featured || false;
+            document.getElementById('item-image-file').value = item.image_url || '';
+            document.getElementById('item-drive-link-file').value = item.drive_link || '';
             break;
+            
         case 'platforms':
             document.getElementById('item-platform-type').value = item.platform_type || 'website';
-            document.getElementById('item-link-url').value = item.link || '';
+            document.getElementById('item-link-url').value = item.link_url || '';
+            document.getElementById('item-category-platform').value = item.category || '';
+            document.getElementById('item-tags-platform').value = item.tags || '';
+            document.getElementById('item-is-featured-platform').checked = item.is_featured || false;
+            document.getElementById('item-image-platform').value = item.image_url || '';
             break;
+            
         case 'apps':
             document.getElementById('item-developer').value = item.developer || '';
             document.getElementById('item-version').value = item.version || '';
             document.getElementById('item-platform-app').value = item.platform || 'android';
             document.getElementById('item-size-app').value = item.file_size || '';
+            document.getElementById('item-category-app').value = item.category || '';
+            document.getElementById('item-tags-app').value = item.tags || '';
+            document.getElementById('item-is-featured-app').checked = item.is_featured || false;
+            document.getElementById('item-image-app').value = item.image_url || '';
+            document.getElementById('item-drive-link-app').value = item.download_link || '';
             break;
+            
         case 'servers':
             document.getElementById('item-server-type').value = item.server_type || 'discord';
             document.getElementById('item-invite-link').value = item.invite_link || '';
             document.getElementById('item-members-count').value = item.members_count || 0;
+            document.getElementById('item-category-server').value = item.category || '';
+            document.getElementById('item-tags-server').value = item.tags || '';
+            document.getElementById('item-is-featured-server').checked = item.is_featured || false;
+            document.getElementById('item-image-server').value = item.image_url || '';
             break;
     }
+    
+    // إظهار الحقول المناسبة وإخفاء الأخرى
+    document.querySelectorAll('.item-type-fields').forEach(field => {
+        field.style.display = 'none';
+    });
+    document.getElementById(`item-fields-${section}`).style.display = 'block';
+    
+    modal.style.display = 'block';
+}
     
     document.querySelectorAll('.item-type-fields').forEach(field => {
         field.style.display = 'none';
