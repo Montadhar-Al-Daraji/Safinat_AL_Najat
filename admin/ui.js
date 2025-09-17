@@ -368,6 +368,7 @@ function openEditItemModal(section, id) {
 
 async function saveItem(e) {
     e.preventDefault();
+    e.preventDefault();
     
     const itemId = document.getElementById('item-id').value;
     const itemType = document.getElementById('item-type').value;
