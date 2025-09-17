@@ -1,4 +1,4 @@
-// admin/admin.js
+// admin/admin.js (الجزء المصحح)
 // تهيئة الصفحة عند التحميل
 document.addEventListener('DOMContentLoaded', async function() {
     try {
@@ -17,7 +17,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                 
                 // التحقق من المصادقة إذا كان هناك token مخزن
                 const token = sessionStorage.getItem('adminToken');
-                if (token && supabaseInitialized) {
+                if (token) {
                     await checkAuth();
                 }
             } catch (error) {
@@ -26,7 +26,8 @@ document.addEventListener('DOMContentLoaded', async function() {
         }, 100);
     } catch (error) {
         console.error('Error initializing admin panel:', error);
-        showNotification('حدث خطأ أثناء تهيئة لوحة التحكم', 'error');
+        // استخدام console.log بدلاً من showNotification لتجنب الأخطاء
+        console.log('حدث خطأ أثناء تهيئة لوحة التحكم');
     }
 });
 
