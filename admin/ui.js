@@ -457,6 +457,8 @@ function openEditItemModal(section, id) {
     modal.style.display = 'block';
 }
 
+
+// تعديل الدالة saveItem لتصحيح الخطأ
 async function saveItem(e) {
     e.preventDefault();
     
@@ -545,6 +547,7 @@ async function saveItem(e) {
         showNotification('حدث خطأ أثناء حفظ العنصر: ' + error.message, 'error');
     }
 }
+
 
 async function deleteItem(section, id, title) {
     if (confirm(`هل أنت متأكد من حذف ${title}؟`)) {
