@@ -1,9 +1,13 @@
-// Ensure you have a valid Supabase client instance
-const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+// admin/admin.js
+// تهيئة الصفحة عند التحميل
+document.addEventListener('DOMContentLoaded', async function() {
+    // جعل الدالة async لتتمكن من استخدام await
+    await initSupabase();
+    setupEventListeners();
+    checkAuth();
+});
 
-// Make sure the user is logged in and a session exists
-const { data: { user }, error } = await supabase.auth.getUser();
-
+// بقية الكود...
 if (user) {
   // The Supabase client should automatically include the Authorization header
   // with the user's JWT for authenticated requests like this one:
@@ -21,14 +25,6 @@ if (user) {
   console.error('User is not authenticated. Please log in.');
   // Redirect to login page or handle unauthenticated state
 }
-
-
-document.addEventListener('DOMContentLoaded', async function() {
-    // جعل الدالة async لتتمكن من استخدام await
-    await initSupabase();
-    setupEventListeners();
-    checkAuth();
-});
 
 // إعداد جميع event listeners
 function setupEventListeners() {
