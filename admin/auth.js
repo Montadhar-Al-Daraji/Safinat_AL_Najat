@@ -16,7 +16,7 @@ async function checkAuth() {
         const tokenData = parseJwt(token);
         if (tokenData.exp * 1000 < Date.now()) {
             console.error('Token expired');
-            await logout(); // إضافة await هنا
+            await logout();
             return false;
         }
         
@@ -24,10 +24,11 @@ async function checkAuth() {
         showAdminPage();
         setupAdminInterface(currentAdmin.role);
         startSessionTimer();
+        
         return true;
     } catch (error) {
         console.error('Error parsing admin data:', error);
-        await logout(); // إضافة await هنا
+        await logout();
         return false;
     }
 }
@@ -100,9 +101,9 @@ function resetSession() {
     alert('تم تجديد الجلسة بنجاح');
 }
 
-function logout() {
+async function logout() {
     if (currentAdmin) {
-        logLogoutEvent(currentAdmin.email);
+        await logLogoutEvent(currentAdmin.email);
     }
     
     clearInterval(sessionTimer);
