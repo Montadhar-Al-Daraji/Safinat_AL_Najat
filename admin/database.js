@@ -1,46 +1,9 @@
-// تعريف دالة showNotification إذا لم تكن معرّفة
-if (typeof showNotification !== 'function') {
-    function showNotification(message, type = 'info') {
-        // إنشاء عنصر الإشعار إذا لم يكن موجودًا
-        let notification = document.getElementById('notification');
-        if (!notification) {
-            notification = document.createElement('div');
-            notification.id = 'notification';
-            notification.style.cssText = `
-                position: fixed;
-                top: 20px;
-                right: 20px;
-                padding: 15px 20px;
-                border-radius: 5px;
-                color: white;
-                z-index: 10000;
-                opacity: 0;
-                transform: translateY(-20px);
-                transition: all 0.3s ease;
-            `;
-            document.body.appendChild(notification);
-        }
-        
-        // تعيين النص والنمط حسب النوع
-        notification.textContent = message;
-        notification.style.backgroundColor = type === 'error' ? '#f44336' : 
-                                          type === 'success' ? '#4CAF50' : '#2196F3';
-        
-        // إظهار الإشعار
-        notification.style.opacity = '1';
-        notification.style.transform = 'translateY(0)';
-        
-        // إخفاء الإشعار بعد 3 ثوان
-        setTimeout(() => {
-            notification.style.opacity = '0';
-            notification.style.transform = 'translateY(-20px)';
-        }, 3000);
-    }
-}
-
 // admin/database.js
+// الإعدادات المباشرة بدلاً من config.js
 const SUPABASE_URL = 'https://xzltdsmmolyvcmkfzedf.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhbmFzZSIsInJlZiI6Inh6bHRkc21tb2x5dmNta2Z6ZWRmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc2Nzg1NzEsImV4cCI6MjA3MzI1NDU3MX0.3TJ49ctEhOT1KDIFtZXFw2jwTq57ujaWbqNNJ2Eeb1U';
+const SESSION_TIMEOUT = 30 * 60; // 30 دقيقة بالثواني
+const ITEMS_PER_PAGE = 10;
 
 const TABLES = {
     BOOKS: 'books',
@@ -65,7 +28,45 @@ const CATEGORY_NAMES = {
 
 let supabase;
 let isSupabaseInitialized = false;
+let isConnected = false;
 
+// تعريف دالة showNotification
+function showNotification(message, type = 'info') {
+    // إنشاء عنصر الإشعار إذا لم يكن موجودًا
+    let notification = document.getElementById('notification');
+    if (!notification) {
+        notification = document.createElement('div');
+        notification.id = 'notification';
+        notification.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            border-radius: 5px;
+            color: white;
+            z-index: 10000;
+            opacity: 0;
+            transform: translateY(-20px);
+            transition: all 0.3s ease;
+        `;
+        document.body.appendChild(notification);
+    }
+    
+    // تعيين النص والنمط حسب النوع
+    notification.textContent = message;
+    notification.style.backgroundColor = type === 'error' ? '#f44336' : 
+                                      type === 'success' ? '#4CAF50' : '#2196F3';
+    
+    // إظهار الإشعار
+    notification.style.opacity = '1';
+    notification.style.transform = 'translateY(0)';
+    
+    // إخفاء الإشعار بعد 3 ثوان
+    setTimeout(() => {
+        notification.style.opacity = '0';
+        notification.style.transform = 'translateY(-20px)';
+    }, 3000);
+}
 
 async function initSupabase() {
     try {
@@ -80,23 +81,37 @@ async function initSupabase() {
             console.log('Supabase initialized successfully');
             
             // اختبار الاتصال باستخدام استعلام أبسط
-            const { error } = await supabase
-                .from('books')
-                .select('id')
-                .limit(1);
-                
-            if (error) {
-                console.error('Failed to connect to database:', error);
-                // حتى لو فشل الاتصال، نعتبر Supabase مهيأ للاستخدام في الوضع غير المتصل
-                isSupabaseInitialized = true;
-                return false;
+            try {
+                const { error } = await supabase
+                    .from('books')
+                    .select('id')
+                    .limit(1);
+                    
+                if (error) {
+                    console.error('Failed to connect to database:', error);
+                    
+                    if (error.code === '42501' || error.message.includes('permission')) {
+                        console.warn('خطأ في الصلاحيات: يرجى التحقق من سياسات الأمان في Supabase');
+                    } else if (error.code === '401') {
+                        console.error('مفتاح API غير صالح أو منتهي الصلاحية');
+                    } else {
+                        console.error('فشل في الاتصال بقاعدة البيانات: ' + error.message);
+                    }
+                    
+                    isConnected = false;
+                } else {
+                    console.log('Database connection successful');
+                    isConnected = true;
+                }
+            } catch (testError) {
+                console.error('Error testing database connection:', testError);
+                isConnected = false;
             }
             
-            console.log('Database connection successful');
             isSupabaseInitialized = true;
-            return true;
+            return isConnected;
         } else if (isSupabaseInitialized) {
-            return true;
+            return isConnected;
         } else {
             console.error('Supabase library not loaded');
             isSupabaseInitialized = true;
@@ -111,13 +126,9 @@ async function initSupabase() {
 
 async function ensureSupabaseConnection() {
     if (!isSupabaseInitialized) {
-        const initialized = await initSupabase();
-        if (!initialized) {
-            // إذا فشل الاتصال، نرمي خطأ ولكننا نسمح للتطبيق بالاستمرار
-            throw new Error('فشل في الاتصال بقاعدة البيانات');
-        }
+        return await initSupabase();
     }
-    return true;
+    return isConnected;
 }
 
 async function login() {
@@ -147,40 +158,37 @@ async function login() {
     }
     
     try {
+        // التأكد من اتصال Supabase
+        const connected = await ensureSupabaseConnection();
+        if (!connected) {
+            errorElement.textContent = 'لا يمكن الاتصال بقاعدة البيانات حالياً';
+            return;
+        }
+        
         // إظهار تحميل
         const originalText = loginBtn.innerHTML;
         loginBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري تسجيل الدخول...';
         loginBtn.disabled = true;
         
-        // محاولة الاتصال بـ Supabase
-        let admin = null;
-        try {
-            await ensureSupabaseConnection();
-            
-            // البحث عن المشرف في قاعدة البيانات
-            const { data, error } = await supabase
-                .from('admins')
-                .select('*')
-                .eq('email', email)
-                .eq('is_active', true)
-                .maybeSingle();
+        // البحث عن المشرف في قاعدة البيانات
+        const { data: admin, error } = await supabase
+            .from('admins')
+            .select('*')
+            .eq('email', email)
+            .eq('is_active', true)
+            .maybeSingle();
 
-            if (error) {
-                console.error('Supabase error:', error);
-                // حتى لو كان هناك خطأ، نستمر في محاولة التسجيل باستخدام البيانات المحلية
+        if (error) {
+            console.error('Supabase error:', error);
+            
+            if (error.code === '42501' || error.message.includes('permission')) {
+                errorElement.textContent = 'لا تملك الصلاحية للوصول إلى بيانات المشرفين';
+            } else if (error.code === '401') {
+                errorElement.textContent = 'مفتاح API غير صالح أو منتهي الصلاحية';
             } else {
-                admin = data;
+                errorElement.textContent = 'خطأ في الاتصال بقاعدة البيانات: ' + error.message;
             }
-        } catch (connectionError) {
-            console.error('Connection error, using offline mode:', connectionError);
-            // في حالة عدم الاتصال، نستخدم البيانات من sessionStorage إذا كانت موجودة
-            const storedAdminData = sessionStorage.getItem('adminData');
-            if (storedAdminData) {
-                const storedAdmin = JSON.parse(storedAdminData);
-                if (storedAdmin.email === email) {
-                    admin = storedAdmin;
-                }
-            }
+            return;
         }
 
         if (!admin) {
@@ -194,6 +202,16 @@ async function login() {
             return;
         }
         
+        // تحديث آخر وقت دخول
+        const { error: updateError } = await supabase
+            .from('admins')
+            .update({ last_login: new Date().toISOString() })
+            .eq('id', admin.id);
+
+        if (updateError) {
+            console.error('Error updating last login:', updateError);
+        }
+
         // إنشاء توكن
         const tokenPayload = {
             id: admin.id,
