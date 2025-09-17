@@ -224,15 +224,6 @@ async function saveItemToSupabase(table, item) {
     // إضافة الحقول الإضافية بناءً على الجدول
     switch(table) {
         case 'books':
-            item.publication_year = item.publication_year || new Date().getFullYear();
-            item.language = item.language || 'العربية';
-            item.file_format = item.file_format || 'PDF';
-            item.is_featured = item.is_featured || false;
-            item.views_count = item.views_count || 0;
-            item.downloads_count = item.downloads_count || 0;
-            item.is_active = item.is_active !== undefined ? item.is_active : true;
-            break;
-            
         case 'novels':
             item.publication_year = item.publication_year || new Date().getFullYear();
             item.language = item.language || 'العربية';
@@ -367,5 +358,84 @@ async function addAdmin(email, password, role) {
         console.error('Error adding admin:', error);
         showNotification('حدث خطأ أثناء إضافة المشرف', 'error');
         return false;
+    }
+}
+
+function isStrongPassword(password) {
+    const strongRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
+    return strongRegex.test(password);
+}
+
+async function logLoginAttempt(email, success) {
+    try {
+        await ensureSupabaseConnection();
+        const ip = await getClientIP();
+        const { error } = await supabase
+            .from('security_logs')
+            .insert([{
+                admin_id: currentAdmin?.id || null,
+                admin_email: email,
+                action_type: 'login_attempt',
+                details: { success, email },
+                ip_address: ip,
+                user_agent: navigator.userAgent,
+                status: success ? 'success' : 'failed',
+                created_at: new Date().toISOString()
+            }]);
+
+        if (error) {
+            console.error('Error logging login attempt:', error);
+        }
+    } catch (error) {
+        console.error('Error logging login attempt:', error);
+    }
+}
+
+async function logLogoutEvent(email) {
+    try {
+        await ensureSupabaseConnection();
+        const ip = await getClientIP();
+        const { error } = await supabase
+            .from('security_logs')
+            .insert([{
+                admin_id: currentAdmin?.id || null,
+                admin_email: email,
+                action_type: 'logout',
+                details: { email },
+                ip_address: ip,
+                user_agent: navigator.userAgent,
+                status: 'success',
+                created_at: new Date().toISOString()
+            }]);
+
+        if (error) {
+            console.error('Error logging logout event:', error);
+        }
+    } catch (error) {
+        console.error('Error logging logout event:', error);
+    }
+}
+
+async function logDeletionEvent(table, itemId, itemTitle) {
+    try {
+        await ensureSupabaseConnection();
+        const { error } = await supabase
+            .from('security_logs')
+            .insert([{
+                admin_id: currentAdmin.id,
+                admin_email: currentAdmin.email,
+                action_type: 'delete',
+                target_table: table,
+                target_id: itemId,
+                details: { table, item_id: itemId, item_title: itemTitle },
+                status: 'success',
+                created_at: new Date().toISOString()
+            }]);
+
+        if (error) {
+            console.error('Error logging deletion event:', error);
+        }
+    } catch (error) {
+        console.error('Error logging deletion event:', error);
     }
 }
