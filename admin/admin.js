@@ -5,6 +5,8 @@ document.addEventListener('DOMContentLoaded', async function() {
         const supabaseInitialized = await initSupabase();
         if (!supabaseInitialized) {
             showNotification('فشل في تهيئة قاعدة البيانات', 'error');
+            // إظهار واجهة تسجيل الدخول حتى لو فشل الاتصال بقاعدة البيانات
+            showLoginPage();
             return;
         }
         
@@ -13,6 +15,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     } catch (error) {
         console.error('Error initializing admin panel:', error);
         showNotification('حدث خطأ أثناء تهيئة لوحة التحكم', 'error');
+        showLoginPage();
     }
 });
 
