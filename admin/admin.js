@@ -23,10 +23,9 @@ if (user) {
 }
 
 
-// admin/admin.js
-// تهيئة الصفحة عند التحميل
-document.addEventListener('DOMContentLoaded', function() {
-    initSupabase();
+document.addEventListener('DOMContentLoaded', async function() {
+    // جعل الدالة async لتتمكن من استخدام await
+    await initSupabase();
     setupEventListeners();
     checkAuth();
 });
