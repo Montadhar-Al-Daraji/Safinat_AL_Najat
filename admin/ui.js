@@ -1,4 +1,4 @@
-// admin/ui.js
+
 let siteData = {
     books: [],
     novels: [],
