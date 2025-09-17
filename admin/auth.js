@@ -2,6 +2,12 @@
 let currentAdmin = null;
 let sessionTimer;
 
+// دالة للتحقق من صحة البريد الإلكتروني
+function isValidEmail(email) {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+}
+
 // تأكد من أن هذه الدالة async
 async function checkAuth() {
     const token = sessionStorage.getItem('adminToken');
@@ -69,15 +75,17 @@ function showAdminPage() {
     const adminContainer = document.getElementById('admin-container');
     if (adminContainer) adminContainer.classList.remove('hidden');
     
-    document.getElementById('admin-email').textContent = currentAdmin.email;
-    document.getElementById('admin-role').textContent = currentAdmin.role === 'owner' ? 'مالك' : 'مشرف';
+    if (currentAdmin) {
+        document.getElementById('admin-email').textContent = currentAdmin.email;
+        document.getElementById('admin-role').textContent = currentAdmin.role === 'owner' ? 'مالك' : 'مشرف';
+    }
     
     loadAdminData();
 }
 
 function startSessionTimer() {
     clearInterval(sessionTimer);
-    let timeLeft = CONFIG.SESSION_TIMEOUT;
+    let timeLeft = SESSION_TIMEOUT;
     
     sessionTimer = setInterval(() => {
         timeLeft--;
@@ -103,7 +111,27 @@ function resetSession() {
 
 async function logout() {
     if (currentAdmin) {
-        await logLogoutEvent(currentAdmin.email);
+        // محاولة تسجيل event الخروج إذا كان هناك اتصال
+        try {
+            const connected = await ensureSupabaseConnection();
+            if (connected) {
+                const ip = await getClientIP();
+                await supabase
+                    .from('security_logs')
+                    .insert([{
+                        admin_id: currentAdmin.id,
+                        admin_email: currentAdmin.email,
+                        action_type: 'logout',
+                        details: { email: currentAdmin.email },
+                        ip_address: ip,
+                        user_agent: navigator.userAgent,
+                        status: 'success',
+                        created_at: new Date().toISOString()
+                    }]);
+            }
+        } catch (error) {
+            console.error('Error logging logout event:', error);
+        }
     }
     
     clearInterval(sessionTimer);
@@ -133,11 +161,6 @@ function setupAdminInterface(role) {
     if (securityTab) {
         securityTab.style.display = role === 'owner' ? 'block' : 'none';
     }
-}
-
-function isValidEmail(email) {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email);
 }
 
 async function getClientIP() {
