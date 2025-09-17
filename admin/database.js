@@ -1,33 +1,47 @@
+// admin/database.js
+// إذا كانت هذه المتغيرات معرّفة مسبقًا في مكان آخر، قم بإزالة تعريفها من هناك
+if (typeof SUPABASE_URL === 'undefined') {
+    const SUPABASE_URL = 'https://xzltdsmmolyvcmkfzedf.supabase.co';
+}
+if (typeof SUPABASE_ANON_KEY === 'undefined') {
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhbmFzZSIsInJlZiI6Inh6bHRkc21tb2x5dmNta2Z6ZWRmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc2Nzg1NzEsImV4cCI6MjA3MzI1NDU3MX0.3TJ49ctEhOT1KDIFtZXFw2jwTq57ujaWbqNNJ2Eeb1U';
+}
+if (typeof SESSION_TIMEOUT === 'undefined') {
+    const SESSION_TIMEOUT = 30 * 60; // 30 دقيقة بالثواني
+}
+if (typeof ITEMS_PER_PAGE === 'undefined') {
+    const ITEMS_PER_PAGE = 10;
+}
 
-const SUPABASE_URL = 'https://xzltdsmmolyvcmkfzedf.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhbmFzZSIsInJlZiI6Inh6bHRkc21tb2x5dmNta2Z6ZWRmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc2Nzg1NzEsImV4cCI6MjA3MzI1NDU3MX0.3TJ49ctEhOT1KDIFtZXFw2jwTq57ujaWbqNNJ2Eeb1U';
-const SESSION_TIMEOUT = 30 * 60; // 30 دقيقة بالثواني
-const ITEMS_PER_PAGE = 10;
+if (typeof TABLES === 'undefined') {
+    const TABLES = {
+        BOOKS: 'books',
+        NOVELS: 'novels',
+        FILES: 'files',
+        PLATFORMS: 'platforms',
+        APPS: 'apps',
+        SERVERS: 'servers',
+        ADMINS: 'admins',
+        SECURITY_LOGS: 'security_logs',
+        SITE_SETTINGS: 'site_settings'
+    };
+}
 
-const TABLES = {
-    BOOKS: 'books',
-    NOVELS: 'novels',
-    FILES: 'files',
-    PLATFORMS: 'platforms',
-    APPS: 'apps',
-    SERVERS: 'servers',
-    ADMINS: 'admins',
-    SECURITY_LOGS: 'security_logs',
-    SITE_SETTINGS: 'site_settings'
-};
-
-const CATEGORY_NAMES = {
-    books: 'كتاب',
-    novels: 'رواية',
-    files: 'ملف',
-    platforms: 'منصة',
-    apps: 'تطبيق',
-    servers: 'سيرفر'
-};
+if (typeof CATEGORY_NAMES === 'undefined') {
+    const CATEGORY_NAMES = {
+        books: 'كتاب',
+        novels: 'رواية',
+        files: 'ملف',
+        platforms: 'منصة',
+        apps: 'تطبيق',
+        servers: 'سيرفر'
+    };
+}
 
 let supabase;
 let isSupabaseInitialized = false;
 let isConnected = false;
+
 
 // تعريف دالة showNotification
 function showNotification(message, type = 'info') {
