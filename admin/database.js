@@ -1,3 +1,4 @@
+// admin/database.js
 let supabase;
 
 async function initSupabase() {
@@ -175,7 +176,7 @@ async function logDeletionEvent(table, itemId) {
 
 async function loadAdminData() {
     if (!supabase) {
-        if (!initSupabase()) {
+        if (!await initSupabase()) {
             alert('خطأ في تهيئة قاعدة البيانات');
             return;
         }
@@ -254,7 +255,7 @@ async function deleteItemFromSupabase(table, id) {
         throw error;
     }
     
-    logDeletionEvent(table, id);
+    await logDeletionEvent(table, id);
 }
 
 async function addAdmin(email, password, role) {
@@ -263,8 +264,8 @@ async function addAdmin(email, password, role) {
         return false;
     }
     
-    if (!isValidEmail(email)) {
-        alert('صيغة البريد الإلكتروني غير صحيحة');
+    if (!isValidEmail(email) || !email.endsWith('@gmail.com')) {
+        alert('يجب أن يكون البريد الإلكتروني من نوع @gmail.com');
         return false;
     }
     
@@ -282,6 +283,7 @@ async function addAdmin(email, password, role) {
                 email, 
                 password_hash: passwordHash, 
                 role,
+                is_active: true,
                 created_at: new Date(),
                 updated_at: new Date()
             }])
@@ -294,7 +296,7 @@ async function addAdmin(email, password, role) {
         }
         
         alert('تمت إضافة المشرف بنجاح');
-        loadAdminsList();
+        await loadAdminsList();
         return true;
     } catch (error) {
         console.error('Error adding admin:', error);
@@ -323,7 +325,7 @@ async function deleteAdmin(adminId, adminEmail) {
             }
             
             alert('تم حذف المشرف بنجاح');
-            loadAdminsList();
+            await loadAdminsList();
         } catch (error) {
             console.error('Error deleting admin:', error);
             alert('حدث خطأ أثناء حذف المشرف');
@@ -334,4 +336,26 @@ async function deleteAdmin(adminId, adminEmail) {
 function isStrongPassword(password) {
     const strongRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
     return strongRegex.test(password);
+}
+
+// دالة لتحميل قائمة المشرفين
+async function loadAdminsList() {
+    if (currentAdmin && currentAdmin.role === 'owner') {
+        try {
+            const { data, error } = await supabase
+                .from(TABLES.ADMINS)
+                .select('*');
+                
+            if (error) {
+                console.error('Error loading admins:', error);
+                return;
+            }
+            
+            siteData.admins = data || [];
+            renderAdminsList(siteData.admins);
+            updateAdminStats();
+        } catch (error) {
+            console.error('Error loading admins:', error);
+        }
+    }
 }
