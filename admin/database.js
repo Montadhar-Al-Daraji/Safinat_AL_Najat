@@ -1,13 +1,12 @@
-// admin/database.js
 let supabase;
 
-function initSupabase() {
-    if (window.supabase) {
+async function initSupabase() {
+    try {
         supabase = window.supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
         console.log('Supabase initialized successfully');
         return true;
-    } else {
-        console.error('Supabase library not loaded');
+    } catch (error) {
+        console.error('Error initializing Supabase:', error);
         return false;
     }
 }
@@ -95,6 +94,7 @@ async function login() {
     }
 }
 
+// تأكد من أن هذه الدوال async
 async function logLoginAttempt(email, success) {
     try {
         await supabase
