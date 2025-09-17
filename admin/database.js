@@ -1,3 +1,11 @@
+// في بداية database.js
+if (typeof showNotification !== 'function') {
+    // تعريف بدائي لـ showNotification إذا لم يتم تحميل ui.js بعد
+    var showNotification = function(message, type) {
+        console.log(`${type}: ${message}`);
+    };
+}
+
 // admin/database.js
 let supabase;
 let isSupabaseInitialized = false;
