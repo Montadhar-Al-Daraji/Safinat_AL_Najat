@@ -278,7 +278,51 @@ function setupSearchFunctionality() {
     }
     
 }
+// إظهار/إخفاء تحميل
+function showLoading(show = true) {
+    const loadingOverlay = document.getElementById('loading-overlay');
+    if (loadingOverlay) {
+        loadingOverlay.style.display = show ? 'flex' : 'none';
+    }
+}
 
+// عرض رسائل للمستخدم
+function showNotification(message, type = 'info') {
+    // إنشاء عنصر الإشعار إذا لم يكن موجودًا
+    let notification = document.getElementById('notification');
+    if (!notification) {
+        notification = document.createElement('div');
+        notification.id = 'notification';
+        notification.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            border-radius: 5px;
+            color: white;
+            z-index: 10000;
+            opacity: 0;
+            transform: translateY(-20px);
+            transition: all 0.3s ease;
+        `;
+        document.body.appendChild(notification);
+    }
+    
+    // تعيين النص والنمط حسب النوع
+    notification.textContent = message;
+    notification.style.backgroundColor = type === 'error' ? '#f44336' : 
+                                      type === 'success' ? '#4CAF50' : '#2196F3';
+    
+    // إظهار الإشعار
+    notification.style.opacity = '1';
+    notification.style.transform = 'translateY(0)';
+    
+    // إخفاء الإشعار بعد 3 ثوان
+    setTimeout(() => {
+        notification.style.opacity = '0';
+        notification.style.transform = 'translateY(-20px)';
+    }, 3000);
+}
 function openAddItemModal(section) {
     const modal = document.getElementById('item-modal');
     const modalTitle = document.getElementById('item-modal-title');
