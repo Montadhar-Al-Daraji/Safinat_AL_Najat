@@ -1,9 +1,19 @@
 // admin/admin.js
 // تهيئة الصفحة عند التحميل
 document.addEventListener('DOMContentLoaded', async function() {
-    await initSupabase();
-    setupEventListeners();
-    await checkAuth();
+    try {
+        const supabaseInitialized = await initSupabase();
+        if (!supabaseInitialized) {
+            showNotification('فشل في تهيئة قاعدة البيانات', 'error');
+            return;
+        }
+        
+        setupEventListeners();
+        await checkAuth();
+    } catch (error) {
+        console.error('Error initializing admin panel:', error);
+        showNotification('حدث خطأ أثناء تهيئة لوحة التحكم', 'error');
+    }
 });
 
 // إعداد جميع event listeners
