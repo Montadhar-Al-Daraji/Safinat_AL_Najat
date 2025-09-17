@@ -1,5 +1,4 @@
-// admin/admin.js
-// تهيئة الصفحة عند التحميل
+
 document.addEventListener('DOMContentLoaded', async function() {
     try {
         // إظهار واجهة تسجيل الدخول أولاً
