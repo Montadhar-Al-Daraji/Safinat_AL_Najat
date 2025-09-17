@@ -15,9 +15,7 @@ const TABLES = {
     SERVERS: 'servers',
     ADMINS: 'admins',
     SECURITY_LOGS: 'security_logs',
-    LOGIN_ATTEMPTS: 'login_attempts',
-    LOGOUT_EVENTS: 'logout_events',
-    DELETION_LOGS: 'deletion_logs'
+    SITE_SETTINGS: 'site_settings'
 };
 
 const CATEGORY_NAMES = {
@@ -28,3 +26,8 @@ const CATEGORY_NAMES = {
     apps: 'تطبيق',
     servers: 'سيرفر'
 };
+
+// تصدير المتغيرات للاستخدام في الملفات الأخرى
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = { CONFIG, TABLES, CATEGORY_NAMES };
+}
