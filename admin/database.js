@@ -112,6 +112,7 @@ async function ensureSupabaseConnection() {
     if (!isSupabaseInitialized) {
         const initialized = await initSupabase();
         if (!initialized) {
+            // إذا فشل الاتصال، نرمي خطأ ولكننا نسمح للتطبيق بالاستمرار
             throw new Error('فشل في الاتصال بقاعدة البيانات');
         }
     }
