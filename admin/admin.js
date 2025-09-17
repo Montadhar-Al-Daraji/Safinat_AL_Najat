@@ -2,20 +2,31 @@
 // تهيئة الصفحة عند التحميل
 document.addEventListener('DOMContentLoaded', async function() {
     try {
-        const supabaseInitialized = await initSupabase();
-        if (!supabaseInitialized) {
-            showNotification('فشل في تهيئة قاعدة البيانات', 'error');
-            // إظهار واجهة تسجيل الدخول حتى لو فشل الاتصال بقاعدة البيانات
-            showLoginPage();
-            return;
-        }
+        // إظهار واجهة تسجيل الدخول أولاً
+        showLoginPage();
         
-        setupEventListeners();
-        await checkAuth();
+        // محاولة تهيئة Supabase في الخلفية
+        setTimeout(async () => {
+            try {
+                const supabaseInitialized = await initSupabase();
+                if (!supabaseInitialized) {
+                    console.warn('فشل في تهيئة قاعدة البيانات، سيتم المحاولة عند الحاجة');
+                }
+                
+                setupEventListeners();
+                
+                // التحقق من المصادقة إذا كان هناك token مخزن
+                const token = sessionStorage.getItem('adminToken');
+                if (token && supabaseInitialized) {
+                    await checkAuth();
+                }
+            } catch (error) {
+                console.error('Error in background initialization:', error);
+            }
+        }, 100);
     } catch (error) {
         console.error('Error initializing admin panel:', error);
         showNotification('حدث خطأ أثناء تهيئة لوحة التحكم', 'error');
-        showLoginPage();
     }
 });
 
