@@ -445,7 +445,8 @@ async function logLoginAttempt(email, success) {
             console.error('Error logging login attempt:', error);
         }
     } catch (error) {
-        console.error('Error logging login attempt:', error);
+        console.error('Error logging login attempt (connection issue):', error);
+        // لا نرمي الخطأ حتى لا نؤثر على تدفق التطبيق
     }
 }
 
