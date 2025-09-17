@@ -17,7 +17,7 @@ function renderAllAdminLists() {
     renderAdminList('apps', siteData.apps);
     renderAdminList('servers', siteData.servers);
     
-    if (currentAdmin.role === 'owner') {
+    if (currentAdmin && currentAdmin.role === 'owner') {
         renderAdminsList(siteData.admins);
     }
 }
