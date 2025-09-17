@@ -1,4 +1,4 @@
-// admin/auth.js
+
 let currentAdmin = null;
 let sessionTimer;
 
