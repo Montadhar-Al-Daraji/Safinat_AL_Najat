@@ -34,11 +34,13 @@ document.addEventListener('DOMContentLoaded', async function() {
 function setupEventListeners() {
     console.log('Setting up event listeners...');
     
+    
+    // إعداد نموذج تسجيل الدخول
     const loginForm = document.getElementById('login-form');
     if (loginForm) {
-        loginForm.addEventListener('submit', function(e) {
+        loginForm.addEventListener('submit', async function(e) {
             e.preventDefault();
-            login();
+            await login();
         });
     }
     
