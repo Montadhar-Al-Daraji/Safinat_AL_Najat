@@ -1,32 +1,4 @@
-// admin/database.js
-const SUPABASE_URL = 'https://xzltdsmmolyvcmkfzedf.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhbmFzZSIsInJlZiI6Inh6bHRkc21tb2x5dmNta2Z6ZWRmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc2Nzg1NzEsImV4cCI6MjA3MzI1NDU3MX0.3TJ49ctEhOT1KDIFtZXFw2jwTq57ujaWbqNNJ2Eeb1U';
-
-const TABLES = {
-    BOOKS: 'books',
-    NOVELS: 'novels',
-    FILES: 'files',
-    PLATFORMS: 'platforms',
-    APPS: 'apps',
-    SERVERS: 'servers',
-    ADMINS: 'admins',
-    SECURITY_LOGS: 'security_logs',
-    SITE_SETTINGS: 'site_settings'
-};
-
-const CATEGORY_NAMES = {
-    books: 'كتاب',
-    novels: 'رواية',
-    files: 'ملف',
-    platforms: 'منصة',
-    apps: 'تطبيق',
-    servers: 'سيرفر'
-};
-
-let supabase;
-let isSupabaseInitialized = false;
-
-// في بداية database.js
+// تعريف دالة showNotification إذا لم تكن معرّفة
 if (typeof showNotification !== 'function') {
     function showNotification(message, type = 'info') {
         // إنشاء عنصر الإشعار إذا لم يكن موجودًا
@@ -65,6 +37,34 @@ if (typeof showNotification !== 'function') {
         }, 3000);
     }
 }
+// admin/database.js
+const SUPABASE_URL = 'https://xzltdsmmolyvcmkfzedf.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhbmFzZSIsInJlZiI6Inh6bHRkc21tb2x5dmNta2Z6ZWRmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc2Nzg1NzEsImV4cCI6MjA3MzI1NDU3MX0.3TJ49ctEhOT1KDIFtZXFw2jwTq57ujaWbqNNJ2Eeb1U';
+
+const TABLES = {
+    BOOKS: 'books',
+    NOVELS: 'novels',
+    FILES: 'files',
+    PLATFORMS: 'platforms',
+    APPS: 'apps',
+    SERVERS: 'servers',
+    ADMINS: 'admins',
+    SECURITY_LOGS: 'security_logs',
+    SITE_SETTINGS: 'site_settings'
+};
+
+const CATEGORY_NAMES = {
+    books: 'كتاب',
+    novels: 'رواية',
+    files: 'ملف',
+    platforms: 'منصة',
+    apps: 'تطبيق',
+    servers: 'سيرفر'
+};
+
+let supabase;
+let isSupabaseInitialized = false;
+
 
 async function initSupabase() {
     try {
@@ -146,31 +146,40 @@ async function login() {
     }
     
     try {
-        await ensureSupabaseConnection();
-        
+        // إظهار تحميل
         const originalText = loginBtn.innerHTML;
         loginBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري تسجيل الدخول...';
         loginBtn.disabled = true;
         
-        // البحث عن المشرف في قاعدة البيانات
-        const { data: admin, error } = await supabase
-            .from('admins')
-            .select('*')
-            .eq('email', email)
-            .eq('is_active', true)
-            .maybeSingle();
-
-        if (error) {
-            console.error('Supabase error:', error);
+        // محاولة الاتصال بـ Supabase
+        let admin = null;
+        try {
+            await ensureSupabaseConnection();
             
-            if (error.code === '42501' || error.message.includes('permission')) {
-                errorElement.textContent = 'لا تملك الصلاحية للوصول إلى بيانات المشرفين';
-            } else if (error.code === '401') {
-                errorElement.textContent = 'مفتاح API غير صالح أو منتهي الصلاحية';
+            // البحث عن المشرف في قاعدة البيانات
+            const { data, error } = await supabase
+                .from('admins')
+                .select('*')
+                .eq('email', email)
+                .eq('is_active', true)
+                .maybeSingle();
+
+            if (error) {
+                console.error('Supabase error:', error);
+                // حتى لو كان هناك خطأ، نستمر في محاولة التسجيل باستخدام البيانات المحلية
             } else {
-                errorElement.textContent = 'خطأ في الاتصال بقاعدة البيانات: ' + error.message;
+                admin = data;
             }
-            return;
+        } catch (connectionError) {
+            console.error('Connection error, using offline mode:', connectionError);
+            // في حالة عدم الاتصال، نستخدم البيانات من sessionStorage إذا كانت موجودة
+            const storedAdminData = sessionStorage.getItem('adminData');
+            if (storedAdminData) {
+                const storedAdmin = JSON.parse(storedAdminData);
+                if (storedAdmin.email === email) {
+                    admin = storedAdmin;
+                }
+            }
         }
 
         if (!admin) {
@@ -184,16 +193,6 @@ async function login() {
             return;
         }
         
-        // تحديث آخر وقت دخول
-        const { error: updateError } = await supabase
-            .from('admins')
-            .update({ last_login: new Date().toISOString() })
-            .eq('id', admin.id);
-
-        if (updateError) {
-            console.error('Error updating last login:', updateError);
-        }
-
         // إنشاء توكن
         const tokenPayload = {
             id: admin.id,
@@ -225,41 +224,55 @@ async function login() {
 
 async function loadAdminData() {
     try {
-        await ensureSupabaseConnection();
         showLoading(true);
         
-        const promises = [
-            supabase.from(TABLES.BOOKS).select('*'),
-            supabase.from(TABLES.NOVELS).select('*'),
-            supabase.from(TABLES.FILES).select('*'),
-            supabase.from(TABLES.PLATFORMS).select('*'),
-            supabase.from(TABLES.APPS).select('*'),
-            supabase.from(TABLES.SERVERS).select('*')
-        ];
-        
-        if (currentAdmin.role === 'owner') {
-            promises.push(supabase.from(TABLES.ADMINS).select('*'));
-        } else {
-            promises.push(Promise.resolve({ data: [] }));
-        }
-        
-        const [
-            booksData, 
-            novelsData, 
-            filesData, 
-            platformsData, 
-            appsData, 
-            serversData, 
-            adminsData
-        ] = await Promise.all(promises);
+        // محاولة تحميل البيانات من Supabase إذا كان متصلاً
+        try {
+            await ensureSupabaseConnection();
+            
+            const promises = [
+                supabase.from(TABLES.BOOKS).select('*'),
+                supabase.from(TABLES.NOVELS).select('*'),
+                supabase.from(TABLES.FILES).select('*'),
+                supabase.from(TABLES.PLATFORMS).select('*'),
+                supabase.from(TABLES.APPS).select('*'),
+                supabase.from(TABLES.SERVERS).select('*')
+            ];
+            
+            if (currentAdmin.role === 'owner') {
+                promises.push(supabase.from(TABLES.ADMINS).select('*'));
+            } else {
+                promises.push(Promise.resolve({ data: [] }));
+            }
+            
+            const [
+                booksData, 
+                novelsData, 
+                filesData, 
+                platformsData, 
+                appsData, 
+                serversData, 
+                adminsData
+            ] = await Promise.all(promises);
 
-        siteData.books = booksData.data || [];
-        siteData.novels = novelsData.data || [];
-        siteData.files = filesData.data || [];
-        siteData.platforms = platformsData.data || [];
-        siteData.apps = appsData.data || [];
-        siteData.servers = serversData.data || [];
-        siteData.admins = adminsData.data || [];
+            siteData.books = booksData.data || [];
+            siteData.novels = novelsData.data || [];
+            siteData.files = filesData.data || [];
+            siteData.platforms = platformsData.data || [];
+            siteData.apps = appsData.data || [];
+            siteData.servers = serversData.data || [];
+            siteData.admins = adminsData.data || [];
+        } catch (error) {
+            console.error('Error loading data from Supabase:', error);
+            // إذا فشل تحميل البيانات من Supabase، نستخدم بيانات افتراضية فارغة
+            siteData.books = [];
+            siteData.novels = [];
+            siteData.files = [];
+            siteData.platforms = [];
+            siteData.apps = [];
+            siteData.servers = [];
+            siteData.admins = [];
+        }
 
         renderAllAdminLists();
         setupSearchFunctionality();
