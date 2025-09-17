@@ -468,17 +468,17 @@ async function saveItem(e) {
                 .from(itemType)
                 .update(itemData)
                 .eq('id', itemId);
-            alert('تم تعديل العنصر بنجاح');
+            showNotification('تم تعديل العنصر بنجاح', 'success');
         } else {
             await saveItemToSupabase(itemType, itemData);
-            alert('تم إضافة العنصر بنجاح');
+            showNotification('تم إضافة العنصر بنجاح', 'success');
         }
         
         await loadAdminData();
         closeModal('item-modal');
     } catch (error) {
         console.error('Error saving item:', error);
-        alert('حدث خطأ أثناء حفظ العنصر: ' + error.message);
+        showNotification('حدث خطأ أثناء حفظ العنصر: ' + error.message, 'error');
     }
 }
 
@@ -495,9 +495,10 @@ async function deleteItem(section, id, title) {
             
             deleteBtn.textContent = originalText;
             deleteBtn.disabled = false;
+            showNotification('تم حذف العنصر بنجاح', 'success');
         } catch (error) {
             console.error('Error deleting item:', error);
-            alert('حدث خطأ أثناء حذف العنصر: ' + error.message);
+            showNotification('حدث خطأ أثناء حذف العنصر: ' + error.message, 'error');
             
             const deleteBtn = event.target;
             deleteBtn.textContent = 'حذف';
