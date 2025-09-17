@@ -1,361 +1,545 @@
-// admin/database.js
-let supabase;
+// admin/ui.js
+let siteData = {
+    books: [],
+    novels: [],
+    files: [],
+    platforms: [],
+    apps: [],
+    servers: [],
+    admins: []
+};
 
-async function initSupabase() {
-    try {
-        if (window.supabase) {
-            supabase = window.supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
-            console.log('Supabase initialized successfully');
-            
-            // اختبار الاتصال بقاعدة البيانات
-            const { data, error } = await supabase
-                .from('admins')
-                .select('count')
-                .limit(1);
-                
-            if (error) {
-                console.error('Failed to connect to database:', error);
-                return false;
-            }
-            
-            console.log('Database connection successful');
-            return true;
+function renderAllAdminLists() {
+    renderAdminList('books', siteData.books);
+    renderAdminList('novels', siteData.novels);
+    renderAdminList('files', siteData.files);
+    renderAdminList('platforms', siteData.platforms);
+    renderAdminList('apps', siteData.apps);
+    renderAdminList('servers', siteData.servers);
+    
+    if (currentAdmin.role === 'owner') {
+        renderAdminsList(siteData.admins);
+    }
+}
+
+function renderAdminList(section, items) {
+    const listElement = document.getElementById(`${section}-list`);
+    if (!listElement) return;
+    
+    listElement.innerHTML = '';
+    
+    if (items.length === 0) {
+        listElement.innerHTML = '<p class="no-items">لا توجد عناصر</p>';
+        return;
+    }
+    
+    items.forEach((item) => {
+        const itemElement = document.createElement('div');
+        itemElement.className = 'item-card';
+        itemElement.setAttribute('data-id', item.id);
+        
+        let infoHtml = `
+            <div class="item-info">
+                <h3>${escapeHtml(item.title)}</h3>
+        `;
+        
+        switch(section) {
+            case 'books':
+                if (item.author) infoHtml += `<p><strong>المؤلف:</strong> ${escapeHtml(item.author)}</p>`;
+                if (item.publisher) infoHtml += `<p><strong>الناشر:</strong> ${escapeHtml(item.publisher)}</p>`;
+                if (item.pages) infoHtml += `<p><strong>الصفحات:</strong> ${escapeHtml(item.pages)}</p>`;
+                if (item.language) infoHtml += `<p><strong>اللغة:</strong> ${escapeHtml(item.language)}</p>`;
+                break;
+            case 'novels':
+                if (item.author) infoHtml += `<p><strong>المؤلف:</strong> ${escapeHtml(item.author)}</p>`;
+                if (item.publisher) infoHtml += `<p><strong>الناشر:</strong> ${escapeHtml(item.publisher)}</p>`;
+                if (item.pages) infoHtml += `<p><strong>الصفحات:</strong> ${escapeHtml(item.pages)}</p>`;
+                if (item.language) infoHtml += `<p><strong>اللغة:</strong> ${escapeHtml(item.language)}</p>`;
+                break;
+            case 'files':
+                if (item.file_type) infoHtml += `<p><strong>النوع:</strong> ${escapeHtml(item.file_type)}</p>`;
+                if (item.file_format) infoHtml += `<p><strong>الصيغة:</strong> ${escapeHtml(item.file_format)}</p>`;
+                if (item.file_size) infoHtml += `<p><strong>الحجم:</strong> ${escapeHtml(item.file_size)}</p>`;
+                break;
+            case 'platforms':
+                if (item.platform_type) infoHtml += `<p><strong>نوع المنصة:</strong> ${escapeHtml(item.platform_type)}</p>`;
+                break;
+            case 'apps':
+                if (item.developer) infoHtml += `<p><strong>المطور:</strong> ${escapeHtml(item.developer)}</p>`;
+                if (item.version) infoHtml += `<p><strong>الإصدار:</strong> ${escapeHtml(item.version)}</p>`;
+                if (item.platform) infoHtml += `<p><strong>المنصة:</strong> ${escapeHtml(item.platform)}</p>`;
+                if (item.file_size) infoHtml += `<p><strong>الحجم:</strong> ${escapeHtml(item.file_size)}</p>`;
+                break;
+            case 'servers':
+                if (item.server_type) infoHtml += `<p><strong>نوع السيرفر:</strong> ${escapeHtml(item.server_type)}</p>`;
+                if (item.members_count) infoHtml += `<p><strong>عدد الأعضاء:</strong> ${escapeHtml(item.members_count)}</p>`;
+                break;
+        }
+        
+        if (item.views_count !== undefined) {
+            infoHtml += `<p><strong>المشاهدات:</strong> ${item.views_count}</p>`;
+        }
+        
+        if (item.downloads_count !== undefined) {
+            infoHtml += `<p><strong>التحميلات:</strong> ${item.downloads_count}</p>`;
+        }
+        
+        if (item.added_by && item.admins) {
+            infoHtml += `<p><strong>أضيف بواسطة:</strong> ${escapeHtml(item.admins.full_name || item.admins.email)}</p>`;
+        }
+        
+        infoHtml += `</div>`;
+        
+        itemElement.innerHTML = infoHtml + `
+            <div class="item-actions">
+                <button class="edit-btn" onclick="openEditItemModal('${section}', '${item.id}')">
+                    <i class="fas fa-edit"></i> تعديل
+                </button>
+                <button class="delete-btn" onclick="deleteItem('${section}', '${item.id}', '${escapeHtml(item.title.replace(/'/g, "\\'"))}')">
+                    <i class="fas fa-trash"></i> حذف
+                </button>
+            </div>
+        `;
+        
+        listElement.appendChild(itemElement);
+    });
+}
+
+function renderAdminsList(admins) {
+    const listElement = document.getElementById('admins-list');
+    
+    if (!admins || admins.length === 0) {
+        listElement.innerHTML = '<p class="no-items">لا يوجد مشرفين</p>';
+        return;
+    }
+    
+    const fragment = document.createDocumentFragment();
+    
+    admins.forEach(admin => {
+        const isCurrentAdmin = currentAdmin && admin.id === currentAdmin.id;
+        
+        const adminItem = document.createElement('div');
+        adminItem.className = 'admin-item';
+        
+        const adminInfo = document.createElement('div');
+        adminInfo.className = 'admin-info';
+        
+        const emailHeading = document.createElement('h3');
+        emailHeading.textContent = escapeHtml(admin.email);
+        
+        const createdAt = document.createElement('p');
+        createdAt.textContent = `تم الإنشاء: ${new Date(admin.created_at).toLocaleDateString('ar-EG')}`;
+        
+        const roleSpan = document.createElement('span');
+        roleSpan.className = `admin-role role-${admin.role}`;
+        roleSpan.textContent = admin.role === 'owner' ? 'مالك' : 'مشرف';
+        
+        adminInfo.appendChild(emailHeading);
+        adminInfo.appendChild(createdAt);
+        adminInfo.appendChild(roleSpan);
+        
+        const adminActions = document.createElement('div');
+        adminActions.className = 'admin-actions';
+        
+        if (!isCurrentAdmin && currentAdmin.role === 'owner') {
+            const deleteButton = document.createElement('button');
+            deleteButton.className = 'delete-admin';
+            deleteButton.textContent = 'حذف';
+            deleteButton.addEventListener('click', () => {
+                deleteAdmin(admin.id, admin.email);
+            });
+            adminActions.appendChild(deleteButton);
         } else {
-            console.error('Supabase library not loaded');
-            return false;
+            const noDeleteSpan = document.createElement('span');
+            noDeleteSpan.style.color = '#ccc';
+            noDeleteSpan.textContent = 'لا يمكن حذف حسابك';
+            adminActions.appendChild(noDeleteSpan);
         }
-    } catch (error) {
-        console.error('Error initializing Supabase:', error);
-        return false;
-    }
+        
+        adminItem.appendChild(adminInfo);
+        adminItem.appendChild(adminActions);
+        
+        fragment.appendChild(adminItem);
+    });
+    
+    listElement.innerHTML = '';
+    listElement.appendChild(fragment);
 }
 
-// admin/database.js
-async function login() {
-    const emailInput = document.getElementById('email');
-    const passwordInput = document.getElementById('password');
-    const errorElement = document.getElementById('login-error');
-    const loginBtn = document.querySelector('.login-btn');
+function updateAdminStats() {
+    const totalAdmins = siteData.admins.length;
+    const totalOwners = siteData.admins.filter(admin => admin.role === 'owner').length;
+    const totalAdminsCount = siteData.admins.filter(admin => admin.role === 'admin').length;
     
-    if (!emailInput || !passwordInput || !errorElement || !loginBtn) {
-        console.error('Login elements not found');
-        return;
-    }
-    
-    const email = emailInput.value.trim();
-    const password = passwordInput.value;
-    
-    errorElement.textContent = '';
-    
-    if (!email || !password) {
-        errorElement.textContent = 'يرجى ملء جميع الحقول';
-        return;
-    }
-    
-    if (!isValidEmail(email)) {
-        errorElement.textContent = 'صيغة البريد الإلكتروني غير صحيحة';
-        return;
-    }
-    
-    try {
-        // إظهار تحميل
-        const originalText = loginBtn.innerHTML;
-        loginBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري تسجيل الدخول...';
-        loginBtn.disabled = true;
-        
-        // البحث عن المشرف في قاعدة البيانات
-        const { data: admin, error } = await supabase
-            .from('admins')
-            .select('*')
-            .eq('email', email)
-            .eq('is_active', true)
-            .maybeSingle();
-
-        if (error) {
-            console.error('Supabase error:', error);
-            errorElement.textContent = 'خطأ في الاتصال بقاعدة البيانات';
-            return;
-        }
-
-        if (!admin) {
-            errorElement.textContent = 'البريد الإلكتروني أو كلمة المرور غير صحيحة';
-            return;
-        }
-        
-        // التحقق من كلمة المرور
-        if (password !== atob(admin.password_hash)) {
-            errorElement.textContent = 'البريد الإلكتروني أو كلمة المرور غير صحيحة';
-            
-            // تسجيل محاولة الدخول الفاشلة
-            await logLoginAttempt(email, false);
-            return;
-        }
-        
-        // تحديث آخر وقت دخول
-        await supabase
-            .from('admins')
-            .update({ last_login: new Date() })
-            .eq('id', admin.id);
-
-        // إنشاء توكن
-        const token = btoa(JSON.stringify({
-            id: admin.id,
-            email: admin.email,
-            role: admin.role,
-            exp: Date.now() + (60 * 60 * 1000) // انتهاء الصلاحية بعد ساعة
-        }));
-        
-        // حفظ بيانات المشرف
-        sessionStorage.setItem('adminToken', token);
-        sessionStorage.setItem('adminData', JSON.stringify(admin));
-        currentAdmin = admin;
-        
-        // تسجيل محاولة الدخول الناجحة
-        await logLoginAttempt(email, true);
-        
-        // إظهار لوحة التحكم
-        showAdminPage();
-        
-    } catch (error) {
-        console.error('Login error:', error);
-        errorElement.textContent = 'حدث خطأ غير متوقع أثناء تسجيل الدخول';
-    } finally {
-        // إعادة تعيين الزر في جميع الحالات
-        if (loginBtn) {
-            loginBtn.innerHTML = '<i class="fas fa-sign-in-alt"></i> دخول';
-            loginBtn.disabled = false;
-        }
-    }
+    document.getElementById('total-admins').textContent = totalAdmins;
+    document.getElementById('total-owners').textContent = totalOwners;
+    document.getElementById('total-admins-count').textContent = totalAdminsCount;
 }
 
-// تأكد من أن هذه الدوال async
-async function logLoginAttempt(email, success) {
-    try {
-        await supabase
-            .from(TABLES.LOGIN_ATTEMPTS)
-            .insert([{
-                email: email,
-                success: success,
-                ip: await getClientIP(),
-                user_agent: navigator.userAgent,
-                timestamp: new Date()
-            }]);
-    } catch (error) {
-        console.error('Error logging login attempt:', error);
-    }
-}
-
-async function logLogoutEvent(email) {
-    try {
-        await supabase
-            .from(TABLES.LOGOUT_EVENTS)
-            .insert([{
-                email: email,
-                timestamp: new Date()
-            }]);
-    } catch (error) {
-        console.error('Error logging logout event:', error);
-    }
-}
-
-async function logDeletionEvent(table, itemId) {
-    try {
-        await supabase
-            .from(TABLES.DELETION_LOGS)
-            .insert([{
-                admin_id: currentAdmin.id,
-                admin_email: currentAdmin.email,
-                table_name: table,
-                item_id: itemId,
-                timestamp: new Date()
-            }]);
-    } catch (error) {
-        console.error('Error logging deletion:', error);
-    }
-}
-
-async function loadAdminData() {
-    if (!supabase) {
-        if (!await initSupabase()) {
-            alert('خطأ في تهيئة قاعدة البيانات');
-            return;
-        }
+function escapeHtml(text) {
+    if (typeof text !== 'string') {
+        return text;
     }
     
-    try {
-        document.querySelectorAll('.items-list').forEach(list => {
-            if (list) list.innerHTML = '<div class="loading-spinner"><i class="fas fa-spinner fa-spin"></i><p>جاري تحميل البيانات...</p></div>';
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+function setupSearchFunctionality() {
+    const booksSearch = document.getElementById('books-search');
+    if (booksSearch) {
+        booksSearch.addEventListener('input', function(e) {
+            const searchTerm = e.target.value.toLowerCase();
+            const filteredBooks = siteData.books.filter(book => 
+                book.title.toLowerCase().includes(searchTerm) || 
+                (book.description && book.description.toLowerCase().includes(searchTerm)) ||
+                (book.author && book.author.toLowerCase().includes(searchTerm)) ||
+                (book.publisher && book.publisher.toLowerCase().includes(searchTerm))
+            );
+            renderAdminList('books', filteredBooks);
         });
-        
-        const [booksData, novelsData, filesData, platformsData, appsData, serversData, adminsData] = await Promise.all([
-            supabase.from(TABLES.BOOKS).select('*, admins:added_by(email, full_name)'),
-            supabase.from(TABLES.NOVELS).select('*, admins:added_by(email, full_name)'),
-            supabase.from(TABLES.FILES).select('*, admins:added_by(email, full_name)'),
-            supabase.from(TABLES.PLATFORMS).select('*, admins:added_by(email, full_name)'),
-            supabase.from(TABLES.APPS).select('*, admins:added_by(email, full_name)'),
-            supabase.from(TABLES.SERVERS).select('*, admins:added_by(email, full_name)'),
-            currentAdmin.role === 'owner' ? supabase.from(TABLES.ADMINS).select('*') : { data: [] }
-        ]);
-
-        siteData.books = booksData.data || [];
-        siteData.novels = novelsData.data || [];
-        siteData.files = filesData.data || [];
-        siteData.platforms = platformsData.data || [];
-        siteData.apps = appsData.data || [];
-        siteData.servers = serversData.data || [];
-        siteData.admins = adminsData.data || [];
-
-        renderAllAdminLists();
-        setupSearchFunctionality();
-        
-        if (currentAdmin.role === 'owner') {
-            updateAdminStats();
-        }
-        
-    } catch (error) {
-        console.error('Error loading data:', error);
-        alert('حدث خطأ في تحميل البيانات: ' + error.message);
+    }
+    
+    // إعداد البحث للروايات
+    const novelsSearch = document.getElementById('novels-search');
+    if (novelsSearch) {
+        novelsSearch.addEventListener('input', function(e) {
+            const searchTerm = e.target.value.toLowerCase();
+            const filteredNovels = siteData.novels.filter(novel => 
+                novel.title.toLowerCase().includes(searchTerm) || 
+                (novel.description && novel.description.toLowerCase().includes(searchTerm))
+            );
+            renderAdminList('novels', filteredNovels);
+        });
+    }
+    
+    // إعداد البحث للملفات
+    const filesSearch = document.getElementById('files-search');
+    if (filesSearch) {
+        filesSearch.addEventListener('input', function(e) {
+            const searchTerm = e.target.value.toLowerCase();
+            const filteredFiles = siteData.files.filter(file => 
+                file.title.toLowerCase().includes(searchTerm) || 
+                (file.description && file.description.toLowerCase().includes(searchTerm))
+            );
+            renderAdminList('files', filteredFiles);
+        });
+    }
+    
+    // إعداد البحث للمنصات
+    const platformsSearch = document.getElementById('platforms-search');
+    if (platformsSearch) {
+        platformsSearch.addEventListener('input', function(e) {
+            const searchTerm = e.target.value.toLowerCase();
+            const filteredPlatforms = siteData.platforms.filter(platform => 
+                platform.title.toLowerCase().includes(searchTerm)
+            );
+            renderAdminList('platforms', filteredPlatforms);
+        });
+    }
+    
+    // إعداد البحث للتطبيقات
+    const appsSearch = document.getElementById('apps-search');
+    if (appsSearch) {
+        appsSearch.addEventListener('input', function(e) {
+            const searchTerm = e.target.value.toLowerCase();
+            const filteredApps = siteData.apps.filter(app => 
+                app.title.toLowerCase().includes(searchTerm) || 
+                (app.description && app.description.toLowerCase().includes(searchTerm))
+            );
+            renderAdminList('apps', filteredApps);
+        });
+    }
+    
+    // إعداد البحث للسيرفرات
+    const serversSearch = document.getElementById('servers-search');
+    if (serversSearch) {
+        serversSearch.addEventListener('input', function(e) {
+            const searchTerm = e.target.value.toLowerCase();
+            const filteredServers = siteData.servers.filter(server => 
+                server.title.toLowerCase().includes(searchTerm) || 
+                (server.description && server.description.toLowerCase().includes(searchTerm))
+            );
+            renderAdminList('servers', filteredServers);
+        });
+    }
+    
+    // إعداد البحث للمشرفين
+    const adminsSearch = document.getElementById('admins-search');
+    if (adminsSearch) {
+        adminsSearch.addEventListener('input', function(e) {
+            const searchTerm = e.target.value.toLowerCase();
+            const filteredAdmins = siteData.admins.filter(admin => 
+                admin.email.toLowerCase().includes(searchTerm)
+            );
+            renderAdminsList(filteredAdmins);
+        });
+    }
+    
+}
+// إظهار/إخفاء تحميل
+function showLoading(show = true) {
+    const loadingOverlay = document.getElementById('loading-overlay');
+    if (loadingOverlay) {
+        loadingOverlay.style.display = show ? 'flex' : 'none';
     }
 }
 
-async function saveItemToSupabase(table, item) {
-    if (!supabase) {
-        throw new Error('Supabase not initialized');
+// عرض رسائل للمستخدم
+function showNotification(message, type = 'info') {
+    // إنشاء عنصر الإشعار إذا لم يكن موجودًا
+    let notification = document.getElementById('notification');
+    if (!notification) {
+        notification = document.createElement('div');
+        notification.id = 'notification';
+        notification.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            border-radius: 5px;
+            color: white;
+            z-index: 10000;
+            opacity: 0;
+            transform: translateY(-20px);
+            transition: all 0.3s ease;
+        `;
+        document.body.appendChild(notification);
     }
     
-    item.added_by = currentAdmin.id;
-    item.added_at = new Date();
-    item.updated_at = new Date();
+    // تعيين النص والنمط حسب النوع
+    notification.textContent = message;
+    notification.style.backgroundColor = type === 'error' ? '#f44336' : 
+                                      type === 'success' ? '#4CAF50' : '#2196F3';
     
-    const { data, error } = await supabase
-        .from(table)
-        .insert([item])
-        .select();
-
-    if (error) {
-        console.error('Error saving item:', error);
-        throw error;
-    }
-
-    return data[0];
+    // إظهار الإشعار
+    notification.style.opacity = '1';
+    notification.style.transform = 'translateY(0)';
+    
+    // إخفاء الإشعار بعد 3 ثوان
+    setTimeout(() => {
+        notification.style.opacity = '0';
+        notification.style.transform = 'translateY(-20px)';
+    }, 3000);
+}
+function openAddItemModal(section) {
+    const modal = document.getElementById('item-modal');
+    const modalTitle = document.getElementById('item-modal-title');
+    const form = document.getElementById('item-form');
+    const itemId = document.getElementById('item-id');
+    const itemType = document.getElementById('item-type');
+    
+    modalTitle.textContent = `إضافة ${CATEGORY_NAMES[section]}`;
+    itemId.value = '';
+    itemType.value = section;
+    form.reset();
+    
+    document.querySelectorAll('.item-type-fields').forEach(field => {
+        field.style.display = 'none';
+    });
+    document.getElementById(`item-fields-${section}`).style.display = 'block';
+    
+    modal.style.display = 'block';
 }
 
-async function deleteItemFromSupabase(table, id) {
-    if (!supabase) {
-        throw new Error('Supabase not initialized');
+function openEditItemModal(section, id) {
+    const item = siteData[section].find(item => item.id === id);
+    if (!item) return;
+    
+    const modal = document.getElementById('item-modal');
+    const modalTitle = document.getElementById('item-modal-title');
+    const form = document.getElementById('item-form');
+    const itemId = document.getElementById('item-id');
+    const itemType = document.getElementById('item-type');
+    
+    modalTitle.textContent = `تعديل ${CATEGORY_NAMES[section]}`;
+    itemId.value = id;
+    itemType.value = section;
+    form.reset();
+    
+    document.getElementById('item-title').value = item.title || '';
+    document.getElementById('item-description').value = item.description || '';
+    document.getElementById('item-image').value = item.image || '';
+    document.getElementById('item-drive-link').value = item.drive_link || item.download_link || item.link || '';
+    
+    switch(section) {
+        case 'books':
+            document.getElementById('item-author').value = item.author || '';
+            document.getElementById('item-publisher').value = item.publisher || '';
+            document.getElementById('item-pages').value = item.pages || '';
+            document.getElementById('item-language').value = item.language || 'العربية';
+            document.getElementById('item-format').value = item.file_format || 'PDF';
+            document.getElementById('item-size').value = item.file_size || '';
+            break;
+        case 'novels':
+            document.getElementById('item-author-novel').value = item.author || '';
+            document.getElementById('item-publisher-novel').value = item.publisher || '';
+            document.getElementById('item-pages-novel').value = item.pages || '';
+            document.getElementById('item-language-novel').value = item.language || 'العربية';
+            document.getElementById('item-format-novel').value = item.file_format || 'PDF';
+            document.getElementById('item-size-novel').value = item.file_size || '';
+            break;
+        case 'files':
+            document.getElementById('item-file-type').value = item.file_type || 'document';
+            document.getElementById('item-format-file').value = item.file_format || '';
+            document.getElementById('item-size-file').value = item.file_size || '';
+            break;
+        case 'platforms':
+            document.getElementById('item-platform-type').value = item.platform_type || 'website';
+            document.getElementById('item-link-url').value = item.link || '';
+            break;
+        case 'apps':
+            document.getElementById('item-developer').value = item.developer || '';
+            document.getElementById('item-version').value = item.version || '';
+            document.getElementById('item-platform-app').value = item.platform || 'android';
+            document.getElementById('item-size-app').value = item.file_size || '';
+            break;
+        case 'servers':
+            document.getElementById('item-server-type').value = item.server_type || 'discord';
+            document.getElementById('item-invite-link').value = item.invite_link || '';
+            document.getElementById('item-members-count').value = item.members_count || 0;
+            break;
     }
     
-    const { error } = await supabase
-        .from(table)
-        .delete()
-        .eq('id', id);
-
-    if (error) {
-        console.error('Error deleting item:', error);
-        throw error;
-    }
+    document.querySelectorAll('.item-type-fields').forEach(field => {
+        field.style.display = 'none';
+    });
+    document.getElementById(`item-fields-${section}`).style.display = 'block';
     
-    await logDeletionEvent(table, id);
+    modal.style.display = 'block';
 }
 
-async function addAdmin(email, password, role) {
-    if (!currentAdmin || currentAdmin.role !== 'owner') {
-        alert('只有所有者可以添加管理员');
-        return false;
-    }
+async function saveItem(e) {
+    e.preventDefault();
     
-    if (!isValidEmail(email) || !email.endsWith('@gmail.com')) {
-        alert('يجب أن يكون البريد الإلكتروني من نوع @gmail.com');
-        return false;
-    }
+    const itemId = document.getElementById('item-id').value;
+    const itemType = document.getElementById('item-type').value;
     
-    if (!isStrongPassword(password)) {
-        alert('كلمة المرور يجب أن تحتوي على الأقل على 8 أحرف، وتشمل أحرف كبيرة وصغيرة وأرقام');
-        return false;
+    const itemData = {
+        title: document.getElementById('item-title').value,
+        description: document.getElementById('item-description').value,
+        image: document.getElementById('item-image').value,
+        drive_link: document.getElementById('item-drive-link').value
+    };
+    
+    switch(itemType) {
+        case 'books':
+            itemData.author = document.getElementById('item-author').value;
+            itemData.publisher = document.getElementById('item-publisher').value;
+            itemData.pages = parseInt(document.getElementById('item-pages').value) || 0;
+            itemData.language = document.getElementById('item-language').value;
+            itemData.file_format = document.getElementById('item-format').value;
+            itemData.file_size = document.getElementById('item-size').value;
+            break;
+        case 'novels':
+            itemData.author = document.getElementById('item-author-novel').value;
+            itemData.publisher = document.getElementById('item-publisher-novel').value;
+            itemData.pages = parseInt(document.getElementById('item-pages-novel').value) || 0;
+            itemData.language = document.getElementById('item-language-novel').value;
+            itemData.file_format = document.getElementById('item-format-novel').value;
+            itemData.file_size = document.getElementById('item-size-novel').value;
+            break;
+        case 'files':
+            itemData.file_type = document.getElementById('item-file-type').value;
+            itemData.file_format = document.getElementById('item-format-file').value;
+            itemData.file_size = document.getElementById('item-size-file').value;
+            break;
+        case 'platforms':
+            itemData.platform_type = document.getElementById('item-platform-type').value;
+            itemData.link = document.getElementById('item-link-url').value;
+            break;
+        case 'apps':
+            itemData.developer = document.getElementById('item-developer').value;
+            itemData.version = document.getElementById('item-version').value;
+            itemData.platform = document.getElementById('item-platform-app').value;
+            itemData.file_size = document.getElementById('item-size-app').value;
+            break;
+        case 'servers':
+            itemData.server_type = document.getElementById('item-server-type').value;
+            itemData.invite_link = document.getElementById('item-invite-link').value;
+            itemData.members_count = parseInt(document.getElementById('item-members-count').value) || 0;
+            break;
     }
     
     try {
-        const passwordHash = btoa(password);
-        
-        const { data, error } = await supabase
-            .from(TABLES.ADMINS)
-            .insert([{ 
-                email, 
-                password_hash: passwordHash, 
-                role,
-                is_active: true,
-                created_at: new Date(),
-                updated_at: new Date()
-            }])
-            .select();
-            
-        if (error) {
-            console.error('Error adding admin:', error);
-            alert('حدث خطأ أثناء إضافة المشرف: ' + error.message);
-            return false;
+        if (itemId) {
+            await supabase
+                .from(itemType)
+                .update(itemData)
+                .eq('id', itemId);
+            showNotification('تم تعديل العنصر بنجاح', 'success');
+        } else {
+            await saveItemToSupabase(itemType, itemData);
+            showNotification('تم إضافة العنصر بنجاح', 'success');
         }
         
-        alert('تمت إضافة المشرف بنجاح');
-        await loadAdminsList();
-        return true;
+        await loadAdminData();
+        closeModal('item-modal');
     } catch (error) {
-        console.error('Error adding admin:', error);
-        alert('حدث خطأ أثناء إضافة المشرف');
-        return false;
+        console.error('Error saving item:', error);
+        showNotification('حدث خطأ أثناء حفظ العنصر: ' + error.message, 'error');
     }
 }
 
-async function deleteAdmin(adminId, adminEmail) {
-    if (!currentAdmin || currentAdmin.role !== 'owner') {
-        alert('只有所有者可以删除管理员');
-        return;
+async function deleteItem(section, id, title) {
+    if (confirm(`هل أنت متأكد من حذف ${title}؟`)) {
+        try {
+            const deleteBtn = event.target;
+            const originalText = deleteBtn.textContent;
+            deleteBtn.textContent = 'جاري الحذف...';
+            deleteBtn.disabled = true;
+            
+            await deleteItemFromSupabase(section, id);
+            await loadAdminData();
+            
+            deleteBtn.textContent = originalText;
+            deleteBtn.disabled = false;
+            showNotification('تم حذف العنصر بنجاح', 'success');
+        } catch (error) {
+            console.error('Error deleting item:', error);
+            showNotification('حدث خطأ أثناء حذف العنصر: ' + error.message, 'error');
+            
+            const deleteBtn = event.target;
+            deleteBtn.textContent = 'حذف';
+            deleteBtn.disabled = false;
+        }
     }
+}
+
+function closeModal(modalId) {
+    document.getElementById(modalId).style.display = 'none';
+}
+
+function changePassword() {
+    document.getElementById('password-modal').style.display = 'block';
+}
+
+function setupTabs() {
+    const tabButtons = document.querySelectorAll('.tab-button');
+    const panels = document.querySelectorAll('.admin-panel');
     
-    if (confirm(`هل أنت متأكد من حذف المشرف ${adminEmail}؟`)) {
-        try {
-            const { error } = await supabase
-                .from(TABLES.ADMINS)
-                .delete()
-                .eq('id', adminId);
-                
-            if (error) {
-                console.error('Error deleting admin:', error);
-                alert('حدث خطأ أثناء حذف المشرف: ' + error.message);
-                return;
-            }
+    tabButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            const tabName = button.getAttribute('data-tab');
             
-            alert('تم حذف المشرف بنجاح');
-            await loadAdminsList();
-        } catch (error) {
-            console.error('Error deleting admin:', error);
-            alert('حدث خطأ أثناء حذف المشرف');
-        }
-    }
-}
-
-function isStrongPassword(password) {
-    const strongRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
-    return strongRegex.test(password);
-}
-
-// دالة لتحميل قائمة المشرفين
-async function loadAdminsList() {
-    if (currentAdmin && currentAdmin.role === 'owner') {
-        try {
-            const { data, error } = await supabase
-                .from(TABLES.ADMINS)
-                .select('*');
-                
-            if (error) {
-                console.error('Error loading admins:', error);
-                return;
-            }
+            panels.forEach(panel => {
+                panel.classList.remove('active');
+            });
             
-            siteData.admins = data || [];
-            renderAdminsList(siteData.admins);
-            updateAdminStats();
-        } catch (error) {
-            console.error('Error loading admins:', error);
-        }
-    }
+            tabButtons.forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            const targetPanel = document.getElementById(`${tabName}-panel`);
+            if (targetPanel) {
+                targetPanel.classList.add('active');
+                button.classList.add('active');
+                
+                if (tabName === 'admins' && currentAdmin.role === 'owner') {
+                    loadAdminsList();
+                }
+            }
+        });
+    });
 }
