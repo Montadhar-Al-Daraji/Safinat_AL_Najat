@@ -2,7 +2,8 @@
 let currentAdmin = null;
 let sessionTimer;
 
-function checkAuth() {
+// تأكد من أن هذه الدالة async
+async function checkAuth() {
     const token = sessionStorage.getItem('adminToken');
     const adminData = sessionStorage.getItem('adminData');
     
@@ -15,7 +16,7 @@ function checkAuth() {
         const tokenData = parseJwt(token);
         if (tokenData.exp * 1000 < Date.now()) {
             console.error('Token expired');
-            logout();
+            await logout(); // إضافة await هنا
             return false;
         }
         
@@ -26,7 +27,7 @@ function checkAuth() {
         return true;
     } catch (error) {
         console.error('Error parsing admin data:', error);
-        logout();
+        await logout(); // إضافة await هنا
         return false;
     }
 }
